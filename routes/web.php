@@ -11,6 +11,8 @@ Route::get('/infaq', InfaqPage::class)->name('infaq');
 
 Route::get('/terms', TermsPage::class)->name('terms');
 
+
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

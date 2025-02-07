@@ -14,32 +14,30 @@
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
-
             <div>
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+                <x-label for="email" value="{{ __('Email') }}" class="dark:text-gray-400" />
+                <x-input id="email" class="block mt-1 w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:focus:ring-gray-500" type="email" ... />
             </div>
 
             <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
+                <x-label for="password" value="{{ __('Password') }}" class="dark:text-gray-400" />
+                <x-input id="password" class="block mt-1 w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:focus:ring-gray-500" type="password" ... />
             </div>
 
             <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
-                    <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                <label for="remember_me" class="flex items-center dark:text-gray-400">  <x-checkbox id="remember_me" name="remember" class="dark:bg-gray-700 dark:border-gray-500 dark:checked:bg-indigo-600" />  <span class="ms-2 text-sm text-gray-600 dark:text-white">  {{ __('Remember me') }}
+                    </span>
                 </label>
             </div>
 
             <div class="flex items-center justify-end mt-4">
                 @if (Route::has('password.request'))
-                    <a wire:navigate class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                    <a wire:navigate class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:text-gray-400 dark:hover:text-white" href="{{ route('password.request') }}">
                         {{ __('Forgot your password?') }}
                     </a>
                 @endif
 
-                <x-button class="ms-4">
+                <x-button class="ms-4 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600">
                     {{ __('Log in') }}
                 </x-button>
             </div>
