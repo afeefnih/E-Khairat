@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('Infaq', function (Blueprint $table) {
+            $table->id();
+            $table->string('bill_code')->unique(); // ToyyibPay bill code
+            $table->string('name'); // Donor's name
+            $table->string('email'); // Donor's email
+            $table->string('phone'); // Donor's phone number
+            $table->decimal('amount', 8, 2); // Donation amount
+            $table->string('status')->default('pending'); // Payment status
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('infaq');
+    }
+};
