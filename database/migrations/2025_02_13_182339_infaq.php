@@ -14,9 +14,6 @@ return new class extends Migration
         Schema::create('Infaq', function (Blueprint $table) {
             $table->id();
             $table->string('bill_code')->unique(); // ToyyibPay bill code
-            $table->string('name'); // Donor's name
-            $table->string('email'); // Donor's email
-            $table->string('phone'); // Donor's phone number
             $table->decimal('amount', 8, 2); // Donation amount
             $table->string('status')->default('pending'); // Payment status
             $table->timestamps();

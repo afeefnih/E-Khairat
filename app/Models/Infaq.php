@@ -12,9 +12,6 @@ class Infaq extends Model
 
     protected $fillable = [
         'bill_code',
-        'name',
-        'email',
-        'phone',
         'amount',
         'status',
     ];

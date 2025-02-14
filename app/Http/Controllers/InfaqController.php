@@ -36,22 +36,23 @@ class InfaqController extends Controller
         // Create a ToyyibPay bill
         $code = config('toyyibpay.code'); // Get category code from config
         $amount = $request->input('amount') * 100; // Convert amount to cents
+        session(['infaq_amount' => $amount]);
 
 
         $billData = [
             'billName' => 'Infaq to Masjid Taman Sutera',
             'billDescription' => 'Infaq of RM ' . $request->input('amount'),
             'billPriceSetting' => 1, // Fixed amount
-            'billPayorInfo' => 1, // Collect payer info
+            'billPayorInfo' => 0,
             'billAmount' => $amount,
             'billReturnUrl' => route('infaq.callback'), // Redirect after payment
             'billExternalReferenceNo' => uniqid(), // Unique reference
-            'billTo' => 'Donor', // Default name (can be customized)
-            'billEmail' => 'donor@example.com', // Default email (can be customized)
-            'billPhone' => '0123456789', // Default phone (can be customized)
+            'billTo' => '', // Allow the user to enter their name
+            'billEmail' => '', // Allow the user to enter their email
+            'billPhone' => '', // Allow the user to enter their phone number
+            'billContentEmail'=>'Terima Kasih kerana telah berinfaq kepada Masjid Taman Sutera. Jazakallahu Khairan.',
+
         ];
-
-
 
 
 
@@ -76,7 +77,9 @@ class InfaqController extends Controller
         // Retrieve payment details from the request
         $status = $request->input('status_id'); // 1 = success, 0 = failure
         $billCode = $request->input('billcode'); // ToyyibPay bill code
-        $amount = $request->input('amount'); // Donation amount
+        $amount = session('infaq_amount', 0); // Default to 0 if not found in session
+
+
 
 
         // Check if payment was successful
@@ -84,9 +87,8 @@ class InfaqController extends Controller
             // Save the donation record to the database
             Infaq::create([
                 'bill_code' => $billCode,
-                'name' => $request->input('billTo', 'Anonymous Donor'), // Default to 'Anonymous Donor' if not provided
-            'email' => $request->input('billEmail', 'donor@example.com'), // Default email
-            'phone' => $request->input('billPhone', '0000000000'), // Default phone
+
+                'phone' => $request->input('billPhone', '0000000000'), // Default phone
                 'amount' => $amount / 100, // Convert amount back to RM
                 'status' => 'paid',
             ]);
