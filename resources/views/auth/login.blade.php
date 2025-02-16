@@ -15,8 +15,8 @@
         <form method="POST" action="{{ route('login') }}">
             @csrf
             <div>
-                <x-label for="email" value="{{ __('Email') }}" class="dark:text-gray-400" />
-                <x-input id="email" class="block mt-1 w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:focus:ring-gray-500" type="email" ... />
+                <x-label for="kad_pengenalan" value="{{ __('Kad Pengenalan') }}" class="dark:text-gray-400" />
+                <x-input id="kad_pengenalan" class="block mt-1 w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:focus:ring-gray-500" type="text" name="kad_pengenalan" required autofocus />
             </div>
 
             <div class="mt-4">

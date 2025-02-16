@@ -12,14 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            // Set ic_number as the primary key
+            $table->string('ic_number')->primary(); // Kad Pengenalan as primary key
+            $table->string('name'); // Nama Penuh
+            $table->string('email')->nullable()->unique(); // Email (optional)
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
+            $table->integer('age'); // Umur
+            $table->string('phone_number'); // No Telefon
+            $table->string('home_phone')->nullable(); // No Telefon Rumah
+            $table->text('address'); // Alamat
+            $table->enum('residence_status', ['kekal', 'sewa']); // Status Permastautin (Kekal / Sewa)
             $table->timestamps();
         });
 
