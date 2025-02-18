@@ -22,7 +22,7 @@
                     name="dependent_full_name"
                     id="dependent_full_name"
                     wire:model="dependent_full_name"
-                    class="w-full px-3 py-2 border text-gray-900 bg-white dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                    class="w-full px-3 py-2 border text-gray-900 bg-white dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                     placeholder="Masukkan nama tangungan"
                 >
                 @error('dependent_full_name')
@@ -39,12 +39,11 @@
                     name="dependent_relationship"
                     id="dependent_relationship"
                     wire:model="dependent_relationship"
-                    class="w-full px-3 py-2 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                    class="w-full px-3 py-2 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 >
                     <option value="" disabled selected>Pilih Hubungan</option>
                     <option value="Bapa">Bapa</option>
                     <option value="Ibu">Ibu</option>
-                    <option value="Adik/Abang/Kakak">Adik/Abang/Kakak</option>
                     <option value="Pasangan">Pasangan</option>
                     <option value="Anak">Anak</option>
                 </select>
@@ -63,7 +62,7 @@
                     name="dependent_ic_number"
                     id="dependent_ic_number"
                     wire:model="dependent_ic_number"
-                    class="w-full px-3 py-2 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                    class="w-full px-3 py-2 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                     placeholder="Masukkan nombor KP"
                 >
                 @error('dependent_ic_number')
@@ -81,7 +80,7 @@
                     name="dependent_age"
                     id="dependent_age"
                     wire:model="dependent_age"
-                    class="w-full px-3 py-2 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200"
+                    class="w-full px-3 py-2 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                     placeholder="Masukkan umur"
                 >
                 @error('dependent_age')

@@ -73,22 +73,7 @@
                 <label for="password_confirmation" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">{{ __('Sahkan Kata Laluan') }} *</label>
             </div>
 
-            <!-- Terms and Privacy Policy Checkbox -->
-            @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
-                <div class="mt-4 col-span-2">
-                    <x-label for="terms" class="dark:text-gray-400">
-                        <div class="flex items-center">
-                            <x-checkbox wire:model="terms" name="terms" id="terms" required class="dark:bg-gray-700 dark:border-gray-500 dark:checked:bg-indigo-600" />
-                            <div class="ms-2 dark:text-white">
-                                {!! __('Saya setuju dengan :Terma dan Syarat ', [
-                                    'Terma dan Syarat' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:text-gray-400 dark:hover:text-white">'.__('Terma dan Syarat ').'</a>',
-                                    'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:text-gray-400 dark:hover:text-white">'.__('Privacy Policy').'</a>',
-                                ]) !!}
-                            </div>
-                        </div>
-                    </x-label>
-                </div>
-            @endif
+
 
             <!-- Submit Button -->
             <div class="flex items-center justify-end mt-4">

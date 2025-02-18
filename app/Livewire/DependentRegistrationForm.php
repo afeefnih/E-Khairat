@@ -20,7 +20,7 @@ class DependentRegistrationForm extends Component
     {
         $this->validate();
 
-        // Add the new dependent to the session
+        // Create a new dependent
         $dependentData = [
             'dependent_full_name' => $this->dependent_full_name,
             'dependent_relationship' => $this->dependent_relationship,
@@ -28,17 +28,17 @@ class DependentRegistrationForm extends Component
             'dependent_ic_number' => $this->dependent_ic_number,
         ];
 
+        // Store the new dependent in the session
         $dependents = session()->get('dependents', []);
         $dependents[] = $dependentData;
         session()->put('dependents', $dependents);
 
-        // Emit event to notify DependentList component to refresh
-        $this->dispatch('dependentAdded', $dependentData);
-
-        // Clear the form
-        $this->resetForm();
-
+        // Emit event to update DependentList in parent component
+        $this->dispatch('dependentAdded');
         session()->flash('message', 'Dependent added successfully!');
+
+        // Reset form
+        $this->resetForm();
     }
 
     public function resetForm()
@@ -53,6 +53,4 @@ class DependentRegistrationForm extends Component
     {
         return view('livewire.dependent-registration-form');
     }
-
-
 }
