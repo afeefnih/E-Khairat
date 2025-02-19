@@ -26,8 +26,16 @@ class UserRegistration extends Component
     {
         $this->validate();
 
+        // Get the last 'No_Ahli' and increment it
+    $lastUser = User::latest('id')->first();  // Get the latest user by ID
+
+    $lastNoAhli = $lastUser ? $lastUser->No_Ahli : '0000';  // Default to '0000' if no user exists
+    $nextNoAhli = str_pad((intval($lastNoAhli) + 1), 4, '0', STR_PAD_LEFT);  // Increment and pad with zeros
+
+
         // Store user data in session (pass it to next step)
         session()->put('user_data', [
+            'No_Ahli' => $nextNoAhli,
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),

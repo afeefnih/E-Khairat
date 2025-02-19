@@ -4,28 +4,25 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            // Set ic_number as the primary key
-            $table->string('ic_number')->primary(); // Kad Pengenalan as primary key
-            $table->string('name'); // Nama Penuh
-            $table->string('email')->nullable()->unique(); // Email (optional)
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->foreignId('current_team_id')->nullable();
-            $table->string('profile_photo_path', 2048)->nullable();
-            $table->integer('age'); // Umur
-            $table->string('phone_number'); // No Telefon
-            $table->string('home_phone')->nullable(); // No Telefon Rumah
-            $table->text('address'); // Alamat
-            $table->enum('residence_status', ['kekal', 'sewa']); // Status Permastautin (Kekal / Sewa)
+            $table->id(); // This will auto-increment integer primary key
+            $table->string('No_Ahli')->unique(); // Store custom 'No_Ahli' as string
+            $table->string('IC_Num')->unique(); // IC Number
+            $table->string('Password');
+            $table->string('Full_Name');
+            $table->string('Address');
+            $table->string('Tel_Num');
+            $table->string('Email')->unique();
+            $table->integer('age');
+            $table->string('House_num');
+            $table->enum('Residency_Stat', ['kekal', 'sewa']); // Residency Status
+            $table->timestamp('registration_date')->useCurrent(); // Registration Date
             $table->timestamps();
         });
 

@@ -29,12 +29,15 @@ class InfaqController extends Controller
      */
     public function store(Request $request)
     {
+
+
+
         $request->validate([
             'amount' => 'required|numeric|min:1',
         ]);
 
         // Create a ToyyibPay bill
-        $code = config('toyyibpay.code'); // Get category code from config
+        $code = config('toyyibpay.category_codes.infaq_khairat'); // Get category code from config
         $amount = $request->input('amount') * 100; // Convert amount to cents
         session(['infaq_amount' => $amount]);
 
@@ -78,9 +81,6 @@ class InfaqController extends Controller
         $status = $request->input('status_id'); // 1 = success, 0 = failure
         $billCode = $request->input('billcode'); // ToyyibPay bill code
         $amount = session('infaq_amount', 0); // Default to 0 if not found in session
-
-
-
 
         // Check if payment was successful
         if ($status === '1') {

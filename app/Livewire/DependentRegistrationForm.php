@@ -20,8 +20,10 @@ class DependentRegistrationForm extends Component
     {
         $this->validate();
 
+        $No_Ahli = session()->get('user_data')['No_Ahli'];
         // Create a new dependent
         $dependentData = [
+            'No_Ahli' => $No_Ahli,
             'dependent_full_name' => $this->dependent_full_name,
             'dependent_relationship' => $this->dependent_relationship,
             'dependent_age' => $this->dependent_age,

@@ -31,8 +31,6 @@ Route::get('/register/invoice', InvoiceAndPayment::class)->name('register.invoic
 
 
 
-
-
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
