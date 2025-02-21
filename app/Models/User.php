@@ -21,7 +21,7 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $primaryKey = 'ic_number'; // Set the primary key to 'ic_number'
+    protected $primaryKey = 'No_Ahli'; // Set the primary key to 'ic_number'
 
     /**
      * Indicates if the model should be timestamped.
@@ -36,14 +36,15 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'ic_number',  // Primary Key
+        'No_Ahli',
+        'ic_number',
         'name',
         'email',
         'password',
-        'age',
         'phone_number',
-        'home_phone',
         'address',
+        'age',
+        'house_num',
         'residence_status',
     ];
 

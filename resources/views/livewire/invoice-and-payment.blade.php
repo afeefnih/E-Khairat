@@ -4,8 +4,8 @@
     </x-slot>
 
     <x-validation-errors class="mb-4" />
-<form  wire:submit.prevent="paymentRegistration" >
-    @csrf
+    <form action="{{ route('payment.registration') }}" method="POST">
+        @csrf
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Header -->
@@ -181,7 +181,7 @@
 <!-- Submit Button -->
 <div class="flex justify-end">
     <button
-        wire:click="paymentRegistration"
+
         class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
         Teruskan Pembayaran
     </button>
@@ -191,7 +191,4 @@
         </div>
     </div>
 </form>
-            </div>
-        </div>
-    </div>
 </x-authentication-card>

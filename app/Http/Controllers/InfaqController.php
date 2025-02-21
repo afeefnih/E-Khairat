@@ -38,6 +38,7 @@ class InfaqController extends Controller
 
         // Create a ToyyibPay bill
         $code = config('toyyibpay.category_codes.infaq_khairat'); // Get category code from config
+
         $amount = $request->input('amount') * 100; // Convert amount to cents
         session(['infaq_amount' => $amount]);
 

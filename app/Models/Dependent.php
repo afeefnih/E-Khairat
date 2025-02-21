@@ -10,7 +10,11 @@ class Dependent extends Model
     use HasFactory;
 
     protected $fillable = [
-         'full_name', 'relationship', 'age', 'ic_number',
+        'No_Ahli', // Add No_Ahli to fillable
+        'full_name',
+        'relationship',
+        'age',
+        'ic_number',
     ];
 
     public function user()

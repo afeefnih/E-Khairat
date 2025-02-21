@@ -9,6 +9,8 @@ use App\Livewire\UserRegistration;
 use App\Http\Controllers\InfaqController;
 use App\Livewire\DependentRegistration;
 use App\Livewire\InvoiceAndPayment;
+use App\Http\Controllers\PaymentController;
+
 
 
 Route::get('/', HomePage::class)->name('home');  // Correct way to use Livewire components in routes
@@ -25,6 +27,11 @@ Route::get('/register/dependent', DependentRegistration::class)->name('register.
 
 // Invoice and Payment Step
 Route::get('/register/invoice', InvoiceAndPayment::class)->name('register.invoice');
+
+Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
+Route::get('/register/payment/callback', [PaymentController::class, 'handlePaymentCallback'])->name('payment.callback');
+
+
 
 
 

@@ -17,7 +17,7 @@ class UserRegistration extends Component
         'ic_number' => 'required|numeric|digits:12',
         'age' => 'required|integer|min:18',
         'phone_number' => 'required|numeric|digits_between:10,15',
-        'home_phone' => 'nullable|numeric|digits_between:10,15',
+        'home_phone' => 'nullable|numeric|digits_between:10,15',  // Make home_phone nullable
         'address' => 'required|string|max:255',
         'residence_status' => 'required|in:kekal,sewa',
     ];
@@ -27,7 +27,7 @@ class UserRegistration extends Component
         $this->validate();
 
         // Get the last 'No_Ahli' and increment it
-    $lastUser = User::latest('id')->first();  // Get the latest user by ID
+    $lastUser = User::latest('No_Ahli')->first();  // Get the latest user by ID
 
     $lastNoAhli = $lastUser ? $lastUser->No_Ahli : '0000';  // Default to '0000' if no user exists
     $nextNoAhli = str_pad((intval($lastNoAhli) + 1), 4, '0', STR_PAD_LEFT);  // Increment and pad with zeros

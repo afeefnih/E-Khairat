@@ -11,17 +11,16 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id(); // This will auto-increment integer primary key
-            $table->string('No_Ahli')->unique(); // Store custom 'No_Ahli' as string
-            $table->string('IC_Num')->unique(); // IC Number
-            $table->string('Password');
-            $table->string('Full_Name');
-            $table->string('Address');
-            $table->string('Tel_Num');
-            $table->string('Email')->unique();
+            $table->string('No_Ahli')->primary();  // Make No_Ahli the primary key
+            $table->string('ic_number')->unique(); // IC Number
+            $table->string('name');
             $table->integer('age');
-            $table->string('House_num');
-            $table->enum('Residency_Stat', ['kekal', 'sewa']); // Residency Status
+            $table->string('email')->nullable()->unique();
+            $table->string('password');
+            $table->string('address');
+            $table->string('phone_number');
+            $table->string('home_phone')->nullable(); // Make home_phone nullable
+            $table->enum('Residency_Stat', ['kekal', 'sewa']);
             $table->timestamp('registration_date')->useCurrent(); // Registration Date
             $table->timestamps();
         });
