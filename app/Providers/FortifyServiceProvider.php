@@ -33,11 +33,21 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
-        RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+       // Custom validation rules for login
+    Fortify::authenticateUsing(function (Request $request) {
+        $request->validate([
+            'ic_number' => ['required', 'numeric', 'digits:12'], // IC Number validation
+            'password' => ['required', 'string', 'min:8'], // Password validation
+        ]);
 
-            return Limit::perMinute(5)->by($throttleKey);
-        });
+        $user = User::where('ic_number', $request->ic_number)->first();
+
+        if ($user && Hash::check($request->password, $user->password)) {
+            return $user;
+        }
+
+        return null;
+    });
 
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
