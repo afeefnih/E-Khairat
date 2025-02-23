@@ -102,19 +102,19 @@
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                            {{ $dependent['dependent_full_name'] }}
+                                            {{ $dependent['full_name'] }}
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                            {{ $dependent['dependent_relationship'] }}
+                                            {{ $dependent['relationship'] }}
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                            {{ $dependent['dependent_ic_number'] }}
+                                            {{ $dependent['ic_number'] }}
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                            {{ $dependent['dependent_age'] }}
+                                            {{ $dependent['age'] }}
                                         </td>
 
                                     </tr>

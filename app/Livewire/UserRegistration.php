@@ -14,10 +14,10 @@ class UserRegistration extends Component
         'email' => 'nullable|string|email|max:255|unique:users,email',
         'password' => 'required|string|min:8|confirmed',
         'password_confirmation' => 'required|string|min:8',
-        'ic_number' => 'required|numeric|digits:12',
+        'ic_number' => 'required|numeric|digits:12|unique:users,ic_number',
         'age' => 'required|integer|min:18',
         'phone_number' => 'required|numeric|digits_between:10,15',
-        'home_phone' => 'nullable|numeric|digits_between:10,15',  // Make home_phone nullable
+        'home_phone' => 'nullable|numeric|digits_between:10,15', // Make home_phone nullable
         'address' => 'required|string|max:255',
         'residence_status' => 'required|in:kekal,sewa',
     ];
@@ -40,6 +40,7 @@ class UserRegistration extends Component
         'ic_number.required' => 'Nombor IC diperlukan.',
         'ic_number.numeric' => 'Nombor IC mesti berupa angka.',
         'ic_number.digits' => 'Nombor IC mesti 12 digit.',
+        'ic_number.unique' => 'Nombor IC telah digunakan.',
         'age.required' => 'Umur diperlukan.',
         'age.integer' => 'Umur mesti berupa angka.',
         'age.min' => 'Umur mesti sekurang-kurangnya 18 tahun.',
@@ -60,11 +61,10 @@ class UserRegistration extends Component
         $this->validate($this->rules, $this->messages);
 
         // Get the last 'No_Ahli' and increment it
-    $lastUser = User::latest('No_Ahli')->first();  // Get the latest user by ID
+        $lastUser = User::latest('No_Ahli')->first(); // Get the latest user by No_Ahli
 
-    $lastNoAhli = $lastUser ? $lastUser->No_Ahli : '0000';  // Default to '0000' if no user exists
-    $nextNoAhli = str_pad((intval($lastNoAhli) + 1), 4, '0', STR_PAD_LEFT);  // Increment and pad with zeros
-
+        $lastNoAhli = $lastUser ? $lastUser->No_Ahli : '0000'; // Default to '0000' if no user exists
+        $nextNoAhli = str_pad(intval($lastNoAhli) + 1, 4, '0', STR_PAD_LEFT); // Increment and pad with zeros
 
         // Store user data in session (pass it to next step)
         session()->put('user_data', [
@@ -81,10 +81,15 @@ class UserRegistration extends Component
         ]);
 
         // Dispatch an event to notify other components (if needed) and redirect
-        $this->dispatch('userRegistered');  // Correct dispatch for Livewire 3.x
+        $this->dispatch('userRegistered'); // Correct dispatch for Livewire 3.x
 
         // Redirect to Dependent Registration Step
-       return $this-> redirect('/register/dependent',navigate: true);
+        return $this->redirect('/register/dependent', navigate: true);
+    }
+
+    public function store()
+    {
+
     }
 
     public function render()

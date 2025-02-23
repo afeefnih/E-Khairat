@@ -35,16 +35,16 @@
                 @forelse ($dependents as $index => $dependent)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['dependent_full_name'] }}
+                            {{ $dependent['full_name'] }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['dependent_relationship'] }}
+                            {{ $dependent['relationship'] }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['dependent_age'] }}
+                            {{ $dependent['age'] }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['dependent_ic_number'] }}
+                            {{ $dependent['ic_number'] }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end gap-2">

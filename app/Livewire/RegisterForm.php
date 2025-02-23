@@ -29,11 +29,8 @@ class RegisterForm extends Component
 
     public function submit()
 {
-    dd('submit');
 
     $this->validate();
-
-
     try {
         User::create([
             'name' => $this->name,
@@ -48,7 +45,7 @@ class RegisterForm extends Component
         ]);
 
         session()->flash('message', 'Registration successful!');
-        Log::info('User created successfully');
+
 
         return redirect()->route('login');
     } catch (\Exception $e) {
