@@ -14,19 +14,48 @@
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
-            <!-- IC Number -->
+
+            <div>
+                <x-label for="ic_number" value="{{ __('Kad Pengenalan') }}" class="dark:text-gray-400" />
+                <x-input id="ic_number" class="block mt-1 w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:focus:ring-gray-500" type="text" name="ic_number" required autofocus />
+            </div>
+
+            <div class="mt-4">
+                <x-label for="password" value="{{ __('Password') }}" class="dark:text-gray-400" />
+                <x-input id="password" class="block mt-1 w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:focus:ring-gray-500" type="password" name="password" ... />
+            </div>
+
+            <div class="block mt-4">
+                <label for="remember_me" class="flex items-center dark:text-gray-400">  <x-checkbox id="remember_me" name="remember" class="dark:bg-gray-700 dark:border-gray-500 dark:checked:bg-indigo-600" />  <span class="ms-2 text-sm text-gray-600 dark:text-white">  {{ __('Remember me') }}
+                    </span>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-end mt-4">
+                @if (Route::has('password.request'))
+                    <a wire:navigate class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:text-gray-400 dark:hover:text-white" href="{{ route('password.request') }}">
+                        {{ __('Forgot your password?') }}
+                    </a>
+                @endif
+
+                <x-button class="ms-4 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600">
+                    {{ __('Log in') }}
+                </x-button>
+            </div>
+            <!--
             <div class="mb-4">
                 <label for="ic_number">Kad Pengenalan</label>
                 <input type="text" name="ic_number" required>
             </div>
 
-            <!-- Password -->
+
             <div class="mb-4">
                 <label for="password">Password</label>
                 <input type="password" name="password" required>
             </div>
 
             <button type="submit">Login</button>
+             -->
         </form>
 
     </x-authentication-card>
