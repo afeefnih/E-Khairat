@@ -16,11 +16,25 @@
 
         <!-- Styles -->
         @livewireStyles
+
+        <script>
+            document.addEventListener('livewire:load', function () {
+                Livewire.on('darkModeChanged', (darkMode) => {
+                    if (darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                });
+            });
+        </script>
+
     </head>
-    <body class="font-sans antialiased">
+    <body x-cloak x-data="{darkMode: $persist(false)}" :class="{'dark': darkMode === true }" class="antialiased">
+
         <x-banner />
 
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-800">
             @livewire('navigation-menu')
 
             <!-- Page Heading -->
