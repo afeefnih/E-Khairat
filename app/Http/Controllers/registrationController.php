@@ -74,6 +74,8 @@ class registrationController extends Controller
 
 
             Auth::login($user);
+            session()->regenerate(); // Regenerate the session to avoid conflicts
+
             // Redirect to the dependent registration step after successfully storing user
             return redirect()->intended(route('dashboard'))->with('message', 'Selamat datang! Pendaftaran berjaya.');
         } else {
