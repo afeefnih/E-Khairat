@@ -44,7 +44,7 @@ class User extends Authenticatable
         'phone_number',
         'address',
         'age',
-        'house_num',
+        'home_phone',
         'residence_status',
     ];
 

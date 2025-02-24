@@ -47,14 +47,21 @@
                 <label for="address" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">{{ __('Alamat') }} *</label>
             </div>
 
-            <!-- Residence Status (Status Permastautin) -->
-            <div class="relative z-0 w-full mb-5 group">
-                <select wire:model="residence_status" id="residence_status" name="residence_status" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:bg-transparent dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700" required>
-                    <option value="kekal" {{ old('residence_status') == 'kekal' ? 'selected' : '' }}>Kekal</option>
-                    <option value="sewa" {{ old('residence_status') == 'sewa' ? 'selected' : '' }}>Sewa</option>
-                </select>
-                <label for="residence_status" class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">{{ __('Status Permastautin') }} *</label>
-            </div>
+           <!-- Residence Status (Status Permastautin) -->
+<div class="relative z-0 w-full mb-5 group">
+    <select
+        name="residence_status"
+        id="residence_status"
+        wire:model="residence_status"
+        class="block w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 dark:bg-gray-700 dark:text-white dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none peer"
+        required
+    >
+        <option value="" disabled selected>Pilih Status Permastautin</option>
+        <option value="kekal">Kekal</option>
+        <option value="sewa">Sewa</option>
+    </select>
+</div>
+
 
             <!-- Email (optional) -->
             <div class="relative z-0 w-full mb-5 group">

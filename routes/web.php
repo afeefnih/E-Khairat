@@ -36,18 +36,6 @@ Route::get('/register/payment/callback', [registrationController::class, 'handle
 Route::post('/login', [AuthenticatedSessionController::class, 'login'])->name('login.form');
 
 
-
-
-
-
-
-
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-});
+Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
+    return view('dashboard');
+})->name('dashboard');

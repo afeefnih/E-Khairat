@@ -19,8 +19,8 @@ return new class extends Migration {
             $table->string('password');
             $table->string('address');
             $table->string('phone_number');
-            $table->string('home_phone')->nullable(); // Make home_phone nullable
-            $table->enum('Residency_Stat', ['kekal', 'sewa']);
+            $table->string('home_phone');
+            $table->string('residence_status'); // Change to string type
             $table->timestamp('registration_date')->useCurrent(); // Registration Date
             $table->timestamps();
         });

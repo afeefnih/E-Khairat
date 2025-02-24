@@ -5,11 +5,21 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Dependent;
+use Illuminate\Support\Facades\Auth;
 
 
 class registrationController extends Controller
 {
     public function storedUser($user_data){
+
+        $existingUser = User::where('No_Ahli', $user_data['No_Ahli'])->first();
+        if ($existingUser) {
+            // Generate the next No_Ahli value
+            $lastUser = User::orderBy('No_Ahli', 'desc')->first();
+            $nextNoAhli = $lastUser ? str_pad((int)$lastUser->No_Ahli + 1, 4, '0', STR_PAD_LEFT) : '0001';
+            $user_data['No_Ahli'] = $nextNoAhli;
+        }
+
 
         $user = User::Create([
             'No_Ahli' => $user_data['No_Ahli'],
@@ -21,8 +31,12 @@ class registrationController extends Controller
             'address' => $user_data['address'],
             'age' => $user_data['age'],
             'home_phone' => $user_data['home_phone'],
-            'Residency_Stat' => $user_data['residence_status'],
+            'residence_status' => $user_data['residence_status'],
         ]);
+
+
+
+        return $user;
 
     }
 
@@ -39,7 +53,6 @@ class registrationController extends Controller
         }
 
     }
-
 
     public function handlePaymentCallback(Request $request)
     {
@@ -62,7 +75,7 @@ class registrationController extends Controller
 
             Auth::login($user);
             // Redirect to the dependent registration step after successfully storing user
-            return redirect()->route('dashboard')->with('message', 'Payment Successful and User Registered!');
+            return redirect()->intended(route('dashboard'))->with('message', 'Selamat datang! Pendaftaran berjaya.');
         } else {
             return redirect()->route('payment.failed')->with('error', 'Payment failed! Please try again.');
         }

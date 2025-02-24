@@ -5,9 +5,10 @@ use Livewire\Component;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
+
 class UserRegistration extends Component
 {
-    public $name, $email, $password, $password_confirmation, $ic_number, $age, $phone_number, $home_phone, $address, $residence_status;
+    public $name, $email, $password, $password_confirmation, $ic_number, $age, $phone_number, $home_phone, $address, $residence_status = '';
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -17,9 +18,9 @@ class UserRegistration extends Component
         'ic_number' => 'required|numeric|digits:12|unique:users,ic_number',
         'age' => 'required|integer|min:18',
         'phone_number' => 'required|numeric|digits_between:10,15',
-        'home_phone' => 'nullable|numeric|digits_between:10,15', // Make home_phone nullable
+        'home_phone' => 'required|numeric|digits_between:10,15', // Make home_phone nullable
         'address' => 'required|string|max:255',
-        'residence_status' => 'required|in:kekal,sewa',
+        'residence_status' => 'required',
     ];
 
     protected $messages = [
@@ -49,6 +50,7 @@ class UserRegistration extends Component
         'phone_number.digits_between' => 'Nombor telefon mesti antara 10 hingga 15 digit.',
         'home_phone.numeric' => 'Nombor telefon rumah mesti berupa angka.',
         'home_phone.digits_between' => 'Nombor telefon rumah mesti antara 10 hingga 15 digit.',
+        'home_phone.required'=> 'Nombor telefon rumah diperlukan.',
         'address.required' => 'Alamat diperlukan.',
         'address.string' => 'Alamat mesti berupa teks.',
         'address.max' => 'Alamat tidak boleh melebihi 255 aksara.',
