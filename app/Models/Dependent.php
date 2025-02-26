@@ -10,15 +10,18 @@ class Dependent extends Model
     use HasFactory;
 
     protected $fillable = [
-        'No_Ahli', // Add No_Ahli to fillable
+        'user_id',
         'full_name',
         'relationship',
         'age',
-        'ic_number',
+        'ic_number'
     ];
 
+    /**
+     * Get the user that owns the dependent.
+     */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

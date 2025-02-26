@@ -11,8 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->string('No_Ahli')->primary();  // Make No_Ahli the primary key
-            $table->string('ic_number')->unique(); // IC Number
+            $table->id(); // Auto-incrementing primary key (id)
+            $table->string('No_Ahli')->unique();  // Unique user identifier (No_Ahli)
+            $table->string('ic_number')->unique();
             $table->string('name');
             $table->integer('age');
             $table->string('email')->nullable()->unique();
@@ -20,10 +21,11 @@ return new class extends Migration {
             $table->string('address');
             $table->string('phone_number');
             $table->string('home_phone');
-            $table->string('residence_status'); // Change to string type
+            $table->string('residence_status');
             $table->timestamp('registration_date')->useCurrent(); // Registration Date
             $table->timestamps();
         });
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Payment;
+use App\Models\PaymentCategory;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,9 +17,9 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        PaymentCategory::create([
+            'category_name' => 'Bayaran Pendaftran',
+            'category_description' => 'Pendaftaran menjadi ahli biro khairat kematian Masjid Taman Sutera',
         ]);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,14 +22,14 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $primaryKey = 'No_Ahli'; // Set the primary key to 'ic_number'
+    protected $primaryKey = 'id'; // Now, using 'id' as the primary key
 
     /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
      */
-    public $timestamps = true; // Ensure timestamps are used
+    public $timestamps = true;
 
     /**
      * The attributes that are mass assignable.
@@ -48,5 +49,15 @@ class User extends Authenticatable
         'residence_status',
     ];
 
-    // Other properties and methods
+    /**
+     * Get the dependents for the user.
+     */
+    public function dependents()
+    {
+        return $this->hasMany(Dependent::class, 'user_id');
+    }
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'user_id');
+    }
 }

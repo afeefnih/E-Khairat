@@ -15,15 +15,19 @@ return new class extends Migration
     {
        // Create dependents table
        Schema::create('dependents', function (Blueprint $table) {
-        $table->id('dependent_id'); // Primary key: dependent_id
-        $table->string('No_Ahli'); // Foreign key: No_Ahli (string type to match the user's No_Ahli type)
-        $table->foreign('No_Ahli')->references('No_Ahli')->on('users'); // Define foreign key relationship
+        $table->id('dependent_id'); // Primary key for the dependents table
+        $table->unsignedBigInteger('user_id'); // Foreign key referencing the user's 'id' field
         $table->string('full_name');
         $table->string('relationship');
         $table->integer('age');
         $table->string('ic_number');
         $table->timestamps();
+
+        // Foreign key constraint to reference the user_id field in the users table
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
     });
+
+
 
     }
 
