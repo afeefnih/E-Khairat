@@ -1,17 +1,19 @@
 <?php
-// app/Http/Livewire/DependentList.php
-namespace App\Livewire;
+
+namespace App\Livewire\Registration\Dependent;
 
 use Livewire\Component;
 
-class DependentList extends Component
+class Table extends Component
 {
+
     public $dependent_full_name, $dependent_relationship, $dependent_age, $dependent_ic_number;
     public $dependents = [];
     public $editDependentId = null;
     public $isModalOpen = false; // To control modal visibility
     public $isDeleteModalOpen = false; // To control delete modal visibility
     public $dependentToDelete = null; // Store the dependent to delete
+
 
     protected $rules = [
         'dependent_full_name' => 'required|string|max:255',
@@ -132,9 +134,8 @@ class DependentList extends Component
         return $this-> redirect('/register/invoice',navigate: true);
     }
 
-
     public function render()
     {
-        return view('livewire.dependent-list');
+        return view('livewire.registration.dependent.table');
     }
 }
