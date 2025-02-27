@@ -13,8 +13,8 @@ class DependentRegistrationForm extends Component
 
     protected $rules = [
         'dependent_full_name' => 'required|string|max:255',
-        'dependent_relationship' => 'required|string|max:255',
-        'dependent_age' => 'required|integer|min:0',
+        'dependent_relationship' => 'required|string',
+        'dependent_age' => 'required|numeric',
         'dependent_ic_number' => 'required|numeric|digits:12',
     ];
 
@@ -24,35 +24,22 @@ class DependentRegistrationForm extends Component
         'dependent_full_name.max' => 'Nama penuh tidak boleh melebihi 255 aksara.',
         'dependent_relationship.required' => 'Hubungan diperlukan.',
         'dependent_relationship.string' => 'Hubungan mesti berupa teks.',
-        'dependent_relationship.max' => 'Hubungan tidak boleh melebihi 255 aksara.',
         'dependent_age.required' => 'Umur diperlukan.',
-        'dependent_age.integer' => 'Umur mesti berupa angka.',
-        'dependent_age.min' => 'Umur mesti sekurang-kurangnya 0 tahun.',
+        'dependent_age.numeric' => 'Umur mesti berupa angka.',
         'dependent_ic_number.required' => 'Nombor IC diperlukan.',
         'dependent_ic_number.numeric' => 'Nombor IC mesti berupa angka.',
         'dependent_ic_number.digits' => 'Nombor IC mesti 12 digit.',
-        'dependent_ic_number.unique' => 'Nombor IC telah digunakan.',
     ];
+
 
     public function submit()
     {
-        $this->validate([
-            'dependent_full_name' => 'required|string|max:255',
-            'dependent_relationship' => 'required|string|max:255',
-            'dependent_age' => 'required|integer|min:0',
-            'dependent_ic_number' => [
-                'required',
-                'numeric',
-                'digits:12',
-                Rule::unique('dependents', 'ic_number'),
-                Rule::unique('users', 'ic_number'),
-            ],
-        ], $this->messages);
 
-        $No_Ahli = session()->get('user_data')['No_Ahli'];
+        $this->validate();
+
         // Create a new dependent
         $dependentData = [
-            'No_Ahli' => $No_Ahli,
+            'No_Ahli' => session()->get('user_data')['No_Ahli'],
             'full_name' => $this->dependent_full_name,
             'relationship' => $this->dependent_relationship,
             'age' => $this->dependent_age,

@@ -27,8 +27,6 @@ class PaymentController extends Controller
         $code = config('toyyibpay.category_codes.yuran_khairat'); // Get category code from config
 
         // Store the amount in session for later use (in case you need to retrieve it later)
-        session(['Yuran_pendaftaran' => $amount]);
-
         // Prepare the data for the Toyyibpay bill
         $billData = [
             'billName' => 'Pendaftaran Khairat Kematian',
@@ -58,5 +56,7 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Failed to create payment bill.'], 500);
         }
     }
+
+
 
 }
