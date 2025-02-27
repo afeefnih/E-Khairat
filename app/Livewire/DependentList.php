@@ -86,10 +86,10 @@ class DependentList extends Component
     {
         $dependent = $this->dependents[$index];
 
-        $this->dependent_full_name = $dependent['dependent_full_name'];
-        $this->dependent_relationship = $dependent['dependent_relationship'];
-        $this->dependent_age = $dependent['dependent_age'];
-        $this->dependent_ic_number = $dependent['dependent_ic_number'];
+        $this->dependent_full_name = $dependent['full_name'];
+        $this->dependent_relationship = $dependent['relationship'];
+        $this->dependent_age = $dependent['age'];
+        $this->dependent_ic_number = $dependent['ic_number'];
         $this->editDependentId = $index;
         $this->isModalOpen = true; // Show the edit modal
     }

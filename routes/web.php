@@ -11,6 +11,8 @@ use App\Livewire\DependentRegistration;
 use App\Livewire\InvoiceAndPayment;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\registrationController;
+use App\Livewire\Registration\Register;
+use App\Livewire\RegisteredUser;
 use App\Models\User;
 use App\Models\Dependent;
 
@@ -30,7 +32,8 @@ Route::get('/register/dependent', DependentRegistration::class)->name('register.
 Route::get('/register/invoice', InvoiceAndPayment::class)->name('register.invoice');
 
 Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
-Route::get('/register/payment/callback', [registrationController::class, 'handlePaymentCallback'])->name('payment.callback');
+Route::get('/register/payment/callback', [RegisteredUser::class, 'handlePaymentCallback'])->name('payment.callback');
+
 
 
 
