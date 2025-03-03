@@ -14,18 +14,13 @@
                 </button>
 
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center ml-4">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-mark class="block h-9 w-auto" />
-                    </a>
-                </div>
+                <a wire:navigate href="{{route('dashboard')}}" class="flex items-center space-x-3 rtl:space-x-reverse">
+                    <img src="{{asset('images/logo.png')}}" class="h-8" alt="Flowbite Logo">
+                    <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">E-Khairat</span>
+                </a>
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:ms-10 sm:flex">
-                    <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
+
+
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">

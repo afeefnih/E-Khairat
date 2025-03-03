@@ -35,7 +35,7 @@ class RegisteredUser extends Component
                 'ic_number' => $user_data['ic_number'],
                 'name' => $user_data['name'],
                 'email' => $user_data['email'],
-                'password' => bcrypt($user_data['password']), // Hash the password before saving
+                'password' => $user_data['password'], // Hash the password before saving
                 'phone_number' => $user_data['phone_number'],
                 'address' => $user_data['address'],
                 'age' => $user_data['age'],
