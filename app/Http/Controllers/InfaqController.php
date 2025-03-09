@@ -32,6 +32,7 @@ class InfaqController extends Controller
 
 
 
+
         $request->validate([
             'amount' => 'required|numeric|min:1',
         ]);
@@ -58,9 +59,11 @@ class InfaqController extends Controller
 
         ];
 
-
-
         $data = Toyyibpay::createBill($code, (object)$billData);
+
+        dd($data);
+
+
 
 
 

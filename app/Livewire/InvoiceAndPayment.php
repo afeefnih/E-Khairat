@@ -23,7 +23,7 @@ class InvoiceAndPayment extends Component
     {
         // Send the request with CSRF token and other data
         $response = Http::withHeaders([
-            'X-CSRF-TOKEN' => csrf_token(),  // Include CSRF token
+            'X-CSRF-TOKEN' => csrf_token(), // Include CSRF token
         ])->post(route('payment.registration'), [
             'amount' => $this->amount,
             'No_Ahli' => $this->user_data['No_Ahli'],
@@ -35,6 +35,16 @@ class InvoiceAndPayment extends Component
         } else {
             dd($response->body()); // Debug the response
         }
+    }
+
+    public function addDependent()
+    {
+        $this->redirect(DependentRegistration::class, navigate: true);
+    }
+
+    public function backToRegister()
+    {
+        $this->redirectRoute('register', navigate: true);
     }
 
     public function render()

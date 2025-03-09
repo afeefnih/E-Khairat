@@ -10,7 +10,8 @@ use Livewire\Attributes\On;
 class UserRegistration extends Component
 {
     // Public properties that will hold the input data
-    public $name, $email, $password, $password_confirmation, $ic_number, $age, $phone_number, $home_phone, $address, $residence_status;
+    public $name, $email, $password, $password_confirmation, $ic_number, $age, $phone_number, $home_phone, $address ;
+    public $residence_status = '';
 
     // Validation rules
     protected $rules = [
