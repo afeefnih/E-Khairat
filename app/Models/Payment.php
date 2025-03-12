@@ -13,7 +13,6 @@ class Payment extends Model
         'status_id',
         'billcode',
         'order_id',
-        'request_title',
         'paid_at',
     ];
 

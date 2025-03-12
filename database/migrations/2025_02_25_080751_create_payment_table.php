@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('status_id'); // Payment status (success, pending, failed)
             $table->string('billcode')->unique(); // Unique billcode from the payment gateway
             $table->string('order_id')->nullable(); // External order reference (if applicable)
-            $table->string('request_title')->nullable(); // Title for additional payments (Kutipan)
             $table->timestamp('paid_at')->nullable(); // Timestamp for when the payment was completed
             $table->timestamps(); // Created and updated timestamps
 

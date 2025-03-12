@@ -12,7 +12,6 @@
             <!-- <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg dark:bg-gray-700">
 
             </div> -->
-
             <livewire:userDashboard/>
         </div>
     </div>

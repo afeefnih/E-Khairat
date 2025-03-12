@@ -128,7 +128,6 @@ class DependentList extends Component
 
         $this->dispatch('redirectToInvoice'); // Dispatch a browser event to redirect to the invoice page
         session()->flash('message', 'User registration is complete. You can now add dependents!');
-        // Instead of using a traditional redirect, use Livewire's redirect method:
         return $this-> redirect('/register/invoice',navigate: true);
     }
 

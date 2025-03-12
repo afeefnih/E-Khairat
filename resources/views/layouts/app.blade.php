@@ -27,6 +27,9 @@
                     }
                 });
             });
+
+
+
         </script>
 
     </head>
@@ -55,5 +58,6 @@
         @stack('modals')
 
         @livewireScripts
+
     </body>
 </html>

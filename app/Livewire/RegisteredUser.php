@@ -62,7 +62,7 @@ class RegisteredUser extends Component
                 'status_id' => 1, // Set the payment status
                 'billcode' => $request->input('billcode'),
                 'order_id' => $request->input('order_id'),
-                'request_title' => $request->input('request_title'),
+                'request_title' => $request->input('category_name'),
                 'paid_at' => now(), // Set the current date and time
             ]);
 

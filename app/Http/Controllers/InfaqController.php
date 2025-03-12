@@ -61,8 +61,6 @@ class InfaqController extends Controller
 
         $data = Toyyibpay::createBill($code, (object)$billData);
 
-        dd($data);
-
 
 
 
