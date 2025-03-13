@@ -185,11 +185,11 @@
                             <dl class="divide-y divide-gray-200 dark:divide-gray-700">
                                 <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
                                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Name</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ $payment->user_id->name ?? 'N/A' }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ auth()->user()->name ?? 'N/A' }}</dd>
                                 </div>
                                 <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
                                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Address</dt>
-                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ $payment->user_id->address ?? 'N/A' }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">{{ auth()->user()->address ?? 'N/A' }}</dd>
                                 </div>
                             </dl>
                         </div>

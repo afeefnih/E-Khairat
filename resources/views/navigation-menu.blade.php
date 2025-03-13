@@ -1,11 +1,11 @@
-<nav x-data="{ open: false, sidebarOpen: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false, sidebarOpen: false }" class="bg-white border-b border-gray-100 dark:bg-gray-900 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
                 <!-- Sidebar Trigger -->
                 <button @click="sidebarOpen = !sidebarOpen"
-                    class="inline-flex items-center justify-center p-2 rounded-md hidden md:block text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all duration-200">
+                    class="inline-flex items-center justify-center p-2 rounded-md hidden md:block dark:text-gray-300 dark:hover:bg-gray-700  text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-200"
                         :class="{ 'rotate-90': sidebarOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -16,21 +16,21 @@
                 <!-- Logo -->
                 <a wire:navigate href="{{route('dashboard')}}" class="flex items-center space-x-3 rtl:space-x-reverse">
                     <img src="{{asset('images/logo.png')}}" class="h-8" alt="Flowbite Logo">
-                    <span class="self-center text-2xl font-semibold whitespace-nowrap ">E-Khairat</span>
+                    <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-gray-300">E-Khairat</span>
                 </a>
 
 
 
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-6 ">
                 <!-- Settings Dropdown -->
-                <div class="ms-3 relative">
+                <div class="ms-3 relative ">
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <span class="inline-flex rounded-md">
                                 <button type="button"
-                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
+                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150 dark:text-gray-300 dark:bg-gray-800 dark:hover:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700 dark:active:bg-gray-700">
                                     {{ Auth::user()->name }}
                                     <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -42,7 +42,7 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <div class="block px-4 py-2 text-xs text-gray-400">
+                            <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-300">
                                 {{ __('Manage Account') }}
                             </div>
 
@@ -50,7 +50,7 @@
                                 {{ __('Profile') }}
                             </x-dropdown-link>
 
-                            <div class="border-t border-gray-200"></div>
+                            <div class="border-t border-gray-200 "></div>
 
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}" x-data>
@@ -199,11 +199,18 @@
             >
                 Toggle Dark Mode
             </div>
-            <a href="{{ route('dashboard') }}"
+            <a wire:navigate href="{{ route('dashboard') }}"
                :class="darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'"
                class="block px-4 py-2 rounded-md transition-colors duration-200"
             >
                 Dashboard
+            </a>
+
+            <a wire:navigate href="{{ route('profile.show') }}"
+               :class="darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'"
+               class="block px-4 py-2 rounded-md transition-colors duration-200"
+            >
+                Tangunggan
             </a>
             <!-- Add more navigation items here -->
         </nav>
