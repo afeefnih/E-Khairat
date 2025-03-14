@@ -7,14 +7,7 @@ use App\Livewire\TermsPage;
 use App\Livewire\RegisterForm;
 use App\Livewire\UserRegistration;
 use App\Http\Controllers\InfaqController;
-use App\Livewire\DependentRegistration;
-use App\Livewire\InvoiceAndPayment;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\registrationController;
-use App\Livewire\Registration\Register;
-use App\Livewire\RegisteredUser;
-use App\Models\User;
-use App\Models\Dependent;
+
 
 Route::get('/', HomePage::class)->name('home');  // Correct way to use Livewire components in routes
 
@@ -24,18 +17,6 @@ Route::post('/infaq/store', [InfaqController::class, 'store'])->name('infaq.stor
 Route::get('/infaq/callback', [InfaqController::class, 'handlePaymentCallback'])->name('infaq.callback');
 
 Route::get('/register', UserRegistration::class)->name('register');
-
-// Dependent Registration Step
-Route::get('/register/dependent', DependentRegistration::class)->name('register.dependent');
-
-// Invoice and Payment Step
-Route::get('/register/invoice', InvoiceAndPayment::class)->name('register.invoice');
-
-Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
-Route::get('/register/payment/callback', [RegisteredUser::class, 'handlePaymentCallback'])->name('payment.callback');
-
-
-
 
 
 
@@ -49,4 +30,9 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+// Add the new route for "Maklumat Ahli" page
+Route::get('/maklumat-ahli', function () {
+    return view('UserProfile');
+})->name('maklumat-ahli');
 });

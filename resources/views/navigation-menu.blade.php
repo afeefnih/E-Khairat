@@ -199,20 +199,20 @@
             >
                 Toggle Dark Mode
             </div>
-            <a wire:navigate href="{{ route('dashboard') }}"
+            <a wire:navigate href="/dashboard"
                :class="darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'"
                class="block px-4 py-2 rounded-md transition-colors duration-200"
             >
                 Dashboard
             </a>
 
-            <a wire:navigate href="{{ route('profile.show') }}"
+            <a wire:navigate href="/maklumat-ahli"
                :class="darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'"
                class="block px-4 py-2 rounded-md transition-colors duration-200"
             >
-                Tangunggan
+                Maklumat Ahli
             </a>
-            <!-- Add more navigation items here -->
+
         </nav>
     </div>
 </div>

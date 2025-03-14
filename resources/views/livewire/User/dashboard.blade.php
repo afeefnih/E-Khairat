@@ -27,7 +27,7 @@
                             <span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">Customer</span>
                             <span class="px-2.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full">Premium</span>
                         </div>
-                        <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Selamat datang ke papan dashboard peribadi anda!</p>
+                        <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">{{ auth()->user()->address }}</p>
                     </div>
                 </div>
             </div>
