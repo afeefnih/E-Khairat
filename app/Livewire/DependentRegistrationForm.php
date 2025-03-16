@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\User;
 use App\Models\Dependent;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class DependentRegistrationForm extends Component
@@ -35,6 +36,10 @@ class DependentRegistrationForm extends Component
     public function submit()
     {
 
+        if(Auth::check()){
+            $this->addNewDependent();
+        }else{
+
         $this->validate();
 
         // Create a new dependent
@@ -58,6 +63,24 @@ class DependentRegistrationForm extends Component
         // Reset form
         $this->resetForm();
     }
+    }
+
+    public function addNewDependent(){
+        $this->validate();
+
+        $dependentData = [
+            'full_name' => $this->dependent_full_name,
+            'relationship' => $this->dependent_relationship,
+            'age' => $this->dependent_age,
+            'ic_number' => $this->dependent_ic_number,
+        ];
+
+        cache()->put('dependent', $dependentData);
+
+        $this->resetForm();
+    }
+
+
 
     public function resetForm()
     {

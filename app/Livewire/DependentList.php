@@ -3,6 +3,9 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Dependent;
+use Illuminate\Support\Facades\Cache;
 
 class DependentList extends Component
 {
@@ -33,7 +36,14 @@ class DependentList extends Component
     // Fetch the dependents from the session when the component is mounted
     public function mount()
     {
-        $this->refreshDependents();
+        // Check if the user is authenticated
+        if (Auth::check()) {
+            // If the user is logged in, fetch their dependents
+            $this->dependents = Auth::user()->dependents;
+        } else {
+            // If the user is not logged in, refresh the dependents
+            $this->refreshDependents();
+        }
     }
 
     // Function to refresh dependents list
@@ -46,34 +56,33 @@ class DependentList extends Component
     {
         // Set the dependent ID that we want to delete
         $this->dependentToDelete = $dependentId;
-        $this->isDeleteModalOpen = true;  // Open the delete confirmation modal
+        $this->isDeleteModalOpen = true; // Open the delete confirmation modal
     }
 
+    // Method to delete the dependent
+    public function deleteDependent()
+    {
+        if (is_null($this->dependentToDelete)) {
+            return;
+        }
 
-   // Method to delete the dependent
-   public function deleteDependent()
-   {
-       if (is_null($this->dependentToDelete)) {
-           return;
-       }
+        // Get the dependents from the session
+        $dependents = session()->get('dependents', []);
 
-       // Get the dependents from the session
-       $dependents = session()->get('dependents', []);
+        // Remove the dependent
+        unset($dependents[$this->dependentToDelete]);
 
-       // Remove the dependent
-       unset($dependents[$this->dependentToDelete]);
+        // Reindex the array to avoid gaps
+        $dependents = array_values($dependents);
+        session()->put('dependents', $dependents);
 
-       // Reindex the array to avoid gaps
-       $dependents = array_values($dependents);
-       session()->put('dependents', $dependents);
+        // Close the modal
+        $this->isDeleteModalOpen = false;
 
-       // Close the modal
-       $this->isDeleteModalOpen = false;
-
-       // Emit event to refresh the list after deletion
-       $this->dispatch('dependentDeleted');
-       session()->flash('message', 'Dependent deleted successfully!');
-   }
+        // Emit event to refresh the list after deletion
+        $this->dispatch('dependentDeleted');
+        session()->flash('message', 'Dependent deleted successfully!');
+    }
 
     // Method to close the delete modal
     public function closeDeleteModal()
@@ -84,12 +93,23 @@ class DependentList extends Component
     // Function to open the edit modal and set the dependent to be edited
     public function editDependent($index)
     {
-        $dependent = $this->dependents[$index];
+        if (Auth::check()) {
+            // If the user is logged in, fetch their dependents
+            // Fetch the dependent from the database using the dependent_id
+            $dependent = Dependent::where('dependent_id', $index)->first();
 
+            if ($dependent) {
+                // Set the dependent for editing
+                $this->dependent = $dependent;
+            }
+        } else {
+            $dependent = $this->dependents[$index];
+        }
         $this->dependent_full_name = $dependent['full_name'];
         $this->dependent_relationship = $dependent['relationship'];
         $this->dependent_age = $dependent['age'];
         $this->dependent_ic_number = $dependent['ic_number'];
+
         $this->editDependentId = $index;
         $this->isModalOpen = true; // Show the edit modal
     }
@@ -128,9 +148,15 @@ class DependentList extends Component
 
         $this->dispatch('redirectToInvoice'); // Dispatch a browser event to redirect to the invoice page
         session()->flash('message', 'User registration is complete. You can now add dependents!');
-        return $this-> redirect('/register/invoice',navigate: true);
+        return $this->redirect('/register/invoice', navigate: true);
     }
 
+    public function save()
+    {
+        $dependentData = Cache::get('dependent');
+
+        dd($dependentData);
+    }
 
     public function render()
     {
