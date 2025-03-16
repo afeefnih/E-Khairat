@@ -9,6 +9,9 @@ class Dependent extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'dependent_id';
+
+
     protected $fillable = [
         'user_id',
         'full_name',

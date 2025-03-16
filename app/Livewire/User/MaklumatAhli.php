@@ -10,9 +10,24 @@ use Illuminate\Validation\Rule;
 
 class MaklumatAhli extends Component
 {
-
-
+    public $editMode = false;
     public $state = [];
+
+    public function toggleEditMode()
+    {
+        $this->editMode = !$this->editMode;
+    }
+
+    public function cancelEdit()
+    {
+        $this->editMode = false;
+        $this->resetForm();
+    }
+
+    public function resetForm()
+    {
+        $this->state = Auth::user()->withoutRelations()->toArray();
+    }
 
     public function mount()
     {
@@ -24,10 +39,8 @@ class MaklumatAhli extends Component
     {
         $rules = [
             'state.name' => 'required|string|max:255',
-            'state.email' => ['nullable', 'email', 'max:255',
-                Rule::unique('users', 'email')->ignore(Auth::id())],
-            'state.ic_number' => ['required', 'string', 'max:255',
-                Rule::unique('users', 'ic_number')->ignore(Auth::id())],
+            'state.email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore(Auth::id())],
+            'state.ic_number' => ['required', 'string', 'max:255', Rule::unique('users', 'ic_number')->ignore(Auth::id())],
             'state.age' => 'required|numeric|min:1|max:150',
             'state.phone_number' => 'required|string|max:255',
             'state.home_phone' => 'required|string|max:255',
@@ -78,15 +91,16 @@ class MaklumatAhli extends Component
             'residence_status' => $this->state['residence_status'],
         ]);
 
-        $this->dispatch('dashboard', ['message' => 'Profile information updated successfully.']);
 
-        session()->flash('message', 'Maklumat profil anda telah dikemaskini.');
+        $this->editMode = false;
+
+
+        $this->dispatch('dashboard', [
+            'message' => 'Profile information updated successfully!'
+        ]);
     }
     public function render()
     {
-
         return view('livewire.user.maklumat-ahli');
     }
-
-
 }

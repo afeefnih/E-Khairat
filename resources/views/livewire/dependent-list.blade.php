@@ -1,5 +1,4 @@
 <div>
-
     <h2 class="text-lg md:text-xl font-semibold mt-10 mb-4 text-gray-900 dark:text-white transition-colors duration-200">
         Senarai Tangungan
     </h2>
@@ -9,54 +8,59 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
                 <tr>
-                    <th scope="col"
-                        class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Nama
                     </th>
-                    <th scope="col"
-                        class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Hubungan
                     </th>
-                    <th scope="col"
-                        class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Umur
                     </th>
-                    <th scope="col"
-                        class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Nombor KP
                     </th>
-                    <th scope="col"
-                        class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Tindakan
                     </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-800">
-                @forelse ($dependents as $index => $dependent)
+                @forelse ($dependents as $dependent)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['full_name'] }}
+                            {{ $dependent->full_name }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['relationship'] }}
+                            {{ $dependent->relationship }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['age'] }}
+                            {{ $dependent->age }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $dependent['ic_number'] }}
+                            {{ $dependent->ic_number }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end gap-2">
-                                <button wire:click="editDependent({{ $index }})"
+                                @if(Auth::check())
+                                    <button wire:click="editDependent({{ $dependent->dependent_id }})"
+                                        class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-500 dark:hover:text-yellow-400 transition-colors duration-200">
+                                        Edit
+                                    </button>
+                                    <button wire:click="setDependentToDelete({{ $dependent->dependent_id }})"
+                                        class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400">
+                                        Delete
+                                    </button>
+                                    @else
+                                <button wire:click="editDependent({{ $dependent->id }})"
                                     class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-500 dark:hover:text-yellow-400 transition-colors duration-200">
                                     Edit
                                 </button>
-                                <button @click="open = true" wire:click="setDependentToDelete({{ $index }})"
+                                <button wire:click="setDependentToDelete({{ $dependent->id }})"
                                     class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400">
                                     Delete
                                 </button>
-
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -70,17 +74,25 @@
                 @endforelse
             </tbody>
         </table>
-
     </div>
+
     <!-- Store All and Redirect to Invoice Page -->
-<div class="mt-6">
-
-    <div class="flex justify-end">
-        <x-button wire:click="saveDependents" type="submit" >
-            Simpan dan Teruskan
-        </x-button>
+    <div class="mt-6">
+        @if(Auth::check())
+            <div class="flex justify-end">
+                <x-button wire:click="save" type="submit">
+                    simpan
+                </x-button>
+            </div>
+        @else
+            <div class="flex justify-end">
+                <x-button wire:click="saveDependents" type="submit">
+                    Simpan dan Teruskan
+                </x-button>
+            </div>
+        @endif
     </div>
-</div>
+
 
 
     <div x-data="{ open: @entangle('isModalOpen') }"

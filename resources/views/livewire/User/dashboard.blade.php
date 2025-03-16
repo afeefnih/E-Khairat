@@ -1,104 +1,132 @@
 <div x-data="{ open: false, payment: {} }" class="min-w-screen rounded-2xl bg-gray-50 dark:bg-gray-900">
 
     <!-- Main Content -->
-    <div class="py-5 px-4">
-        <div class="max-w-5xl mx-auto">
-            <!-- Success Alert -->
-            <div x-data="{ show: false }" x-show="show" x-init="show = {{ session('success') ? 'true' : 'false' }}; setTimeout(() => show = false, 5000)" class="mb-6">
-                <div class="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 dark:border-green-600 p-4 rounded-xl flex items-center justify-between">
-                    <p class="text-green-700 dark:text-green-100 text-sm font-medium">{{ session('success') }}</p>
+<div class="py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Success Alert (Condensed) -->
+        @if(session('success'))
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="mb-4">
+                <div class="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 dark:border-green-600 p-3 rounded-lg flex items-center justify-between">
+                    <p class="text-green-700 dark:text-green-100 text-sm">{{ session('success') }}</p>
                     <button @click="show = false" class="text-green-500 hover:text-green-700 dark:hover:text-green-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
                     </button>
                 </div>
             </div>
+        @endif
 
-            <!-- User Profile Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm mb-8 mt-8 overflow-hidden border border-gray-100 dark:border-gray-700">
-                <div class="p-6 flex flex-wrap items-center gap-6">
-                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-blue-600 dark:text-blue-300 text-xl font-medium">{{ substr(auth()->user()->name, 0, 2) }}</span>
+        <!-- User Profile Card (Compact) -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div class="p-4 md:p-6 flex flex-col md:flex-row items-center gap-4">
+                <div class="w-14 h-14 md:w-16 md:h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-blue-600 dark:text-blue-300 text-lg md:text-xl font-medium">
+                        {{ substr(auth()->user()->name, 0, 2) }}
+                    </span>
+                </div>
+                <div class="text-center md:text-left w-full">
+                    <h2 class="text-lg md:text-xl font-medium text-gray-900 dark:text-white">
+                        {{ auth()->user()->name }}
+                    </h2>
+                    <div class="flex justify-center md:justify-start flex-wrap gap-2 mt-2">
+                        <span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">
+                            {{ auth()->user()->ic_number }}
+                        </span>
+                        <span class="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full">
+                            Member since {{ auth()->user()->created_at->format('F j, Y') }}
+                        </span>
                     </div>
-                    <div class="flex-grow">
-                        <h2 class="text-gray-900 dark:text-white text-xl font-medium">{{ auth()->user()->name }}</h2>
-                        <div class="flex flex-wrap gap-2 mt-2">
-                            <span class="px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">Customer</span>
-                            <span class="px-2.5 py-0.5 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full">Premium</span>
-                        </div>
-                        <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">{{ auth()->user()->address }}</p>
-                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm text-center md:text-left">
+                        {{ auth()->user()->address }}
+                    </p>
                 </div>
             </div>
+        </div>
 
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 transition-all hover:shadow-md border border-gray-100 dark:border-gray-700">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Jumlah Bayaran (RM)</h3>
-                    <p class="text-gray-900 dark:text-white text-3xl font-semibold mt-2">100</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 transition-all hover:shadow-md border border-gray-100 dark:border-gray-700">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Jumlah Tunggakan (RM)</h3>
-                    <p class="text-gray-900 dark:text-white text-3xl font-semibold mt-2">00</p>
-                </div>
+        <!-- Summary Cards (Responsive Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 md:p-6 transition-all hover:shadow-md border border-gray-100 dark:border-gray-700">
+                <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Jumlah Bayaran (RM)</h3>
+                <p class="text-gray-900 dark:text-white text-2xl md:text-3xl font-semibold mt-2">100</p>
             </div>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 md:p-6 transition-all hover:shadow-md border border-gray-100 dark:border-gray-700">
+                <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Jumlah Tunggakan (RM)</h3>
+                <p class="text-gray-900 dark:text-white text-2xl md:text-3xl font-semibold mt-2">00</p>
+            </div>
+        </div>
 
-            <!-- Recent Payments Section -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Payments</h3>
-                <div class="overflow-x-auto rounded-xl">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700/50">
-                            <tr>
-                                <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider rounded-tl-xl">Yuran</th>
-                                <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jumlah (RM)</th>
-                                <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider rounded-tr-xl">Resit</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($payments as $payment)
-                                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                    <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">{{ $payment->paymentCategory->category_name ?? 'N/A' }}</td>
-                                    <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">{{ number_format($payment->amount, 2) }}</td>
-                                    <td class="py-4 px-4 text-sm">
-                                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {{ $payment->status_id == 1 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' }}">
-                                            {{ $payment->status_id == 1 ? 'Successful' : 'Failed' }}
-                                        </span>
-                                    </td>
-                                    <td class="py-4 px-4 text-sm">
-                                        <div class="flex flex-col sm:flex-row gap-2">
-                                            @if($payment->billcode)
-                                            <a href="https://dev.toyyibpay.com/{{ $payment->billcode }}" target="_blank" class="inline-flex items-center justify-center px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400 dark:hover:bg-blue-900/80 rounded-lg text-xs font-medium transition-colors">
+        <!-- Recent Payments Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Payments</h3>
+            <div class="overflow-x-auto rounded-xl">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700/50">
+                        <tr>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider rounded-tl-xl">Yuran</th>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jumlah (RM)</th>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="py-3 px-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider rounded-tr-xl">Resit</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        @forelse($payments as $payment)
+                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <td class="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
+                                    {{ $payment->paymentCategory->category_name ?? 'N/A' }}
+                                </td>
+                                <td class="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
+                                    {{ number_format($payment->amount, 2) }}
+                                </td>
+                                <td class="py-3 px-4 text-sm">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                                        {{ $payment->status_id == 1
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' }}">
+                                        {{ $payment->status_id == 1 ? 'Successful' : 'Failed' }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm">
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        @if($payment->billcode)
+                                            <a href="https://dev.toyyibpay.com/{{ $payment->billcode }}"
+                                               target="_blank"
+                                               class="inline-flex items-center justify-center px-2 py-1
+                                                      bg-blue-50 hover:bg-blue-100 text-blue-700
+                                                      dark:bg-blue-900/50 dark:text-blue-400
+                                                      dark:hover:bg-blue-900/80 rounded-lg
+                                                      text-xs font-medium transition-colors">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                 </svg>
                                                 {{ substr($payment->billcode, 0, 8) }}...
                                             </a>
-                                            @endif
-                                            <button @click="open = true; payment = $payment" class="inline-flex items-center justify-center px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400 dark:hover:bg-green-900/80 rounded-lg text-xs font-medium transition-colors">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                Receipt
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="py-6 text-center text-gray-500 dark:text-gray-400">
-                                        No payment records found.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                        @endif
+                                        <button
+                                            @click="open = true; payment = $payment"
+                                            class="inline-flex items-center justify-center px-2 py-1
+                                                   bg-green-50 hover:bg-green-100 text-green-700
+                                                   dark:bg-green-900/50 dark:text-green-400
+                                                   dark:hover:bg-green-900/80 rounded-lg
+                                                   text-xs font-medium transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            Receipt
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                                    No payment records found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
     <!-- Receipt Modal -->
     <div x-show="open"
          x-transition:enter="transition ease-out duration-200"
