@@ -45,7 +45,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 md:p-6 transition-all hover:shadow-md border border-gray-100 dark:border-gray-700">
                 <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Jumlah Bayaran (RM)</h3>
-                <p class="text-gray-900 dark:text-white text-2xl md:text-3xl font-semibold mt-2">100</p>
+                <p class="text-gray-900 dark:text-white text-2xl md:text-3xl font-semibold mt-2">
+                    {{ number_format($totalPayments, 2) }}
+                </p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 md:p-6 transition-all hover:shadow-md border border-gray-100 dark:border-gray-700">
                 <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Jumlah Tunggakan (RM)</h3>

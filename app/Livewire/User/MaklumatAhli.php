@@ -13,6 +13,7 @@ class MaklumatAhli extends Component
     public $editMode = false;
     public $state = [];
 
+
     public function toggleEditMode()
     {
         $this->editMode = !$this->editMode;
@@ -95,9 +96,6 @@ class MaklumatAhli extends Component
         $this->editMode = false;
 
 
-        $this->dispatch('dashboard', [
-            'message' => 'Profile information updated successfully!'
-        ]);
     }
     public function render()
     {

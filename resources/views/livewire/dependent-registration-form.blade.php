@@ -97,7 +97,7 @@
             </button>
 
             @if(Auth::check())
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition-colors duration-200" wire:submit.prevent="addNewDependent">
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition-colors duration-200" wire:submit.prevent="addNewDependent" >
                     {{ __('Kemaskini') }}
                 </button>
             @else

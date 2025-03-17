@@ -16,7 +16,7 @@ class DependentRegistrationForm extends Component
         'dependent_full_name' => 'required|string|max:255',
         'dependent_relationship' => 'required|string',
         'dependent_age' => 'required|numeric',
-        'dependent_ic_number' => 'required|numeric|digits:12',
+        'dependent_ic_number' => 'required|numeric|digits:12|unique:dependents,ic_number',
     ];
 
     protected $messages = [
@@ -30,6 +30,7 @@ class DependentRegistrationForm extends Component
         'dependent_ic_number.required' => 'Nombor IC diperlukan.',
         'dependent_ic_number.numeric' => 'Nombor IC mesti berupa angka.',
         'dependent_ic_number.digits' => 'Nombor IC mesti 12 digit.',
+        'dependent_ic_number.unique' => 'Nombor IC telah wujud.',
     ];
 
 
@@ -65,20 +66,30 @@ class DependentRegistrationForm extends Component
     }
     }
 
-    public function addNewDependent(){
-        $this->validate();
 
-        $dependentData = [
-            'full_name' => $this->dependent_full_name,
-            'relationship' => $this->dependent_relationship,
-            'age' => $this->dependent_age,
-            'ic_number' => $this->dependent_ic_number,
-        ];
+    public function addNewDependent()
+{
+    $this->validate();
 
-        cache()->put('dependent', $dependentData);
+    $dependentData = [
+        'full_name' => $this->dependent_full_name,
+        'relationship' => $this->dependent_relationship,
+        'age' => $this->dependent_age,
+        'ic_number' => $this->dependent_ic_number,
+    ];
 
-        $this->resetForm();
-    }
+    $dependents = cache()->get('dependents', []);
+
+    // Add the new dependent to the array
+    $dependents[] = $dependentData;
+
+    // Store the updated array back in the cache
+    cache()->put('dependents', $dependents);
+
+    // Reset the form
+    $this->resetForm();
+
+}
 
 
 

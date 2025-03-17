@@ -47,7 +47,7 @@
                             </div>
 
                             <x-dropdown-link href="{{ route('profile.show') }}">
-                                {{ __('Profile') }}
+                                {{ __('Tukar Password') }}
                             </x-dropdown-link>
 
                             <div class="border-t border-gray-200 "></div>
@@ -178,43 +178,121 @@
     :class="darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'"
     class="fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform md:block hidden"
 >
-    <div class="p-6 ">
-        <div class="flex justify-between items-center mb-6 ">
-            <h2 class="text-xl font-semibold" :class="darkMode ? 'text-gray-200' : 'text-gray-800'">Navigation</h2>
-            <button
-                @click="sidebarOpen = false"
-                :class="darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-500'"
-                class="p-2 rounded-md hover:text-gray-700 focus:outline-none transition-colors duration-200"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+<div class="p-5 flex flex-col h-full">
+    <!-- Header with Close Button -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold" :class="darkMode ? 'text-white' : 'text-gray-800'">
+            <span class="flex items-center">
+                <!-- App Logo/Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-2" :class="darkMode ? 'text-blue-400' : 'text-blue-600'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-            </button>
-        </div>
-        <nav class="space-y-4">
-            <div
-                @click="darkMode = !darkMode"
-                :class="darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'"
-                class="block px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
-            >
-                Toggle Dark Mode
+                Menu
+            </span>
+        </h2>
+        <button
+            @click="sidebarOpen = false"
+            class="p-1.5 rounded-full transition-colors duration-200"
+            :class="darkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- User Profile Section -->
+    <div class="mb-6 pb-6 border-b" :class="darkMode ? 'border-gray-700' : 'border-gray-200'">
+        <div class="flex items-center mb-4">
+            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                {{ Auth::user()->name[0] ?? 'U' }}
             </div>
+            <div class="ml-3">
+                <p class="font-medium" :class="darkMode ? 'text-white' : 'text-gray-900'">
+                    {{ Auth::user()->name ?? 'User' }}
+                </p>
+                <p class="text-sm" :class="darkMode ? 'text-gray-400' : 'text-gray-500'">
+                    {{ Auth::user()->email ?? 'user@example.com' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-grow">
+        <div class="space-y-1">
+            <!-- Dashboard Link -->
             <a wire:navigate href="/dashboard"
-               :class="darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'"
-               class="block px-4 py-2 rounded-md transition-colors duration-200"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 font-medium"
+                :class="window.location.pathname === '/dashboard' ?
+                    (darkMode ? 'bg-gray-700 text-white' : 'bg-blue-50 text-blue-700') :
+                    (darkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100')"
             >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" :class="window.location.pathname === '/dashboard' ?
+                    (darkMode ? 'text-white' : 'text-blue-600') :
+                    (darkMode ? 'text-gray-400' : 'text-gray-500')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
                 Dashboard
             </a>
 
+            <!-- Maklumat Ahli Link -->
             <a wire:navigate href="/maklumat-ahli"
-               :class="darkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'"
-               class="block px-4 py-2 rounded-md transition-colors duration-200"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 font-medium"
+                :class="window.location.pathname === '/maklumat-ahli' ?
+                    (darkMode ? 'bg-gray-700 text-white' : 'bg-blue-50 text-blue-700') :
+                    (darkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100')"
             >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" :class="window.location.pathname === '/maklumat-ahli' ?
+                    (darkMode ? 'text-white' : 'text-blue-600') :
+                    (darkMode ? 'text-gray-400' : 'text-gray-500')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
                 Maklumat Ahli
             </a>
 
-        </nav>
+
+        </div>
+    </nav>
+
+    <!-- Settings Section -->
+    <div class="mt-6 pt-6 border-t" :class="darkMode ? 'border-gray-700' : 'border-gray-200'">
+        <div class="space-y-1">
+            <!-- Dark Mode Toggle -->
+            <button
+                @click="darkMode = !darkMode"
+                class="w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 font-medium"
+                :class="darkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100'"
+            >
+                <template x-if="darkMode">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </template>
+                <template x-if="!darkMode">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </template>
+                <span x-text="darkMode ? 'Light Mode' : 'Dark Mode'"></span>
+            </button>
+
+            <!-- Logout Button -->
+            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                @csrf
+                <button type="submit"
+                    class="w-full flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 font-medium"
+                    :class="darkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100'"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" :class="darkMode ? 'text-gray-400' : 'text-gray-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Log Out
+                </button>
+            </form>
+        </div>
     </div>
+</div>
 </div>
 
 </nav>

@@ -20,7 +20,7 @@ return new class extends Migration
         $table->string('full_name');
         $table->string('relationship');
         $table->integer('age');
-        $table->string('ic_number');
+        $table->string('ic_number')->unique();
         $table->timestamps();
 
         // Foreign key constraint to reference the user_id field in the users table

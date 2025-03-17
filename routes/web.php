@@ -49,7 +49,4 @@ Route::get('/maklumat-ahli', function () {
 })->name('maklumat-ahli');
 
 // Add the new route for "Maklumat Tanggungan" page
-Route::get('/maklumat-tanggungan', function () {
-    return view('user.DependentProfile');
-})->name('maklumat-tanggungan');
 });
