@@ -1,9 +1,9 @@
 <div>
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-4 mt-4">
         <h2 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white transition-colors duration-200">
             Senarai Tanggungan
         </h2>
-
+@if(Auth::check())
         <!-- Add Dependent Button -->
         <button wire:click="addNewDependent"
                 class="flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-200">
@@ -12,6 +12,7 @@
             </svg>
             Tambah Tanggungan
         </button>
+@endif
     </div>
 
     <!-- Table for Dependent List -->
@@ -313,6 +314,8 @@
                 </div>
             </div>
         </div>
+
+
     </div>
 
     <!-- Delete Modal -->
