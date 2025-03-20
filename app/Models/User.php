@@ -47,11 +47,18 @@ class User extends Authenticatable
         'age',
         'home_phone',
         'residence_status',
+        'role',
     ];
 
     /**
      * Get the dependents for the user.
      */
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
     public function dependents()
     {
         return $this->hasMany(Dependent::class, 'user_id');

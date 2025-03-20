@@ -9,6 +9,7 @@ use App\Models\Payment;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
+
 class RegisteredUser extends Component
 {
     public function render()
