@@ -6,6 +6,8 @@ use Livewire\Component;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class UserRegistration extends Component
 {
@@ -88,6 +90,7 @@ class UserRegistration extends Component
 
     public function render()
     {
+
         return view('livewire.user-registration')->layout('layouts.guest');
     }
 }
