@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
 
 class UserRegistration extends Component
 {
@@ -64,18 +65,22 @@ class UserRegistration extends Component
     {
         $validatedData = $this->validate();
 
-        // Get the last 'No_Ahli' and increment it
-        $lastUser = User::latest('No_Ahli')->first(); // Get the latest user by No_Ahli
+        $maxNoAhli = DB::table('users')
+        ->whereNotNull('No_Ahli')
+        ->where('No_Ahli', 'regexp', '^[0-9]+$') // Ensure we only get numeric values
+        ->max('No_Ahli');
 
-        $lastNoAhli = $lastUser ? $lastUser->No_Ahli : '0000'; // Default to '0000' if no user exists
-        $nextNoAhli = str_pad(intval($lastNoAhli) + 1, 4, '0', STR_PAD_LEFT); // Increment and pad with zeros
+        // If no records exist or max is not found, start from 0
+        $nextNumber = $maxNoAhli ? (intval($maxNoAhli) + 1) : 0;
+
+        $nextNoAhli = str_pad(intval($nextNumber) , 4, '0', STR_PAD_LEFT); // Increment and pad with zeros
 
         // Store user data in session (pass it to next step)
         session()->put('user_data', [
             'No_Ahli' => $nextNoAhli,
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
+            'password' => $validatedData['password'],
             'ic_number' => $validatedData['ic_number'],
             'age' => $validatedData['age'],
             'phone_number' => $validatedData['phone_number'],

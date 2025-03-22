@@ -21,7 +21,7 @@ class AdminAuthentication
             return $next($request);
         }
 
-        // If not admin, redirect to home or show error
-        return redirect()->route('home')->with('error', 'You do not have permission to access the admin panel.');
+        // If not admin, return a 403 Forbidden response
+        abort(403, 'You do not have permission to access the admin panel.');
     }
 }

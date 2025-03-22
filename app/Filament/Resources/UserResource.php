@@ -3,125 +3,153 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\Textcolumn;
 use Illuminate\Support\Facades\Hash;
-use Filament\Tables\Actions\DeleteAction;
-
-
+use Illuminate\Validation\Rules\Password;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationLabel = 'Users';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('name')
+                    ->required()
+                    ->string()
+                    ->maxLength(255),
 
-                TextInput::make('No_Ahli')
-                    ->label('No. Ahli')
-                    ->disabled()
-                    ->dehydrated(true) // Ensure it's included in form data
-                    ->visible(fn ($record) => $record !== null) // Only show for existing records
-                    ->helperText('Automatically generated upon creation'),
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->required()
+                    ->unique(User::class, 'email', ignoreRecord: true),
 
-                TextInput::make('ic_number')
-                    ->label('No. Kad Pengenalan')
-                    ->placeholder('No. Kad Pengenalan')
-                    ->required(),
+                Forms\Components\TextInput::make('ic_number')
+                    ->required()
+                    ->label('Nombor IC')
+                    ->unique(User::class, 'ic_number', ignoreRecord: true)
+                    ->length(12)
+                    ->numeric(),
 
-                    TextInput::make('name')
-                    ->label('Nama')
-                    ->placeholder('Nama')
-                    ->required(),
+                Forms\Components\TextInput::make('phone_number')
+                    ->tel()
+                    ->required()
+                    ->numeric()
+                    ->minLength(10)
+                    ->maxLength(15),
 
-                    TextInput::make('age')
-                    ->label('Umur')
-                    ->placeholder('Umur')
-                    ->required(),
+                Forms\Components\TextInput::make('home_phone')
+                    ->tel()
+                    ->required()
+                    ->numeric()
+                    ->minLength(10)
+                    ->maxLength(15),
 
+                Forms\Components\Textarea::make('address')
+                    ->required()
+                    ->string()
+                    ->maxLength(255),
 
-                    TextInput::make('email')
-                    ->label('E-mel')
-                    ->placeholder('E-mel'),
+                Forms\Components\TextInput::make('age')
+                    ->required()
+                    ->numeric()
+                    ->minValue(18),
 
-                    TextInput::make('phone_number')
-                    ->label('No. Telefon')
-                    ->placeholder('No. Telefon')
-                    ->required(),
-
-                    TextInput::make('home_phone')
-                    ->label('No. Telefon Rumah')
-                    ->placeholder('No. Telefon Rumah')
-                    ->required(),
-
-                    TextInput::make('address')
-                    ->label('Alamat')
-                    ->placeholder('Alamat')
-                    ->required(),
-
-                    Select::make('residence_status')
+                Forms\Components\Select::make('residence_status')
+                    ->required()
                     ->options([
-                        'kekal' => 'kekal',
-                        'Sewa' => 'Sewa',
-                    ])
-                    ->native(false),
+                        'kekal' => 'Kekal',
+                        'sewa' => 'Sewa',
+                    ]),
 
-                    TextInput::make('password')
-                    ->label('Kata Laluan')
+                    Forms\Components\TextInput::make('password')
                     ->password()
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->placeholder(fn ($record) => $record ? '••••••••' : 'Kata Laluan')
-                    ->helperText(fn ($record) => $record ? 'Leave blank to keep current password' : 'Default will be their IC number if left blank')
-                    ->revealable(),
-                    
-                    
+                    ->required(false) // Make it not required
+                    ->minLength(8)
+                    ->revealable()
+                    ->dehydrateStateUsing(function ($state) use (&$data) {
+                        // If password is provided, hash it
+                        if (filled($state)) {
+                            return Hash::make($state);
+                        }
 
+                        // Return null to indicate no change if empty (handled in mutateFormDataBeforeCreate)
+                        return null;
+                    })
+                    ->dehydrated(fn (?string $state): bool => filled($state))
+                    ->validationMessages([
+                        'min' => 'Kata laluan mesti sekurang-kurangnya 8 aksara.',
+                    ]),
 
-            ]);
+                // Also make the confirmation optional
+                Forms\Components\TextInput::make('password_confirmation')
+                    ->password()
+                    ->required(false)
+                    ->minLength(8)
+                    ->revealable()
+                    ->dehydrated(false)
+                    ->same('password')
+                    ->visible(fn ($get) => filled($get('password'))) // Only show if password is filled
+                    ->validationMessages([
+                        'min' => 'Pengesahan kata laluan mesti sekurang-kurangnya 8 aksara.',
+                        'same' => 'Pengesahan kata laluan tidak sepadan.',
+                    ]),
+
+                // If you want to add a role selector for admins
+                Forms\Components\Select::make('roles')
+                    ->relationship('roles', 'name')
+                    ->preload()
+                    ->multiple()
+                    ->label('Assign Roles'),
+            ])
+           ;
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-              // Add No_Ahli to your table columns 
-              TextColumn::make('No_Ahli')
-              ->label('No. Ahli')
-              ->searchable()
-              ->sortable(),
-              
-          TextColumn::make('name')
-              ->label('Nama')
-              ->searchable()
-              ->sortable(),
-              
-          TextColumn::make('ic_number')
-              ->label('No. Kad Pengenalan')
-              ->searchable(),
-              
-          TextColumn::make('phone_number')
-              ->label('No. Telefon'),
-              
-          TextColumn::make('residence_status')
-              ->label('Status Kediaman'),
+                Tables\Columns\TextColumn::make('No_Ahli')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('ic_number')
+                    ->label('Nombor IC')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('phone_number')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('residence_status')
+                    ->label('Status Kediaman'),
+
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->badge()
+                    ->label('Peranan'),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                // Add filters if needed
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -137,7 +165,7 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            // Add relations if needed
         ];
     }
 
@@ -148,5 +176,20 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+    // Exclude admin users from the table for non-admin users
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        // Only filter out user if the current user is not a user
+        if (!auth()->user()->hasRole('user')) {
+            return $query->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            });
+        }
+
+        return $query;
     }
 }

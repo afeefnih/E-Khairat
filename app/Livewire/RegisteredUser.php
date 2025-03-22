@@ -8,6 +8,7 @@ use App\Models\Dependent;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Role;
 
 
 class RegisteredUser extends Component
@@ -22,12 +23,9 @@ class RegisteredUser extends Component
         $status = $request->input('status_id'); // Check payment status
 
         // Get user data and dependent data from session
-
         $user_data = session()->get('user_data');
         $dependent_data = session()->get('dependents');
         $payment_data = session()->get('payment_data');
-
-        $user = User::where('No_Ahli', $user_data['No_Ahli'])->first();
 
         if ($status == 1) {
             // If payment is successful
@@ -36,7 +34,7 @@ class RegisteredUser extends Component
                 'ic_number' => $user_data['ic_number'],
                 'name' => $user_data['name'],
                 'email' => $user_data['email'],
-                'password' => $user_data['password'], // Hash the password before saving
+                'password' => bcrypt($user_data['password']), // Hash the password before saving
                 'phone_number' => $user_data['phone_number'],
                 'address' => $user_data['address'],
                 'age' => $user_data['age'],
@@ -44,7 +42,12 @@ class RegisteredUser extends Component
                 'residence_status' => $user_data['residence_status'],
             ]);
 
-            // Store the payment
+            $userRole = Role::where('name', 'user')->first();
+            if ($userRole) {
+                $user->roles()->attach($userRole->id);
+            }
+
+            // Store the dependents
             foreach ($dependent_data as $dependent) {
                 Dependent::create([
                     'user_id' => $user->id, // Associate with the newly created user
@@ -67,21 +70,19 @@ class RegisteredUser extends Component
                 'paid_at' => now(), // Set the current date and time
             ]);
 
-            // Store the dependents
-
             // Clear the session data
             session()->forget('user_data');
             session()->forget('dependents');
 
-            // Log the user in
-            Auth::login(User::find($user_data['No_Ahli']));
+            // Log the newly created user in
+            Auth::login($user); // Use the $user object directly
             session()->regenerate(); // Regenerate the session to avoid conflicts
 
             // Redirect to the dashboard after successful registration
-            return redirect()->intended(route('dashboard'))->with('message', 'Selamat datang! Pendaftaran berjaya.');
+            return redirect()->route('dashboard');
         } else {
             // Payment failed
-            return redirect()->route('payment.failed')->with('error', 'Payment failed! Please try again.');
+            return redirect()->route('home')->with('error', 'Payment failed! Please try again.');
         }
     }
 }

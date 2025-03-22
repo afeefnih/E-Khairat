@@ -14,6 +14,7 @@ use App\Livewire\RegisteredUser;
 use App\Models\User;
 use App\Models\Dependent;
 use Illuminate\Support\Facades\Auth;
+use App\Livewire\Auth\Login;
 
 
 Route::get('/', HomePage::class)->name('home');  // Correct way to use Livewire components in routes
@@ -32,7 +33,12 @@ Route::get('/register/invoice', InvoiceAndPayment::class)->name('register.invoic
 Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
 Route::get('/register/payment/callback', [RegisteredUser::class, 'handlePaymentCallback'])->name('payment.callback');
 
+// Login routes
+Route::get('/login', [Login::class, 'showLoginForm'])->name('login');
+Route::post('/login', [Login::class, 'login']);
 
+// Logout route
+Route::post('/logout', [Login::class, 'logout'])->name('logout');
 
 Route::middleware([
     'auth:sanctum',

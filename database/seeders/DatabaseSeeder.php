@@ -22,20 +22,10 @@ class DatabaseSeeder extends Seeder
         'category_description' => 'Pendaftaran menjadi ahli biro khairat kematian Masjid Taman Sutera',
     ]);
 
-    // Create admin user
-    \App\Models\User::create([
-        'name' => 'Admin User',
-        'email' => 'admin@example.com',
-        'password' => bcrypt('password'), // Remember to change this in production
-        'role' => 'admin',
-        'No_Ahli' => 'ADMIN001',
-        'age' => 30,
-        'ic_number' => '000000000000', // Placeholder
-        'home_phone' => '0123456789', // Placeholder
-        'phone_number' => '0123456789', // Placeholder
-        'address' => 'Admin Address', // Placeholder
-        'residence_status' => 'kekal', // Placeholder
-
+    $this->call([
+        RoleSeeder::class,
+        AdminSeeder::class,
     ]);
+
 }
 }

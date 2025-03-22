@@ -22,7 +22,7 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $primaryKey = 'id'; // Now, using 'id' as the primary key
+    protected $primaryKey = 'id';
 
     /**
      * Indicates if the model should be timestamped.
@@ -47,22 +47,52 @@ class User extends Authenticatable
         'age',
         'home_phone',
         'residence_status',
-        'role',
+        // 'role', // Remove this as we're using a separate table now
     ];
 
     /**
-     * Get the dependents for the user.
+     * Get the roles that belong to the user.
      */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
 
+    /**
+     * Check if the user has a specific role.
+     */
+    public function hasRole($roleName)
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
+    /**
+     * Check if the user is an admin.
+     */
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Assign a role to the user.
+     */
+    public function assignRole($role)
+    {
+        if (is_string($role)) {
+            $role = Role::where('name', $role)->firstOrFail();
+        }
+
+        $this->roles()->sync($role, false);
+
+        return $this;
     }
 
     public function dependents()
     {
         return $this->hasMany(Dependent::class, 'user_id');
     }
+
     public function payments()
     {
         return $this->hasMany(Payment::class, 'user_id');
