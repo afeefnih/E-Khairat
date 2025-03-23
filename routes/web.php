@@ -58,6 +58,12 @@ Route::get('/maklumat-ahli', function () {
 
 
 });
+
+Route::post('/payments/process/registration', [App\Http\Controllers\PaymentController::class, 'paymentRegistration'])
+    ->name('payments.registration');
+
+
+
 // Routes for Payment Processing
 Route::get('/payments/process/{category}', [App\Http\Controllers\PaymentController::class, 'processPayment'])
     ->name('payments.process')
