@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
     PaymentCategory::create([
         'category_name' => 'Bayaran Pendaftran',
         'category_description' => 'Pendaftaran menjadi ahli biro khairat kematian Masjid Taman Sutera',
+
+        'amount' => 100,
     ]);
 
     $this->call([

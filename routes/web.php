@@ -30,8 +30,8 @@ Route::get('/register/dependent', DependentRegistration::class)->name('register.
 // Invoice and Payment Step
 Route::get('/register/invoice', InvoiceAndPayment::class)->name('register.invoice');
 
-Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
-Route::get('/register/payment/callback', [RegisteredUser::class, 'handlePaymentCallback'])->name('payment.callback');
+//Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
+//Route::get('/register/payment/callback', [RegisteredUser::class, 'handlePaymentCallback'])->name('payment.callback');
 
 // Login routes
 Route::get('/login', [Login::class, 'showLoginForm'])->name('login');
@@ -55,4 +55,14 @@ Route::get('/maklumat-ahli', function () {
 })->name('maklumat-ahli');
 
 // Add the new route for "Maklumat Tanggungan" page
+
+
 });
+// Routes for Payment Processing
+Route::get('/payments/process/{category}', [App\Http\Controllers\PaymentController::class, 'processPayment'])
+    ->name('payments.process')
+    ->middleware(['auth']);
+
+// Payment callback from payment gateway
+Route::get('/payment/callback', [App\Http\Controllers\PaymentController::class, 'paymentCallback'])
+    ->name('payment.callback');
