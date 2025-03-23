@@ -12,6 +12,7 @@ class PaymentCategory extends Model
     protected $fillable = [
         'category_name',
         'category_description',
+        'amount',
         'category_status'
     ];
 

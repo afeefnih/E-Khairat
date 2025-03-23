@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id(); // Auto-incrementing primary key (id)
             $table->string('category_name'); // Name of the payment category
             $table->text('category_description')->nullable(); // Optional description for the category
+            $table->decimal('amount', 10, 2); // Amount for the payment category
             $table->enum('category_status', ['active', 'inactive'])->default('active'); // Active or inactive status
             $table->timestamps(); // Created and updated timestamps
         });

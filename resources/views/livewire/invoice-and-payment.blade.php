@@ -7,7 +7,7 @@
 
     <!-- Header -->
     <div class="min-h-screen py-12">
-        <form action="{{ route('payment.registration') }}" method="POST">
+        <form action="{{ route('payments.registration') }}" method="POST">
 
         <div class="text-center mb-12">
             <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Invois dan Pembayaran</h1>
