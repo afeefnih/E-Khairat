@@ -29,9 +29,7 @@ class PaymentController extends Controller
         $phone_number = $user_data['phone_number'];
 
         // Get the payment category for registration
-        $paymentCategory = PaymentCategory::where('category_name', 'Bayaran Pendaftran')
-            ->where('category_status', true)
-            ->first();
+        $paymentCategory = PaymentCategory::where('category_name', 'Bayaran Pendaftran')->where('category_status', true)->first();
 
         $amount = ($paymentCategory ? $paymentCategory->amount : 100) * 100; // Convert to cents
 
@@ -40,7 +38,7 @@ class PaymentController extends Controller
             'payment_category_id' => $paymentCategory ? $paymentCategory->id : null,
             'amount' => $amount / 100, // Store in RM, not cents
             'category_name' => $paymentCategory ? $paymentCategory->category_name : 'Pendaftaran Khairat Kematian',
-            'is_registration' => true // Flag to identify registration payments
+            'is_registration' => true, // Flag to identify registration payments
         ]);
 
         $code = config('toyyibpay.category_codes.yuran_khairat'); // Get category code from config
@@ -86,11 +84,7 @@ class PaymentController extends Controller
         $requiredPaymentCategories = PaymentCategory::where('category_status', true)->get();
 
         // Get user's completed payments
-        $paidCategoryIds = $user->payments()
-            ->where('status_id', 1)
-            ->pluck('payment_category_id')
-            ->unique()
-            ->toArray();
+        $paidCategoryIds = $user->payments()->where('status_id', 1)->pluck('payment_category_id')->unique()->toArray();
 
         // Get outstanding categories
         $outstandingCategories = $requiredPaymentCategories->whereNotIn('id', $paidCategoryIds);
@@ -107,14 +101,10 @@ class PaymentController extends Controller
         $user = auth()->user();
 
         // Check if payment has already been made
-        $existingPayment = $user->payments()
-            ->where('payment_category_id', $category->id)
-            ->where('status_id', 1)
-            ->first();
+        $existingPayment = $user->payments()->where('payment_category_id', $category->id)->where('status_id', 1)->first();
 
         if ($existingPayment) {
-            return redirect()->route('dashboard')
-                ->with('error', 'You have already paid for this category.');
+            return redirect()->route('dashboard')->with('error', 'You have already paid for this category.');
         }
 
         // Store payment data in session
@@ -123,7 +113,7 @@ class PaymentController extends Controller
             'payment_category_id' => $category->id,
             'amount' => $category->amount,
             'category_name' => $category->category_name,
-            'is_registration' => false // This is not a registration payment
+            'is_registration' => false, // This is not a registration payment
         ]);
 
         // Set up payment data for Toyyibpay
@@ -251,8 +241,7 @@ class PaymentController extends Controller
             session()->regenerate(); // Regenerate the session to avoid conflicts
 
             // Redirect to the dashboard after successful registration
-            return redirect()->route('dashboard')
-                ->with('success', 'Registration completed successfully! Welcome to our platform.');
+            return redirect()->route('dashboard')->with('success', 'Registration completed successfully! Welcome to our platform.');
         } else {
             // Payment failed
             return redirect()->route('home')->with('error', 'Payment failed! Please try again.');
@@ -267,26 +256,27 @@ class PaymentController extends Controller
         $userId = $paymentData['user_id'] ?? auth()->id();
         $categoryId = $paymentData['payment_category_id'];
 
-        if ($status == 1) { // Payment successful
-            // Create payment record
-            Payment::create([
-                'user_id' => $userId,
-                'payment_category_id' => $categoryId,
-                'amount' => $paymentData['amount'],
-                'status_id' => 1,
-                'billcode' => $billcode,
-                'order_id' => $orderId,
-                'request_title' => $paymentData['category_name'],
-                'paid_at' => now(),
-            ]);
+        if ($status == 1) {
+            // Payment successful
+            // Find existing payment record for this user and category
+            $payment = Payment::where('user_id', $userId)->where('payment_category_id', $categoryId)->first();
 
-            session()->forget('payment_data');
+            if ($payment) {
+                // Update existing payment
+                $payment->update([
+                    'status_id' => 1, // Mark as paid
+                    'billcode' => $billcode,
+                    'order_id' => $orderId,
+                    'paid_at' => now(),
+                    'amount' => $paymentData['amount'], // Update amount if needed
+                ]);
 
-            return redirect()->route('dashboard')
-                ->with('success', 'Payment completed successfully!');
-        } else {
-            return redirect()->route('dashboard')
-                ->with('error', 'Payment failed. Please try again.');
+                session()->forget('payment_data');
+
+                return redirect()->route('dashboard')->with('success', 'Payment completed successfully!');
+            } else {
+                return redirect()->route('dashboard')->with('error', 'Payment failed. Please try again.');
+            }
         }
     }
 }

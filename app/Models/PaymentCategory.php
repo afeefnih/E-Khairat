@@ -23,4 +23,6 @@ class PaymentCategory extends Model
     {
         return $this->hasMany(Payment::class, 'payment_category_id');
     }
+
+
 }

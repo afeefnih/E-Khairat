@@ -139,7 +139,7 @@
                             @forelse($payments as $payment)
                                 <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                     <td class="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
-                                        {{ $payment->paymentCategory->category_name ?? 'N/A' }}
+                                        {{ $payment->payment_category->category_name ?? 'N/A' }}
                                     </td>
                                     <td class="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
                                         {{ number_format($payment->amount, 2) }}
@@ -313,7 +313,7 @@
     document.addEventListener('livewire:load', function () {
         window.addEventListener('scroll-to-outstanding', event => {
             document.getElementById('outstanding-payments').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
+
             setTimeout(() => {
                 document.getElementById('outstanding-payments').classList.add('ring-4', 'ring-indigo-300', 'dark:ring-indigo-700');
                 setTimeout(() => {

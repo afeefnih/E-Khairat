@@ -56,7 +56,6 @@ Route::get('/maklumat-ahli', function () {
 
 // Add the new route for "Maklumat Tanggungan" page
 
-
 });
 
 Route::post('/payments/process/registration', [App\Http\Controllers\PaymentController::class, 'paymentRegistration'])

@@ -23,7 +23,7 @@ class Payment extends Model
     }
 
     // Relationship: Payment belongs to a payment category
-    public function paymentCategory()
+    public function payment_category()
     {
         return $this->belongsTo(PaymentCategory::class, 'payment_category_id');
     }

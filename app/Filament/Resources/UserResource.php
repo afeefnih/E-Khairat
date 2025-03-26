@@ -6,6 +6,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Filament\Resources\DependentResource;
+use App\Filament\Resources\PaymentCategoryResource;
+use App\Filament\Resources\PaymentResource;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,14 +17,22 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Filament\Notifications\Notification;
+use App\Models\Dependent;
+
 
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static ?string $navigationGroup = 'Ahli';
+
     protected static ?string $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $navigationLabel = 'Users';
+
+
+
 
     public static function form(Form $form): Form
     {
@@ -230,6 +240,8 @@ class UserResource extends Resource
     {
         return [
             RelationManagers\DependentsRelationManager::class,
+            RelationManagers\PaymentRelationManager::class, // Add this line
+
         ];
     }
 

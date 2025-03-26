@@ -10,17 +10,16 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 class PaymentCategoryResource extends Resource
 {
     protected static ?string $model = PaymentCategory::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationLabel = 'Payment Categories';
     protected static ?string $navigationGroup = 'Payments';
-    protected static ?int $navigationSort = 3;
+    protected static ?int  $navigationSort = 0;
 
     public static function form(Form $form): Form
     {
@@ -54,13 +53,14 @@ class PaymentCategoryResource extends Resource
                         'numeric' => 'Jumlah mesti berupa angka.',
                     ]),
 
-                Forms\Components\Toggle::make('category_status')
-                    ->label('Active')
-                    ->default(true)
-                    ->onColor('success')
-                    ->offColor('danger')
-                    ->onIcon('heroicon-m-check')
-                    ->offIcon('heroicon-m-x-mark'),
+                Forms\Components\Select::make('category_status')
+                    ->label('Status')
+                    ->options([
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                    ])
+                    ->default('active')
+                    ->required()
             ]);
     }
 
@@ -78,9 +78,14 @@ class PaymentCategoryResource extends Resource
                     ->money('MYR')
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('category_status')
+                Tables\Columns\TextColumn::make('category_status')
                     ->label('Status')
-                    ->boolean()
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active' => 'success',
+                        'inactive' => 'danger',
+                        default => 'gray',
+                    })
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('payments_count')
@@ -102,8 +107,8 @@ class PaymentCategoryResource extends Resource
                 Tables\Filters\SelectFilter::make('category_status')
                     ->label('Status')
                     ->options([
-                        '1' => 'Active',
-                        '0' => 'Inactive',
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
                     ]),
             ])
             ->actions([

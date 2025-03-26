@@ -17,8 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('payment_category_id'); // Foreign key to payment_categories table (payment_categories.id)
             $table->decimal('amount', 10, 2); // The payment amount
             $table->string('status_id'); // Payment status (success, pending, failed)
-            $table->string('billcode')->unique(); // Unique billcode from the payment gateway
-            $table->string('order_id')->nullable(); // External order reference (if applicable)
+            $table->string('billcode')->unique()->nullable(); // Unique billcode from the payment gateway
+            $table->string('order_id')->nullable()->nullable(); // External order reference (if applicable)
             $table->timestamp('paid_at')->nullable(); // Timestamp for when the payment was completed
             $table->timestamps(); // Created and updated timestamps
 
