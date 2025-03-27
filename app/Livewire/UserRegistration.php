@@ -22,7 +22,7 @@ class UserRegistration extends Component
         'email' => 'required|email|unique:users,email',
         'password' => 'required|min:8|confirmed',
         'ic_number' => 'required|numeric|digits:12|unique:users,ic_number',
-        'age' => 'required|numeric',
+        'age' => 'required|numeric|min:18',
         'phone_number' => 'required|numeric|digits_between:10,11',
         'home_phone' => 'required|numeric|digits_between:10,11',
         'address' => 'required|string',

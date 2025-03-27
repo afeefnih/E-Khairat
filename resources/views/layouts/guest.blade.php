@@ -18,6 +18,7 @@
         <!-- Styles -->
         @livewireStyles
     </head>
+
     <body x-cloak x-data="{darkMode: $persist(false)}" :class="{'dark': darkMode === true }" class="antialiased">
 
     <x-guest-nav-bar />

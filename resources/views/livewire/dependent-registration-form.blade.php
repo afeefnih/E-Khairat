@@ -1,6 +1,6 @@
 <div>
     <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-900 dark:text-white transition-colors duration-200">
-        Kemaskini Tangungan
+        Daftar Tan
     </h1>
 
     <!-- Add New Dependent Section -->

@@ -18,7 +18,7 @@
     <!-- Table for Dependent List -->
     <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-x-auto transition-colors duration-200">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
+            <thead class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
                 <tr>
                     <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Nama
@@ -37,7 +37,7 @@
                     </th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-800">
+            <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
                 @forelse ($dependents as $dependent)
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">

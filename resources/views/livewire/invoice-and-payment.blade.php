@@ -1,12 +1,10 @@
-<x-authentication-card>
-    <x-slot name="logo">
-        <x-authentication-card-logo />
-    </x-slot>
 
-    <x-validation-errors class="mb-4" />
 
     <!-- Header -->
     <div class="min-h-screen py-12">
+
+    <x-validation-errors class="mb-4" />
+
         <form action="{{ route('payments.registration') }}" method="POST">
 
         <div class="text-center mb-12">
@@ -17,8 +15,8 @@
         <!-- Main Content -->
         <div class="space-y-8">
             <!-- User Information Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg"
@@ -66,8 +64,8 @@
             </div>
 
             <!-- Dependents Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +85,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-50 dark:bg-gray-700">
+                            <tr class="bg-gray-50 dark:bg-gray-900">
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                     Nama</th>
@@ -135,8 +133,8 @@
             </div>
 
             <!-- Fee Summary Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                     <div class="flex items-center">
                         <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,7 +171,7 @@
                                 {!! __('Saya setuju dengan :Terma dan Syarat ', [
                                     'Terma dan Syarat' =>
                                         '<a target="_blank" href="' .
-                                        route('terms.show') .
+                                        route('terms') .
                                         '" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">' .
                                         __('Terma dan Syarat') .
                                         '</a>',
@@ -197,4 +195,4 @@
     </div>
 
     </form>
-</x-authentication-card>
+

@@ -15,20 +15,29 @@ use App\Models\User;
 use App\Models\Dependent;
 use Illuminate\Support\Facades\Auth;
 use App\Livewire\Auth\Login;
+use App\Livewire\Terms;
 
 
 Route::get('/', HomePage::class)->name('home');  // Correct way to use Livewire components in routes
 
-Route::get('/infaq', InfaqPage::class)->name('infaq');
+Route::get('/terms', Terms::class)->name('terms');
+
+Route::get('/terms', function () {
+    return view('termsPage');
+})->name('terms');
 
 Route::post('/infaq/store', [InfaqController::class, 'store'])->name('infaq.store');
 Route::get('/infaq/callback', [InfaqController::class, 'handlePaymentCallback'])->name('infaq.callback');
 
 Route::get('/register', UserRegistration::class)->name('register');
 // Dependent Registration Step
-Route::get('/register/dependent', DependentRegistration::class)->name('register.dependent');
+Route::get('/register/dependent',function(){
+    return view('register.dependent');
+})->name('register.dependent');
 // Invoice and Payment Step
-Route::get('/register/invoice', InvoiceAndPayment::class)->name('register.invoice');
+Route::get('/register/invoice', function() {
+    return view('register.invoice');
+})->name('register.invoice');
 
 //Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
 //Route::get('/register/payment/callback', [RegisteredUser::class, 'handlePaymentCallback'])->name('payment.callback');
