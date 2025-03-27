@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Model\PaymentCategory;
 
 class PaymentResource extends Resource
 {
@@ -20,30 +21,45 @@ class PaymentResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationLabel = 'Payment List';
     protected static ?string $navigationGroup = 'Payments';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('user.name')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('payment_category_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('amount')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('status_id')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('billcode')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('order_id')
-                    ->maxLength(255),
-                Forms\Components\DateTimePicker::make('paid_at'),
-            ]);
+        ->schema([
+            Forms\Components\Select::make('user_id')
+            ->relationship('user', 'name')
+            ->label('User')
+            ->disabled()
+            ->dehydrated(false),
+
+            Forms\Components\Select::make('payment_category_id')
+            ->relationship('payment_category', 'category_name')
+            ->label('Payment Category')
+            ->disabled()
+            ->dehydrated(false),
+
+
+
+
+            Forms\Components\TextInput::make('amount')
+                ->disabled()
+                ->dehydrated(false)
+                ->numeric(),
+
+            Forms\Components\Select::make('status_id')
+                ->label('Status')
+                ->options([
+                    '0' => 'Pending',
+                    '1' => 'Paid',
+                ])
+                ->required(),
+            Forms\Components\TextInput::make('billcode')
+                ->maxLength(255),
+            Forms\Components\TextInput::make('order_id')
+                ->maxLength(255),
+            Forms\Components\DateTimePicker::make('paid_at'),
+        ]);
     }
 
     public static function table(Table $table): Table

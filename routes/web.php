@@ -20,12 +20,13 @@ use App\Livewire\Terms;
 
 Route::get('/', HomePage::class)->name('home');  // Correct way to use Livewire components in routes
 
-Route::get('/terms', Terms::class)->name('terms');
 
 Route::get('/terms', function () {
     return view('termsPage');
 })->name('terms');
 
+
+Route::get('/infaq', InfaqPage::class)->name('infaq');
 Route::post('/infaq/store', [InfaqController::class, 'store'])->name('infaq.store');
 Route::get('/infaq/callback', [InfaqController::class, 'handlePaymentCallback'])->name('infaq.callback');
 

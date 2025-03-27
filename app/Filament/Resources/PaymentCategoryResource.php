@@ -19,7 +19,7 @@ class PaymentCategoryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationLabel = 'Payment Categories';
     protected static ?string $navigationGroup = 'Payments';
-    protected static ?int  $navigationSort = 0;
+    protected static ?int  $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
