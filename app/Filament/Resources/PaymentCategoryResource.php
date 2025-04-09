@@ -19,7 +19,7 @@ class PaymentCategoryResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationLabel = 'Payment Categories';
     protected static ?string $navigationGroup = 'Payments';
-    protected static ?int  $navigationSort = 0;
+    protected static ?int  $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -115,7 +115,6 @@ class PaymentCategoryResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->disabled(fn (PaymentCategory $record) => $record->payments()->count() > 0),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -12,6 +12,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 
 class PaymentRelationManager extends RelationManager
 {
@@ -19,30 +23,81 @@ class PaymentRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        return $form->schema([
-            Forms\Components\Hidden::make('payment_category_id'),
+        $isEditForm = $form->getOperation() === 'edit';
+        return $form
+        ->schema([
+            Forms\Components\Select::make('user_id')
+            ->relationship('user', 'name')
+            ->label('User')
+            ->disabled($isEditForm)
+            ->required(),
 
-            Forms\Components\TextInput::make('order_id')
-                ->required()
-                ->maxLength(255),
-
-            Forms\Components\Select::make('status_id')
-                ->required()
-                ->options([
-                    '1' => 'Paid',
-                    '0' => 'Pending',
-                ]),
+            Forms\Components\Select::make('payment_category_id')
+            ->relationship(
+                'payment_category',
+                'category_name',
+                fn (Builder $query) => $query->where('category_status', 'active')
+            )
+            ->label('Payment Category')
+            ->disabled($isEditForm)
+            ->required(),
 
             Forms\Components\TextInput::make('amount')
+                ->disabled($isEditForm)
                 ->required()
-                ->numeric()
-                ->prefix('RM'),
+                ->numeric(),
+
+            Forms\Components\Select::make('status_id')
+                ->label('Status')
+                ->options([
+                    '0' => 'Pending',
+                    '1' => 'Paid',
+                ])
+                ->required()
+                ->live()
+                ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                    // Only generate billcode and order_id when status changes to Paid (1)
+                    if ($state === '1') {
+                        // Check if billcode is empty
+                        if (empty($get('billcode'))) {
+                            $set('billcode', 'BILL-' . time() . '-' . Str::random(6));
+                        }
+
+                        // Check if order_id is empty
+                        if (empty($get('order_id'))) {
+                            $set('order_id', 'ORD-' . date('Ymd') . '-' . Str::random(6));
+                        }
+
+                        // Set paid_at to current time if it's empty
+                        if (empty($get('paid_at'))) {
+                            $set('paid_at', now());
+                        }
+                    }
+                }),
+
+            Forms\Components\TextInput::make('billcode')
+                ->maxLength(255)
+                ->placeholder('Auto-generated when payment is marked as Paid')
+                ->helperText('Will be auto-generated when payment is marked as Paid'),
+
+            Forms\Components\TextInput::make('order_id')
+                ->maxLength(255)
+                ->placeholder('Auto-generated when payment is marked as Paid')
+                ->helperText('Will be auto-generated when payment is marked as Paid'),
+
+            Forms\Components\DateTimePicker::make('paid_at'),
         ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                // Filter to only show payments with active payment categories
+                $query->whereHas('payment_category', function (Builder $query) {
+                    $query->where('category_status', 'active');
+                });
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('payment_category.category_name')
                     ->label('Payment Category')
@@ -77,14 +132,10 @@ class PaymentRelationManager extends RelationManager
                     ]),
             ])
             ->actions([Tables\Actions\ViewAction::make(), Tables\Actions\EditAction::make()])
-
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
-
-
-
 }
