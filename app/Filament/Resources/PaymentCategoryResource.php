@@ -115,7 +115,6 @@ class PaymentCategoryResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->disabled(fn (PaymentCategory $record) => $record->payments()->count() > 0),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
