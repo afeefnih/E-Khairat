@@ -10,20 +10,17 @@ class DeathRecord extends Model
     protected $fillable = [
         'user_id',           // Will be used if the record is related to a user
         'dependent_id',      // Will be used if the record is related to a dependent
-        'name',
-        'member_id',
-        'date_of_death',
-        'cause_of_death',
-        'date_of_record',
-        'funeral_details',
-        'contact_person',
-        'contact_phone',
-        'address',
-        'death_certificate_number',
-        'notes',
-        'status',
-        'attachments',
-        'location_of_death',
+        'death_date',        // Date of death
+        'death_time',        // Time of death
+        'place_of_death',    // Place of death
+        'death_cause',       // Cause of death
+        'attachment',       // Attachment of the death certificate
+        'notes',          // Additional notes
+        'created_at',         // Timestamp of record creation
+        'updated_at',         // Timestamp of record update
+
+
+
     ];
 
     public function user()

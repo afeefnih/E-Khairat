@@ -22,17 +22,20 @@ class DependentResource extends Resource
 
     protected static ?string $navigationLabel = 'Dependents';
 
-    protected static ?int  $navigationSort = 1;
-
-
-
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
         return $form->schema([
             Forms\Components\Select::make('user_id')
                 ->label('Member')
-                ->relationship('user', 'name')
+                ->relationship(
+                    name: 'user',
+                    titleAttribute: 'name',
+                    modifyQueryUsing: fn($query) => $query->whereDoesntHave('roles', function ($q) {
+                        $q->where('name', 'admin');
+                    }),
+                )
                 ->searchable()
                 ->preload()
                 ->required()
@@ -53,11 +56,10 @@ class DependentResource extends Resource
             Forms\Components\Select::make('relationship')
                 ->required()
                 ->options([
-                    'Spouse' => 'Pasangan',
-                    'Child' => 'Anak',
-                    'Parent' => 'Ibu/Bapa',
-                    'Sibling' => 'Adik-beradik',
-                    'Other' => 'Lain-lain',
+                    'Pasangan' => 'Pasangan',
+                    'Anak' => 'Anak',
+                    'Ibu/Bapa' => 'Ibu/Bapa',
+                    'Adik-Beradik' => 'Adik-beradik',
                 ])
                 ->validationMessages([
                     'required' => 'Hubungan diperlukan.',
@@ -71,10 +73,10 @@ class DependentResource extends Resource
                     'numeric' => 'Umur mesti berupa angka.',
                 ]),
 
-                Forms\Components\TextInput::make('ic_number')
+            Forms\Components\TextInput::make('ic_number')
                 ->required()
                 ->label('Nombor IC')
-                ->unique(User::class, 'ic_number', ignoreRecord: true)
+                ->unique(Dependent::class, 'ic_number', fn($record) => $record)
                 ->length(12)
                 ->numeric()
                 ->validationMessages([
