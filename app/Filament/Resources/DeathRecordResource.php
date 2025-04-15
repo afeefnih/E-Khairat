@@ -4,14 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DeathRecordResource\Pages;
 use App\Models\DeathRecord;
-use App\Models\User;
-use App\Models\Dependent;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class DeathRecordResource extends Resource
 {
@@ -19,142 +18,109 @@ class DeathRecordResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Kematian Ahli';
+    protected static ?string $navigationLabel = 'Death Records';
 
-    protected static ?string $navigationLabel = 'Rekod Kematian';
+    protected static ?string $navigationGroup = 'Records Management';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
-        return $form->schema([
-            // Select User or Dependent
-            Forms\Components\Select::make('user_id')
-                ->label('Ahli')
-                ->relationship('user', 'name')
-                ->searchable()
-                ->preload()
-                ->required(fn () => !request()->has('data.dependent_id')) // Required if no dependent selected
-                ->disabled(fn () => request()->has('data.dependent_id')),
+        return $form
+            ->schema([
+                Forms\Components\Select::make('dependent_id')
+                    ->relationship('dependent', 'full_name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
 
-            Forms\Components\Select::make('dependent_id')
-                ->label('Tanggungan')
-                ->relationship('dependent', 'full_name')
-                ->searchable()
-                ->preload()
-                ->required(fn () => !request()->has('data.user_id')) // Required if no user selected
-                ->disabled(fn () => request()->has('data.user_id')),
+                Forms\Components\DatePicker::make('date_of_death')
+                    ->required()
+                    ->label('Date of Death'),
 
-            Forms\Components\TextInput::make('name')
-                ->required()
-                ->maxLength(255)
-                ->validationMessages([
-                    'required' => 'Nama diperlukan.',
-                    'max' => 'Nama tidak boleh melebihi 255 aksara.',
-                ]),
+                Forms\Components\TimePicker::make('time_of_death')
+                    ->label('Time of Death')
+                    ->seconds(false),
 
-            Forms\Components\DatePicker::make('date_of_death')
-                ->required()
-                ->label('Tarikh Kematian')
-                ->validationMessages([
-                    'required' => 'Tarikh kematian diperlukan.',
-                ]),
+                Forms\Components\TextInput::make('place_of_death')
+                    ->label('Place of Death')
+                    ->required()
+                    ->maxLength(255),
 
-            Forms\Components\TextInput::make('cause_of_death')
-                ->nullable()
-                ->maxLength(255)
-                ->label('Punca Kematian'),
+                Forms\Components\Textarea::make('cause_of_death')
+                    ->label('Cause of Death')
+                    ->rows(3)
+                    ->maxLength(1000),
 
-            Forms\Components\DateTimePicker::make('date_of_record')
-                ->default(now())
-                ->required()
-                ->label('Tarikh Rekod'),
+                Forms\Components\Textarea::make('death_notes')
+                    ->label('Notes')
+                    ->rows(3)
+                    ->maxLength(1000),
 
-            Forms\Components\TextInput::make('funeral_details')
-                ->nullable()
-                ->maxLength(255)
-                ->label('Maklumat Pengkebumian'),
-
-            Forms\Components\TextInput::make('contact_person')
-                ->required()
-                ->maxLength(255)
-                ->label('Nama Orang Yang Dihubungi'),
-
-            Forms\Components\TextInput::make('contact_phone')
-                ->required()
-                ->maxLength(255)
-                ->label('Nombor Telefon Orang Yang Dihubungi'),
-
-            Forms\Components\TextInput::make('address')
-                ->nullable()
-                ->maxLength(255)
-                ->label('Alamat'),
-
-            Forms\Components\TextInput::make('death_certificate_number')
-                ->nullable()
-                ->maxLength(255)
-                ->label('Nombor Sijil Kematian'),
-
-            Forms\Components\Textarea::make('notes')
-                ->nullable()
-                ->label('Catatan'),
-
-            Forms\Components\Select::make('status')
-                ->options([
-                    'pending' => 'Pending',
-                    'confirmed' => 'Disahkan',
-                    'verified' => 'Disahkan',
-                ])
-                ->default('pending')
-                ->label('Status Rekod'),
-
-            Forms\Components\FileUpload::make('attachments')
-                ->multiple()
-                ->label('Lampiran')
-                ->image(),
-
-            Forms\Components\TextInput::make('location_of_death')
-                ->nullable()
-                ->maxLength(255)
-                ->label('Lokasi Kematian'),
-        ]);
+                Forms\Components\Section::make('Death Certificate')
+                    ->schema([
+                        Forms\Components\FileUpload::make('death_attachment_path')
+                            ->label('Death Certificate')
+                            ->directory('death-certificates')
+                            ->visibility('private')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->downloadable()
+                            ->maxSize(5120), // 5MB
+                    ]),
+            ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Nama Ahli')
-                    ->sortable()
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('dependent.full_name')
-                    ->label('Nama Tanggungan')
+                    ->searchable()
                     ->sortable()
-                    ->searchable(),
+                    ->label('Dependent Name'),
+
+                Tables\Columns\TextColumn::make('dependent.ic_number')
+                    ->searchable()
+                    ->label('IC Number'),
+
                 Tables\Columns\TextColumn::make('date_of_death')
+                    ->date()
+                    ->sortable()
+                    ->label('Date of Death'),
+
+                Tables\Columns\TextColumn::make('place_of_death')
+                    ->searchable()
+                    ->limit(30)
+                    ->label('Place of Death'),
+
+                Tables\Columns\IconColumn::make('death_attachment_path')
+                    ->boolean()
+                    ->label('Certificate')
+                    ->trueIcon('heroicon-o-document')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->getStateUsing(fn (DeathRecord $record) => $record->death_attachment_path !== null),
+
+                Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('cause_of_death')
-                    ->label('Punca Kematian')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status Rekod'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('user_id')
-                    ->label('Ahli')
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->preload(),
-                Tables\Filters\SelectFilter::make('dependent_id')
-                    ->label('Tanggungan')
-                    ->relationship('dependent', 'full_name')
-                    ->searchable()
-                    ->preload(),
+                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('viewCertificate')
+                    ->label('View Certificate')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->visible(fn ($record) => $record->death_attachment_path)
+                    ->url(fn ($record) => $record->death_attachment_path ? Storage::url($record->death_attachment_path) : null, true),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -167,7 +133,7 @@ class DeathRecordResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Define relationships if necessary
+            //
         ];
     }
 

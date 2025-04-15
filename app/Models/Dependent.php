@@ -27,4 +27,13 @@ class Dependent extends Model
     {
         return $this->belongsTo(User::class, 'user_id','id');
     }
+    public function deathRecord()
+    {
+        // Foreign key on DeathRecord table, Local key on this Dependent table
+        return $this->hasOne(DeathRecord::class, 'dependent_id', 'dependent_id');
+    }
+public function isDeceased()
+{
+    return $this->deathRecord()->exists();
+}
 }

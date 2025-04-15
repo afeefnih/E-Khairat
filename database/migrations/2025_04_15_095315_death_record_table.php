@@ -17,6 +17,7 @@ return new class extends Migration
             // Link to the deceased person (User OR Dependent)
             $table->foreignId('user_id')
                   ->nullable()
+                  ->unique()
                   ->constrained('users')
                   ->onDelete('set null'); // Keep record if user deleted
 
@@ -24,6 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('dependent_id')->nullable();
             $table->foreign('dependent_id')
                   ->references('dependent_id')
+                  ->unique()
                   ->on('dependents')
                   ->onDelete('set null');
 

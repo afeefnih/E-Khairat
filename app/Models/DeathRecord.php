@@ -10,18 +10,19 @@ class DeathRecord extends Model
     protected $fillable = [
         'user_id',           // Will be used if the record is related to a user
         'dependent_id',      // Will be used if the record is related to a dependent
-        'death_date',        // Date of death
-        'death_time',        // Time of death
+        'date_of_death',
+        'time_of_death',
         'place_of_death',    // Place of death
-        'death_cause',       // Cause of death
-        'attachment',       // Attachment of the death certificate
-        'notes',          // Additional notes
-        'created_at',         // Timestamp of record creation
-        'updated_at',         // Timestamp of record update
-
-
-
+        'cause_of_death',
+        'death_notes',
+        'death_attachment_path',
     ];
+
+    protected $casts = [
+        'date_of_death' => 'date',
+        'time_of_death' => 'datetime',
+    ];
+
 
     public function user()
     {
@@ -29,7 +30,8 @@ class DeathRecord extends Model
     }
 
     public function dependent()
-    {
-        return $this->belongsTo(Dependent::class, 'dependent_id');
-    }
+{
+    // Foreign key on this DeathRecord table, Owner key on the Dependent table
+    return $this->belongsTo(Dependent::class, 'dependent_id', 'dependent_id');
+}
 }

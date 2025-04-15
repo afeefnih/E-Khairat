@@ -168,7 +168,6 @@ class UserResource extends Resource
                 Forms\Components\Select::make('roles')
                     ->relationship('roles', 'name')
                     ->preload()
-                    ->multiple()
                     ->label('Peranan'),
             ]);
     }
