@@ -11,6 +11,11 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Database\Eloquent\Collection;
+use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Tables\Actions\DeleteBulkAction;
 
 class DeathRecordResource extends Resource
 {
@@ -126,6 +131,91 @@ class DeathRecordResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+
+                     // Add CSV Export Bulk Action
+                     BulkAction::make('export-csv')
+                     ->label('Export to CSV')
+                     ->icon('heroicon-o-document-arrow-down')
+                     ->color('success')
+                     ->action(function (Collection $records) {
+                         // Check if any records are selected
+                         if ($records->isEmpty()) {
+                             Notification::make()
+                                 ->title('No death records to export')
+                                 ->danger()
+                                 ->send();
+                             return;
+                         }
+
+                         // Generate CSV file
+                         $csvFileName = 'death-records-' . date('Y-m-d') . '.csv';
+                         $headers = [
+                             'Content-Type' => 'text/csv',
+                             'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
+                         ];
+
+                         $callback = function () use ($records) {
+                             $file = fopen('php://output', 'w');
+
+                             // Add headers
+                             fputcsv($file, [
+                                 'Dependent Name',
+                                 'IC Number',
+                                 'Date of Death',
+                                 'Time of Death',
+                                 'Place of Death',
+                                 'Cause of Death',
+                                 'Death Notes',
+                                 'Certificate Available',
+                                 'Created At',
+                             ]);
+
+                             // Add rows
+                             foreach ($records as $record) {
+                                 fputcsv($file, [
+                                     $record->dependent ? $record->dependent->full_name : 'N/A',
+                                     $record->dependent ? $record->dependent->ic_number : 'N/A',
+                                     $record->date_of_death ? $record->date_of_death->format('Y-m-d') : 'N/A',
+                                     $record->time_of_death ? $record->time_of_death->format('H:i') : 'N/A',
+                                     $record->place_of_death ?? 'N/A',
+                                     $record->cause_of_death ?? 'N/A',
+                                     $record->death_notes ?? 'N/A',
+                                     $record->death_attachment_path ? 'Yes' : 'No',
+                                     $record->created_at->format('Y-m-d'),
+                                 ]);
+                             }
+
+                             fclose($file);
+                         };
+
+                         return response()->stream($callback, 200, $headers);
+                     }),
+
+                 // Add PDF Export Bulk Action
+                 BulkAction::make('export-pdf')
+                     ->label('Export to PDF')
+                     ->icon('heroicon-o-document-arrow-down')
+                     ->color('danger')
+                     ->action(function (Collection $records) {
+                         // Check if any records are selected
+                         if ($records->isEmpty()) {
+                             Notification::make()
+                                 ->title('No death records to export')
+                                 ->danger()
+                                 ->send();
+                             return;
+                         }
+
+                         // Generate the PDF
+                         $pdf = Pdf::loadView('pdf.death-records', [
+                             'records' => $records,
+                         ]);
+
+                         return response()->streamDownload(function () use ($pdf) {
+                             echo $pdf->output();
+                         }, 'death-records-' . date('Y-m-d') . '.pdf');
+                     }),
+
                 ]),
             ]);
     }

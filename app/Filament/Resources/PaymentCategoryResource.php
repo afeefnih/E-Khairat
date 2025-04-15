@@ -10,7 +10,11 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Database\Eloquent\Collection;
+use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Tables\Actions\DeleteBulkAction;
 
 class PaymentCategoryResource extends Resource
 {
@@ -121,8 +125,87 @@ class PaymentCategoryResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->requiresConfirmation()
                         ->deselectRecordsAfterCompletion(),
-                ]),
-            ]);
+
+                           // Add CSV Export Bulk Action
+                    BulkAction::make('export-csv')
+                    ->label('Export to CSV')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success')
+                    ->action(function (Collection $records) {
+                        // Check if any records are selected
+                        if ($records->isEmpty()) {
+                            Notification::make()
+                                ->title('No payment categories to export')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Generate CSV file
+                        $csvFileName = 'payment-categories-' . date('Y-m-d') . '.csv';
+                        $headers = [
+                            'Content-Type' => 'text/csv',
+                            'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
+                        ];
+
+                        $callback = function () use ($records) {
+                            $file = fopen('php://output', 'w');
+
+                            // Add headers
+                            fputcsv($file, [
+                                'Category Name',
+                                'Description',
+                                'Amount (RM)',
+                                'Status',
+                                'Number of Payments',
+                                'Created At',
+                            ]);
+
+                            // Add rows
+                            foreach ($records as $record) {
+                                fputcsv($file, [
+                                    $record->category_name,
+                                    $record->category_description ?? 'N/A',
+                                    $record->amount,
+                                    $record->category_status,
+                                    $record->payments()->count(),
+                                    $record->created_at->format('Y-m-d'),
+                                ]);
+                            }
+
+                            fclose($file);
+                        };
+
+                        return response()->stream($callback, 200, $headers);
+                    }),
+
+                // Add PDF Export Bulk Action
+                BulkAction::make('export-pdf')
+                    ->label('Export to PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (Collection $records) {
+                        // Check if any records are selected
+                        if ($records->isEmpty()) {
+                            Notification::make()
+                                ->title('No payment categories to export')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Generate the PDF
+                        $pdf = Pdf::loadView('pdf.payment-categories', [
+                            'categories' => $records,
+                        ]);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'payment-categories-' . date('Y-m-d') . '.pdf');
+                    }),
+            ]),
+        ]);
+
     }
 
     public static function getRelations(): array

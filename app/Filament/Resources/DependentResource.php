@@ -11,6 +11,10 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Database\Eloquent\Collection;
+use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DependentResource extends Resource
 {
@@ -103,7 +107,71 @@ class DependentResource extends Resource
                 ]),
             ])
             ->actions([Tables\Actions\EditAction::make(), Tables\Actions\DeleteAction::make()])
-            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+
+
+
+                    // Add CSV Export Bulk Action
+                    BulkAction::make('export-csv')
+                        ->label('Export to CSV')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('success')
+                        ->action(function (Collection $records) {
+                            // Check if any dependents are selected
+                            if ($records->isEmpty()) {
+                                Notification::make()->title('No dependents to export')->danger()->send();
+                                return;
+                            }
+
+                            // Generate CSV file
+                            $csvFileName = 'dependents-' . date('Y-m-d') . '.csv';
+                            $headers = [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
+                            ];
+
+                            $callback = function () use ($records) {
+                                $file = fopen('php://output', 'w');
+
+                                // Add headers
+                                fputcsv($file, ['Nama Ahli', 'Nama Penuh', 'Hubungan', 'Umur', 'Nombor KP', 'tarikh daftar']);
+
+                                // Add rows
+                                foreach ($records as $dependent) {
+                                    fputcsv($file, [$dependent->user ? $dependent->user->name : 'N/A', $dependent->full_name, $dependent->relationship, $dependent->age, $dependent->ic_number, $dependent->created_at]);
+                                }
+
+                                fclose($file);
+                            };
+
+                            return response()->stream($callback, 200, $headers);
+                        }),
+
+                          // Add PDF Export Bulk Action
+                    BulkAction::make('export-pdf')
+                    ->label('Export to PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (Collection $records) {
+                        // Check if any dependents are selected
+                        if ($records->isEmpty()) {
+                            Notification::make()->title('No dependents to export')->danger()->send();
+                            return;
+                        }
+
+                        // Generate the PDF
+                        $pdf = Pdf::loadView('pdf.dependents', [
+                            'dependents' => $records,
+                        ]);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'dependents-' . date('Y-m-d') . '.pdf');
+                    }),
+                ]),
+            ]);
     }
 
     public static function getRelations(): array

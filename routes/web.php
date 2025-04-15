@@ -81,3 +81,5 @@ Route::get('/payments/process/{category}', [App\Http\Controllers\PaymentControll
 // Payment callback from payment gateway
 Route::get('/payment/callback', [App\Http\Controllers\PaymentController::class, 'paymentCallback'])
     ->name('payment.callback');
+
+

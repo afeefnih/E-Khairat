@@ -16,6 +16,11 @@ use App\Model\PaymentCategory;
 use Illuminate\Support\Str;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Support\Collection;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Tables\Actions\BulkActionGroup;
 
 class PaymentResource extends Resource
 {
@@ -142,6 +147,88 @@ class PaymentResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+
+                         // Add CSV Export Bulk Action
+                         BulkAction::make('export-csv')
+                         ->label('Export to CSV')
+                         ->icon('heroicon-o-document-arrow-down')
+                         ->color('success')
+                         ->action(function (Collection $records) {
+                             // Check if any records are selected
+                             if ($records->isEmpty()) {
+                                 Notification::make()
+                                     ->title('No payments to export')
+                                     ->danger()
+                                     ->send();
+                                 return;
+                             }
+
+                             // Generate CSV file
+                             $csvFileName = 'payments-' . date('Y-m-d') . '.csv';
+                             $headers = [
+                                 'Content-Type' => 'text/csv',
+                                 'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
+                             ];
+
+                             $callback = function () use ($records) {
+                                 $file = fopen('php://output', 'w');
+
+                                 // Add headers
+                                 fputcsv($file, [
+                                     'Member Name',
+                                     'Payment Category',
+                                     'Amount (RM)',
+                                     'Status',
+                                     'Billcode',
+                                     'Order ID',
+                                     'Paid At',
+                                     'Created At',
+                                 ]);
+
+                                 // Add rows
+                                 foreach ($records as $payment) {
+                                     fputcsv($file, [
+                                         $payment->user ? $payment->user->name : 'N/A',
+                                         $payment->payment_category ? $payment->payment_category->category_name : 'N/A',
+                                         $payment->amount,
+                                         $payment->status_id == '1' ? 'Paid' : 'Pending',
+                                         $payment->billcode ?? 'N/A',
+                                         $payment->order_id ?? 'N/A',
+                                         $payment->paid_at ? (is_string($payment->paid_at) ? $payment->paid_at : $payment->paid_at->format('Y-m-d H:i:s')) : 'N/A',                                         $payment->created_at->format('Y-m-d H:i:s'),
+                                     ]);
+                                 }
+
+                                 fclose($file);
+                             };
+
+                             return response()->stream($callback, 200, $headers);
+                         }),
+
+                     // Add PDF Export Bulk Action
+                     BulkAction::make('export-pdf')
+                         ->label('Export to PDF')
+                         ->icon('heroicon-o-document-arrow-down')
+                         ->color('danger')
+                         ->action(function (Collection $records) {
+                             // Check if any records are selected
+                             if ($records->isEmpty()) {
+                                 Notification::make()
+                                     ->title('No payments to export')
+                                     ->danger()
+                                     ->send();
+                                 return;
+                             }
+
+                             // Generate the PDF
+                             $pdf = Pdf::loadView('pdf.payments', [
+                                 'payments' => $records,
+                             ]);
+
+                             return response()->streamDownload(function () use ($pdf) {
+                                 echo $pdf->output();
+                             }, 'payments-' . date('Y-m-d') . '.pdf');
+                         }),
+
                 ]),
             ]);
     }
