@@ -168,28 +168,55 @@ class UserResource extends Resource
     }
 
     public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('No_Ahli')->searchable()->sortable(),
+{
+    return $table
+        ->columns([
+            // Add a column to indicate if the user is deceased
+            Tables\Columns\IconColumn::make('isDeceased')
+                ->label('Deceased')
+                ->boolean()
+                ->trueIcon('heroicon-o-check-circle')
+                ->falseIcon('heroicon-o-x-circle')
+                ->trueColor('danger')
+                ->falseColor('success')
+                ->getStateUsing(fn (User $record) => $record->isDeceased())
+                ->tooltip('Indicates if the member is deceased'),
 
-                Tables\Columns\TextColumn::make('name')->searchable(),
+            Tables\Columns\TextColumn::make('No_Ahli')
+                ->searchable()
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('email')->searchable(),
+            Tables\Columns\TextColumn::make('name')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('ic_number')->label('Nombor IC')->searchable(),
+            Tables\Columns\TextColumn::make('email')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('phone_number')->searchable(),
+            Tables\Columns\TextColumn::make('ic_number')
+                ->label('Nombor IC')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('residence_status')->label('Status Kediaman'),
+            Tables\Columns\TextColumn::make('phone_number')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('roles.name')->badge()->label('Peranan'),
+            Tables\Columns\TextColumn::make('residence_status')
+                ->label('Status Kediaman'),
 
-                // Add a column to show number of dependents
-                Tables\Columns\TextColumn::make('dependents_count')->label('Dependents')->counts('dependents')->badge(),
+            Tables\Columns\TextColumn::make('roles.name')
+                ->badge()
+                ->label('Peranan'),
 
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-            ])
+            // Add a column to show number of dependents
+            Tables\Columns\TextColumn::make('dependents_count')
+                ->label('Dependents')
+                ->counts('dependents')
+                ->badge(),
+
+            Tables\Columns\TextColumn::make('created_at')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+        ])
             ->filters([
                 // Add filters if needed
             ])

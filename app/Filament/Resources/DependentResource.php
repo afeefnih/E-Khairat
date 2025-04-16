@@ -15,6 +15,7 @@ use Filament\Tables\Actions\BulkAction;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Tables\Actions\Action;
 
 class DependentResource extends Resource
 {
@@ -95,7 +96,43 @@ class DependentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([Tables\Columns\TextColumn::make('user.name')->label('Member')->sortable()->searchable(), Tables\Columns\TextColumn::make('full_name')->searchable()->sortable(), Tables\Columns\TextColumn::make('relationship')->sortable(), Tables\Columns\TextColumn::make('age')->numeric()->sortable(), Tables\Columns\TextColumn::make('ic_number')->searchable(), Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true)])
+            ->columns([
+                // Add a column to indicate if the dependent is deceased
+                Tables\Columns\IconColumn::make('isDeceased')
+                    ->label('Deceased')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-x-circle')
+                    ->falseIcon('heroicon-o-check-circle')
+                    ->trueColor('danger')
+                    ->falseColor('success')
+                    ->getStateUsing(fn (Dependent $record) => $record->isDeceased())
+                    ->tooltip('Indicates if the dependent is deceased'),
+
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Member')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('full_name')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('relationship')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('age')
+                    ->numeric()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('ic_number')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+            ])
+            // Rest of your table configuration...
             ->filters([
                 Tables\Filters\SelectFilter::make('user_id')->label('Member')->relationship('user', 'name')->searchable()->preload(),
 
@@ -106,12 +143,21 @@ class DependentResource extends Resource
                     'Anak' => 'Anak',
                 ]),
             ])
-            ->actions([Tables\Actions\EditAction::make(), Tables\Actions\DeleteAction::make()])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+                // Add View Member Action
+                Action::make('view_member')
+                    ->label('View Member')
+                    ->icon('heroicon-o-user')
+                    ->color('success')
+                    ->url(fn (Dependent $record) => UserResource::getUrl('edit', ['record' => $record->user_id]))
+
+                    ->visible(fn (Dependent $record) => $record->user_id !== null),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-
-
 
                     // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')
@@ -149,27 +195,27 @@ class DependentResource extends Resource
                             return response()->stream($callback, 200, $headers);
                         }),
 
-                          // Add PDF Export Bulk Action
+                    // Add PDF Export Bulk Action
                     BulkAction::make('export-pdf')
-                    ->label('Export to PDF')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('danger')
-                    ->action(function (Collection $records) {
-                        // Check if any dependents are selected
-                        if ($records->isEmpty()) {
-                            Notification::make()->title('No dependents to export')->danger()->send();
-                            return;
-                        }
+                        ->label('Export to PDF')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('danger')
+                        ->action(function (Collection $records) {
+                            // Check if any dependents are selected
+                            if ($records->isEmpty()) {
+                                Notification::make()->title('No dependents to export')->danger()->send();
+                                return;
+                            }
 
-                        // Generate the PDF
-                        $pdf = Pdf::loadView('pdf.dependents', [
-                            'dependents' => $records,
-                        ]);
+                            // Generate the PDF
+                            $pdf = Pdf::loadView('pdf.dependents', [
+                                'dependents' => $records,
+                            ]);
 
-                        return response()->streamDownload(function () use ($pdf) {
-                            echo $pdf->output();
-                        }, 'dependents-' . date('Y-m-d') . '.pdf');
-                    }),
+                            return response()->streamDownload(function () use ($pdf) {
+                                echo $pdf->output();
+                            }, 'dependents-' . date('Y-m-d') . '.pdf');
+                        }),
                 ]),
             ]);
     }

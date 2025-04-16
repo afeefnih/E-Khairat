@@ -6,6 +6,8 @@ use App\Filament\Resources\DeathRecordResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use App\Models\DeathRecord;
+use App\Models\User;
+use App\Models\Dependent;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -23,8 +25,8 @@ class ListDeathRecords extends ListRecords
                 ->color('danger')
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function () {
-                    // Get all death records with their related dependents
-                    $records = DeathRecord::with('dependent')->get();
+                    // Get all death records with eager loading for both relationships
+                    $records = DeathRecord::with(['dependent', 'deceased'])->get();
 
                     // Check if any records exist
                     if ($records->isEmpty()) {
@@ -51,8 +53,8 @@ class ListDeathRecords extends ListRecords
                 ->color('success')
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function () {
-                    // Get all death records with their related dependents
-                    $records = DeathRecord::with('dependent')->get();
+                    // Get all death records with eager loading for both relationships
+                    $records = DeathRecord::with(['dependent', 'deceased'])->get();
 
                     // Check if any records exist
                     if ($records->isEmpty()) {
@@ -75,7 +77,9 @@ class ListDeathRecords extends ListRecords
 
                         // Add headers
                         fputcsv($file, [
-                            'Dependent Name',
+                            'Record Type',
+                            'Name',
+                            'No Ahli',
                             'IC Number',
                             'Date of Death',
                             'Time of Death',
@@ -88,9 +92,57 @@ class ListDeathRecords extends ListRecords
 
                         // Add rows
                         foreach ($records as $record) {
+                            // Determine record type
+                            $recordType = 'Dependent';
+                            $name = 'N/A';
+                            $noAhli = 'N/A';
+                            $icNumber = 'N/A';
+
+                            // Handle Primary Member (User)
+                            if ($record->deceased_type === 'App\\Models\\User' || strpos($record->deceased_type, 'User') !== false) {
+                                $recordType = 'Primary Member';
+
+                                // Try to get user directly if relationship isn't loaded
+                                $user = $record->deceased;
+                                if (!$user && $record->deceased_id) {
+                                    $user = User::find($record->deceased_id);
+                                }
+
+                                if ($user) {
+                                    $name = $user->name ?? 'Unknown';
+                                    $noAhli = $user->No_Ahli ?? 'N/A';
+                                    $icNumber = $user->ic_number ?? 'N/A';
+                                }
+                            }
+                            // Handle Dependent
+                            else {
+                                // Try to get data from the polymorphic relationship
+                                $dependent = $record->deceased;
+                                if (!$dependent && $record->deceased_id) {
+                                    $dependent = Dependent::find($record->deceased_id);
+                                }
+
+                                // If still not found, try legacy relationship
+                                if (!$dependent && $record->dependent_id) {
+                                    $dependent = $record->dependent ?: Dependent::find($record->dependent_id);
+                                }
+
+                                if ($dependent) {
+                                    $name = $dependent->full_name ?? 'Unknown';
+                                    $icNumber = $dependent->ic_number ?? 'N/A';
+
+                                    // Get No_Ahli from the User related to this dependent
+                                    if ($dependent->user) {
+                                        $noAhli = $dependent->user->No_Ahli ?? 'N/A';
+                                    }
+                                }
+                            }
+
                             fputcsv($file, [
-                                $record->dependent ? $record->dependent->full_name : 'N/A',
-                                $record->dependent ? $record->dependent->ic_number : 'N/A',
+                                $recordType,
+                                $name,
+                                $noAhli,
+                                $icNumber,
                                 $record->date_of_death ? $record->date_of_death->format('Y-m-d') : 'N/A',
                                 $record->time_of_death ? $record->time_of_death->format('H:i') : 'N/A',
                                 $record->place_of_death ?? 'N/A',
