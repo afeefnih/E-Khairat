@@ -22,49 +22,48 @@ class DependentsRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('full_name')
-                    ->required()
-                    ->maxLength(255)
-                    ->validationMessages([
-                        'required' => 'Nama penuh diperlukan.',
-                        'max' => 'Nama penuh tidak boleh melebihi 255 aksara.',
-                    ]),
+        return $form->schema([
+            Forms\Components\TextInput::make('full_name')
+                ->required()
+                ->maxLength(255)
+                ->validationMessages([
+                    'required' => 'Nama penuh diperlukan.',
+                    'max' => 'Nama penuh tidak boleh melebihi 255 aksara.',
+                ]),
 
-                Forms\Components\Select::make('relationship')
-                    ->required()
-                    ->options([
-                        'Bapa' => 'Bapa',
-                        'Ibu' => 'Ibu',
-                        'Pasangan' => 'Pasangan',
-                        'Anak' => 'Anak',
-                    ])
-                    ->validationMessages([
-                        'required' => 'Hubungan diperlukan.',
-                    ]),
+            Forms\Components\Select::make('relationship')
+                ->required()
+                ->options([
+                    'Bapa' => 'Bapa',
+                    'Ibu' => 'Ibu',
+                    'Pasangan' => 'Pasangan',
+                    'Anak' => 'Anak',
+                ])
+                ->validationMessages([
+                    'required' => 'Hubungan diperlukan.',
+                ]),
 
-                Forms\Components\TextInput::make('age')
-                    ->required()
-                    ->numeric()
-                    ->validationMessages([
-                        'required' => 'Umur diperlukan.',
-                        'numeric' => 'Umur mesti berupa angka.',
-                    ]),
+            Forms\Components\TextInput::make('age')
+                ->required()
+                ->numeric()
+                ->validationMessages([
+                    'required' => 'Umur diperlukan.',
+                    'numeric' => 'Umur mesti berupa angka.',
+                ]),
 
-                Forms\Components\TextInput::make('ic_number')
-                    ->required()
-                    ->label('Nombor IC')
-                    ->unique(Dependent::class, 'ic_number', fn ($record) => $record)
-                    ->length(12)
-                    ->numeric()
-                    ->validationMessages([
-                        'required' => 'Nombor IC diperlukan.',
-                        'digits' => 'Nombor IC mesti 12 digit.',
-                        'unique' => 'Nombor IC telah digunakan.',
-                        'numeric' => 'Nombor IC mesti berupa angka.',
-                    ]),
-            ]);
+            Forms\Components\TextInput::make('ic_number')
+                ->required()
+                ->label('Nombor IC')
+                ->unique(Dependent::class, 'ic_number', fn($record) => $record)
+                ->length(12)
+                ->numeric()
+                ->validationMessages([
+                    'required' => 'Nombor IC diperlukan.',
+                    'digits' => 'Nombor IC mesti 12 digit.',
+                    'unique' => 'Nombor IC telah digunakan.',
+                    'numeric' => 'Nombor IC mesti berupa angka.',
+                ]),
+        ]);
     }
 
     public function table(Table $table): Table
@@ -72,54 +71,39 @@ class DependentsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('full_name')
             ->columns([
-                Tables\Columns\TextColumn::make('full_name')
-                    ->searchable()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('full_name')->searchable()->sortable(),
 
-                Tables\Columns\TextColumn::make('relationship')
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('relationship')->sortable(),
 
-                Tables\Columns\TextColumn::make('age')
-                    ->numeric()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('age')->numeric()->sortable(),
 
-                Tables\Columns\TextColumn::make('ic_number')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('ic_number')->searchable(),
 
                 // Add deceased status column
-                Tables\Columns\IconColumn::make('deceased_status')
-                    ->label('Deceased')
-                    ->boolean()
-                    ->getStateUsing(fn ($record) => $record && $record->isDeceased())
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('danger')
-                    ->falseColor('success'),
+                Tables\Columns\IconColumn::make('deceased_status')->label('Deceased')->boolean()->getStateUsing(fn($record) => $record && $record->isDeceased())->trueIcon('heroicon-o-check-circle')->falseIcon('heroicon-o-x-circle')->trueColor('danger')->falseColor('success'),
 
                 // Add date of death column when applicable
                 Tables\Columns\TextColumn::make('death_date')
                     ->label('Date of Death')
                     ->getStateUsing(function ($record) {
-                        if (!$record) return null;
+                        if (!$record) {
+                            return null;
+                        }
                         $deathRecord = $record->deathRecord;
                         return $deathRecord ? $deathRecord->date_of_death : null;
                     })
                     ->date()
-                    ->visible(fn ($record) => $record && $record->isDeceased()),
+                    ->visible(fn($record) => $record && $record->isDeceased()),
 
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('relationship')
-                    ->options([
-                        'Bapa' => 'Bapa',
-                        'Ibu' => 'Ibu',
-                        'Pasangan' => 'Pasangan',
-                        'Anak' => 'Anak',
-                    ]),
+                Tables\Filters\SelectFilter::make('relationship')->options([
+                    'Bapa' => 'Bapa',
+                    'Ibu' => 'Ibu',
+                    'Pasangan' => 'Pasangan',
+                    'Anak' => 'Anak',
+                ]),
                 // Add filter for deceased status
                 Tables\Filters\SelectFilter::make('deceased')
                     ->label('Death Status')
@@ -141,37 +125,17 @@ class DependentsRelationManager extends RelationManager
                         }
                     }),
             ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Dependent added')
-                            ->body('The dependent has been added successfully.'),
-                    ),
-            ])
+            ->headerActions([Tables\Actions\CreateAction::make()->successNotification(Notification::make()->success()->title('Dependent added')->body('The dependent has been added successfully.'))])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Dependent updated')
-                            ->body('The dependent has been updated successfully.'),
-                    ),
-                Tables\Actions\DeleteAction::make()
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Dependent deleted')
-                            ->body('The dependent has been deleted successfully.'),
-                    ),
+                Tables\Actions\EditAction::make()->successNotification(Notification::make()->success()->title('Dependent updated')->body('The dependent has been updated successfully.')),
+                Tables\Actions\DeleteAction::make()->successNotification(Notification::make()->success()->title('Dependent deleted')->body('The dependent has been deleted successfully.')),
 
-                // Record Death action - only show if not already deceased
+                // In the recordDeath action inside DependentsRelationManager
                 Tables\Actions\Action::make('recordDeath')
                     ->label('Record Death')
                     ->icon('heroicon-o-document-text')
                     ->color('danger')
-                    ->visible(fn ($record) => $record && !$record->isDeceased())
+                    ->visible(fn($record) => $record && !$record->isDeceased())
                     ->form([
                         Forms\Components\DatePicker::make('date_of_death')
                             ->required()
@@ -179,43 +143,44 @@ class DependentsRelationManager extends RelationManager
                             ->validationMessages([
                                 'required' => 'Tarikh kematian diperlukan.',
                             ]),
-                        Forms\Components\TimePicker::make('time_of_death')
-                            ->label('Time of Death')
-                            ->seconds(false),
+                        Forms\Components\TimePicker::make('time_of_death')->label('Time of Death')->seconds(false),
                         Forms\Components\TextInput::make('place_of_death')
                             ->label('Place of Death')
                             ->required()
                             ->validationMessages([
                                 'required' => 'Tempat kematian diperlukan.',
                             ]),
-                        Forms\Components\Textarea::make('cause_of_death')
-                            ->label('Cause of Death')
-                            ->rows(3),
-                        Forms\Components\Textarea::make('death_notes')
-                            ->label('Notes')
-                            ->rows(3),
+                        Forms\Components\Textarea::make('cause_of_death')->label('Cause of Death')->rows(3),
+                        Forms\Components\Textarea::make('death_notes')->label('Notes')->rows(3),
                         Forms\Components\FileUpload::make('death_attachment_path')
                             ->label('Death Certificate')
                             ->directory('death-certificates')
                             ->visibility('private')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                            ->maxSize(5120) // 5MB
+                            ->maxSize(5120), // 5MB
                     ])
+                    // In your DependentsRelationManager.php
                     ->action(function (array $data, $record) {
                         // Begin a database transaction
                         DB::beginTransaction();
 
                         try {
                             // First check if a death record already exists for this dependent
-                            $existingRecord = DeathRecord::where('dependent_id', $record->dependent_id)->first();
+                            $existingRecord = DeathRecord::where('dependent_id', $record->dependent_id)
+                                ->orWhere(function ($query) use ($record) {
+                                    $query->where('deceased_type', 'App\\Models\\Dependent')->where('deceased_id', $record->dependent_id);
+                                })
+                                ->first();
 
                             if ($existingRecord) {
-                                throw new \Exception("A death record already exists for this dependent.");
+                                throw new \Exception('A death record already exists for this dependent.');
                             }
 
                             // Create the death record
                             $deathRecord = new DeathRecord();
-                            $deathRecord->dependent_id = $record->dependent_id;
+                            $deathRecord->deceased_type = 'App\\Models\\Dependent';
+                            $deathRecord->deceased_id = $record->dependent_id;
+                            $deathRecord->dependent_id = $record->dependent_id; // For backward compatibility
                             $deathRecord->date_of_death = $data['date_of_death'];
                             $deathRecord->time_of_death = $data['time_of_death'] ?? null;
                             $deathRecord->place_of_death = $data['place_of_death'];
@@ -226,12 +191,7 @@ class DependentsRelationManager extends RelationManager
 
                             DB::commit();
 
-                            Notification::make()
-                                ->success()
-                                ->title('Death Record Created')
-                                ->body('The death record has been created successfully.')
-                                ->send();
-
+                            Notification::make()->success()->title('Death Record Created')->body('The death record has been created successfully.')->send();
                         } catch (\Exception $e) {
                             DB::rollBack();
 
@@ -248,19 +208,18 @@ class DependentsRelationManager extends RelationManager
                     ->label('View Death Details')
                     ->icon('heroicon-o-eye')
                     ->color('info')
-                    ->visible(fn ($record) => $record && $record->isDeceased())
+                    ->visible(fn($record) => $record && $record->isDeceased())
                     ->url(function ($record) {
-                        $deathRecord = $record->deathRecord;
+                        // Find the death record through the polymorphic relationship
+                        $deathRecord = DeathRecord::where('deceased_type', 'App\\Models\\Dependent')->where('deceased_id', $record->dependent_id)->first();
+
                         if ($deathRecord) {
                             return DeathRecordResource::getUrl('edit', ['record' => $deathRecord->id]);
                         }
+
                         return null;
-                    })
+                    }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
     }
 }

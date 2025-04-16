@@ -8,6 +8,11 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use App\Models\Role;
+use App\Models\Dependent;
+use App\Models\Payment;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -96,6 +101,22 @@ class User extends Authenticatable
     public function payments()
     {
         return $this->hasMany(Payment::class, 'user_id');
+    }
+
+     /**
+     * Get the death record associated with the user.
+     */
+    public function deathRecord(): MorphOne
+    {
+        return $this->morphOne(DeathRecord::class, 'deceased');
+    }
+
+    /**
+     * Check if the user is deceased.
+     */
+    public function isDeceased(): bool
+    {
+        return $this->deathRecord()->exists();
     }
 
 }

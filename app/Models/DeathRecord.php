@@ -1,37 +1,97 @@
 <?php
 
-// app/Models/DeathRecord.php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class DeathRecord extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'user_id',           // Will be used if the record is related to a user
-        'dependent_id',      // Will be used if the record is related to a dependent
+        'deceased_type',
+        'deceased_id',
         'date_of_death',
         'time_of_death',
-        'place_of_death',    // Place of death
+        'place_of_death',
         'cause_of_death',
         'death_notes',
-        'death_attachment_path',
+        'death_attachment_path'
     ];
-
     protected $casts = [
         'date_of_death' => 'date',
         'time_of_death' => 'datetime',
     ];
 
-
-    public function user()
+    /**
+     * Get the deceased model (User or Dependent).
+     */
+    public function deceased(): MorphTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->morphTo();
     }
 
-    public function dependent()
-{
-    // Foreign key on this DeathRecord table, Owner key on the Dependent table
-    return $this->belongsTo(Dependent::class, 'dependent_id', 'dependent_id');
-}
+    /**
+     * Get the dependent associated with this death record.
+     */
+    // In your DeathRecord model
+    public function dependent(): BelongsTo
+    {
+        return $this->belongsTo(Dependent::class, 'dependent_id', 'dependent_id'); // Specify the correct foreign key and primary key
+    }
+
+    /**
+     * Fix the deceased_type attribute on the fly
+     */
+    protected function deceasedType(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if ($value === 'AppModelsUser') {
+                    return 'App\\Models\\User';
+                }
+                if ($value === 'AppModelsDependent') {
+                    return 'App\\Models\\Dependent';
+                }
+                return $value;
+            },
+            set: function ($value) {
+                if ($value === 'AppModelsUser') {
+                    return 'App\\Models\\User';
+                }
+                if ($value === 'AppModelsDependent') {
+                    return 'App\\Models\\Dependent';
+                }
+                return $value;
+            },
+        );
+    }
+
+    /**
+     * Get the deceased name regardless of deceased type.
+     */
+    public function getDeceasedNameAttribute()
+    {
+        $type = $this->deceased_type;
+
+        if ($type === 'App\\Models\\User' && $this->deceased) {
+            return $this->deceased->name ?? 'Unknown';
+        }
+
+        if ($type === 'App\\Models\\Dependent' && $this->deceased) {
+            return $this->deceased->full_name ?? 'Unknown';
+        }
+
+        if ($this->dependent_id && $this->dependent) {
+            return $this->dependent->full_name ?? 'Unknown';
+        }
+
+        return 'Unknown';
+    }
+
+    // Other accessors...
 }
