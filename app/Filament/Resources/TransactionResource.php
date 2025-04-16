@@ -10,6 +10,13 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions;
+use Filament\Tables\Filters;
+use Filament\Tables\Actions\BulkAction;
+use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class TransactionResource extends Resource
 {
@@ -140,7 +147,108 @@ class TransactionResource extends Resource
                 Tables\Filters\SelectFilter::make('user_id')->label('Ahli')->relationship('user', 'name'),
             ])
             ->actions([Tables\Actions\EditAction::make(), Tables\Actions\DeleteAction::make()])
-            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+
+                    // Add CSV Export Bulk Action
+                    BulkAction::make('export-csv')
+                        ->label('Export to CSV')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('success')
+                        ->action(function (Collection $records) {
+                            // Check if any records are selected
+                            if ($records->isEmpty()) {
+                                Notification::make()
+                                    ->title('No transactions to export')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            // Generate CSV file
+                            $csvFileName = 'transactions-' . date('Y-m-d') . '.csv';
+                            $headers = [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
+                            ];
+
+                            $callback = function () use ($records) {
+                                $file = fopen('php://output', 'w');
+
+                                // Add headers
+                                fputcsv($file, [
+                                    'Date',
+                                    'Transaction Name',
+                                    'Member',
+                                    'Type',
+                                    'Amount (RM)',
+                                    'Payment Method',
+                                    'Status',
+                                    'Description',
+                                    'Created At',
+                                ]);
+
+                                // Add rows
+                                foreach ($records as $transaction) {
+                                    $type = match ($transaction->type) {
+                                        'pendapatan' => 'Pendapatan',
+                                        'perbelanjaan' => 'Perbelanjaan',
+                                        default => $transaction->type,
+                                    };
+
+                                    $status = match ($transaction->status) {
+                                        'completed' => 'Selesai',
+                                        'pending' => 'Belum Selesai',
+                                        'cancelled' => 'Batal',
+                                        default => $transaction->status,
+                                    };
+
+                                    fputcsv($file, [
+                                        $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : 'N/A',
+                                        $transaction->name,
+                                        $transaction->user ? $transaction->user->name : 'N/A',
+                                        $type,
+                                        $transaction->amount,
+                                        $transaction->payment_method ?? 'N/A',
+                                        $status,
+                                        $transaction->description ?? 'N/A',
+                                        $transaction->created_at->format('Y-m-d'),
+                                    ]);
+                                }
+
+                                fclose($file);
+                            };
+
+                            return response()->stream($callback, 200, $headers);
+                        }),
+
+                    // Add PDF Export Bulk Action
+                    BulkAction::make('export-pdf')
+                        ->label('Export to PDF')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('danger')
+                        ->action(function (Collection $records) {
+                            // Check if any records are selected
+                            if ($records->isEmpty()) {
+                                Notification::make()
+                                    ->title('No transactions to export')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            // Generate the PDF
+                            $pdf = Pdf::loadView('pdf.transactions', [
+                                'transactions' => $records,
+                            ]);
+
+                            return response()->streamDownload(function () use ($pdf) {
+                                echo $pdf->output();
+                            }, 'transactions-' . date('Y-m-d') . '.pdf');
+                        }),
+                ]),
+            ]);
     }
 
     public static function getPages(): array
