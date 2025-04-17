@@ -1,8 +1,6 @@
 {{-- resources/views/livewire/terms-and-conditions.blade.php --}}
 
-
-
-<div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <header class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg overflow-hidden">

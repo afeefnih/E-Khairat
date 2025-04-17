@@ -29,5 +29,7 @@
 
         @livewireScripts
 
+        <livewire:footer />
+
     </body>
 </html>

@@ -6,6 +6,8 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Dependent;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class DependentList extends Component
 {
