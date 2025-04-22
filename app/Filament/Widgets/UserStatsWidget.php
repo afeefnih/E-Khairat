@@ -28,6 +28,9 @@ class UserStatsWidget extends BaseWidget
         // Get newly registered members this month
         $newMembers = User::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
+            ->whereDoesntHave('roles', function ($query) {
+            $query->where('name', 'admin');
+            })
             ->count();
 
         // Basic stats that appear everywhere

@@ -50,7 +50,6 @@ class UserResource extends Resource
 
             Forms\Components\TextInput::make('email')
                 ->email()
-                ->required()
                 ->maxLength(255)
                 ->unique(User::class, 'email', ignoreRecord: true)
                 ->validationMessages([
@@ -173,20 +172,21 @@ class UserResource extends Resource
         ->columns([
             // Add a column to indicate if the user is deceased
             Tables\Columns\IconColumn::make('isDeceased')
-                ->label('Deceased')
-                ->boolean()
-                ->trueIcon('heroicon-o-check-circle')
-                ->falseIcon('heroicon-o-x-circle')
-                ->trueColor('danger')
-                ->falseColor('success')
-                ->getStateUsing(fn (User $record) => $record->isDeceased())
-                ->tooltip('Indicates if the member is deceased'),
+            ->label('Kematian')
+            ->boolean()
+            ->trueIcon('heroicon-s-x-circle')  // Solid X circle for deceased
+            ->falseIcon('heroicon-s-check-circle')  // Solid check circle for alive
+            ->trueColor('danger')
+            ->falseColor('success')
+            ->getStateUsing(fn(User $record) => $record->isDeceased())
+            ->tooltip(fn(User $record) => $record->isDeceased() ? 'Ahli ini telah meninggal' : 'Ahli ini masih hidup'),
 
             Tables\Columns\TextColumn::make('No_Ahli')
                 ->searchable()
                 ->sortable(),
 
             Tables\Columns\TextColumn::make('name')
+                ->label('Nama')
                 ->searchable(),
 
             Tables\Columns\TextColumn::make('email')
@@ -197,6 +197,7 @@ class UserResource extends Resource
                 ->searchable(),
 
             Tables\Columns\TextColumn::make('phone_number')
+                ->label('Nombor Telefon')
                 ->searchable(),
 
             Tables\Columns\TextColumn::make('residence_status')
@@ -208,7 +209,7 @@ class UserResource extends Resource
 
             // Add a column to show number of dependents
             Tables\Columns\TextColumn::make('dependents_count')
-                ->label('Dependents')
+                ->label('Tanggungan')
                 ->counts('dependents')
                 ->badge(),
 
@@ -223,11 +224,6 @@ class UserResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-                // Add a button to view this user's dependents
-                Tables\Actions\Action::make('dependents')->label('View Dependents')->icon('heroicon-o-users')->color('success')->url(fn(User $record) => DependentResource::getUrl('index', ['tableFilters[user_id][value]' => $record->id])),
-
-                // Add a button to create a dependent for this user
-                Tables\Actions\Action::make('addDependent')->label('Add Dependent')->icon('heroicon-o-plus')->color('primary')->url(fn(User $record) => DependentResource::getUrl('create', ['data[user_id]' => $record->id])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

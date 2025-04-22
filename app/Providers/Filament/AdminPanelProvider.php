@@ -7,6 +7,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Notifications\DatabaseNotification;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -23,6 +24,11 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\AccountWidget;
 use App\Filament\Widgets\UserStatsWidget;
 
+use App\Notifications\NewDependentRequest;
+use App\Filament\Notifications\NewDependentRequestFormatter;
+
+use App\Filament\Widgets\NewDependentRequestWidget;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -31,7 +37,6 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            // Remove ->login() to disable Filament's login
             ->colors([
                 'danger' => Color::Red,
                 'gray' => Color::Gray,
@@ -51,5 +56,9 @@ class AdminPanelProvider extends PanelProvider
                 AdminAuthentication::class, // Add this middleware to check for admin role
             ])
             ->authGuard('web'); // Use your default web guard
+
+
+
+
     }
 }

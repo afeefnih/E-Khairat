@@ -53,13 +53,35 @@
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end gap-3">
                                 @if(Auth::check())
-                                    <button wire:click="editDependent({{ $dependent->dependent_id }})"
-                                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200 flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Edit
-                                    </button>
+                                    @php
+                                        $hasPendingEdit = false;
+
+                                        if(isset($dependent->dependent_id)) {
+                                            foreach($pendingEditRequests as $request) {
+                                                if($request->dependent_id == $dependent->dependent_id) {
+                                                    $hasPendingEdit = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    @endphp
+
+                                    @if($hasPendingEdit)
+                                        <span class="text-blue-500 dark:text-blue-400 italic flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Menunggu
+                                        </span>
+                                    @else
+                                        <button wire:click="editDependent({{ $dependent->dependent_id }})"
+                                            class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors duration-200 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                    @endif
                                     <button wire:click="setDependentToDelete({{ $dependent->dependent_id }})"
                                         class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400 transition-colors duration-200 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,97 +126,125 @@
         </div>
     </div>
 
-    <!-- Pending Dependents Section (if any) -->
-    @if(!empty($pendingDependents))
-        <div class="mt-6">
-            <div class="flex items-center mb-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Belum Disimpan
-                </span>
-            </div>
-
-            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 shadow-lg rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-blue-200 dark:divide-blue-800">
-                    <thead class="bg-blue-100 dark:bg-blue-800/50">
-                        <tr>
-                            <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">
-                                Nama
-                            </th>
-                            <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">
-                                Hubungan
-                            </th>
-                            <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">
-                                Umur
-                            </th>
-                            <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">
-                                Nombor KP
-                            </th>
-                            <th scope="col" class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">
-                                Tindakan
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-blue-50 dark:bg-blue-900/10 divide-y divide-blue-200 dark:divide-blue-800">
-                        @foreach($pendingDependents as $index => $pending)
-                        <tr class="hover:bg-blue-100 dark:hover:bg-blue-800/20 transition-colors duration-200">
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-blue-800 dark:text-blue-200">
-                                {{ $pending['full_name'] }}
-                            </td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-blue-800 dark:text-blue-200">
-                                {{ $pending['relationship'] }}
-                            </td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-blue-800 dark:text-blue-200">
-                                {{ $pending['age'] }}
-                            </td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-blue-800 dark:text-blue-200">
-                                {{ $pending['ic_number'] }}
-                            </td>
-                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex justify-end gap-2">
-                                    <button wire:click="editPendingDependent({{ $index }})"
-                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
-                                        Edit
-                                    </button>
-                                    <button wire:click="removePendingDependent({{ $index }})"
-                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                        Delete
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    @endif
-
-    <div class="mt-6">
-        @if(Auth::check())
-            <div class="flex justify-end">
-                @if(!empty($pendingDependents))
-                    <x-button wire:click="savePendingDependents" type="submit" class="bg-blue-600 hover:bg-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Simpan
-                    </x-button>
-                @endif
-            </div>
-        @else
-        <div class="flex justify-end mt-6">
-            <button wire:click="saveDependents" type="submit" class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 dark:bg-indigo-700 dark:hover:bg-indigo-800 dark:focus:ring-indigo-400">
-                <span>Simpan dan Teruskan</span>
-                <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-            </button>
-        </div>
-        @endif
+<!-- Pending Edit Requests Section -->
+@if(Auth::check() && count($pendingEditRequests) > 0)
+<div class="mt-6">
+    <div class="flex items-center mb-2">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Kemaskini Menunggu Kelulusan
+        </span>
     </div>
+
+    <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 shadow-lg rounded-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-yellow-200 dark:divide-yellow-800">
+            <thead class="bg-yellow-100 dark:bg-yellow-800/50">
+                <tr>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
+                        Nama
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
+                        Hubungan
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
+                        Umur
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
+                        Nombor KP
+                    </th>
+                    <th scope="col" class="px-4 sm:px-6 py-3 text-right text-xs font-medium text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
+                        Tindakan
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-yellow-50 dark:bg-yellow-900/10 divide-y divide-yellow-200 dark:divide-yellow-800">
+                @foreach($pendingEditRequests as $request)
+                <tr class="hover:bg-yellow-100 dark:hover:bg-yellow-800/20 transition-colors duration-200">
+                    @php
+                        $originalDependent = null;
+                        foreach($dependents as $dep) {
+                            if(isset($dep->dependent_id) && $dep->dependent_id == $request->dependent_id) {
+                                $originalDependent = $dep;
+                                break;
+                            }
+                        }
+                    @endphp
+                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-yellow-800 dark:text-yellow-200">
+                        {{ $request->full_name }}
+                        @if($originalDependent)
+                        <div class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                            Asal: {{ $originalDependent->full_name }}
+                        </div>
+                        @endif
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-yellow-800 dark:text-yellow-200">
+                        {{ $request->relationship }}
+                        @if($originalDependent)
+                        <div class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                            Asal: {{ $originalDependent->relationship }}
+                        </div>
+                        @endif
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-yellow-800 dark:text-yellow-200">
+                        {{ $request->age }}
+                        @if($originalDependent)
+                        <div class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                            Asal: {{ $originalDependent->age }}
+                        </div>
+                        @endif
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-yellow-800 dark:text-yellow-200">
+                        {{ $request->ic_number }}
+                        @if($originalDependent)
+                        <div class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                            Asal: {{ $originalDependent->ic_number }}
+                        </div>
+                        @endif
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end gap-2">
+                            <button wire:click="cancelEditRequest({{ $request->id }})"
+                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+<div class="mt-6">
+   @if(Auth::check())
+       <div class="flex justify-end">
+           @if(!empty($pendingDependents))
+               <x-button wire:click="savePendingDependents" type="submit" class="bg-blue-600 hover:bg-blue-700">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                   </svg>
+                   Simpan
+               </x-button>
+           @endif
+       </div>
+   @else
+   <div class="flex justify-end mt-6">
+       <button wire:click="saveDependents" type="submit" class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 dark:bg-indigo-700 dark:hover:bg-indigo-800 dark:focus:ring-indigo-400">
+           <span>Simpan dan Teruskan</span>
+           <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+           </svg>
+       </button>
+   </div>
+   @endif
+</div>
 <!-- Edit Modal -->
 <div x-data="{ open: @entangle('isModalOpen') }"
     x-show="open"
@@ -338,6 +388,20 @@
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <!-- Status Indicator for Edit Requests -->
+                    @if(Auth::check() && $editDependentId !== null)
+                        <div class="px-4 py-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                    Perubahan akan menunggu kelulusan admin sebelum dikemaskini.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Status Indicator for Pending Items -->
                     @if($editPendingIndex !== null)
