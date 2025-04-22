@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Dependent;
+use App\Models\DependentEditRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +21,7 @@ class DependentList extends Component
     // Component state
     public $dependents = [];
     public $pendingDependents = [];
+    public $pendingEditRequests = [];
     public $editDependentId = null;
     public $editPendingIndex = null;
     public $isModalOpen = false;
@@ -38,8 +40,35 @@ class DependentList extends Component
     // Listeners for events
     protected $listeners = [
         'dependentAdded' => 'refreshDependents',
-        'dependentDeleted' => 'refreshDependents'
+        'dependentDeleted' => 'refreshDependents',
+        'editRequestApproved' => 'refreshDependents',
     ];
+
+    /**
+     * Get all admin users
+     */
+    /**
+ * Get all admin users
+ */
+protected function getAdmins()
+{
+    // Using your role system to find admins
+    return \App\Models\User::whereHas('roles', function($query) {
+        $query->where('name', 'admin');
+    })->get();
+}
+
+/**
+ * Notify all admins about a new request
+ */
+protected function notifyAdmins(DependentEditRequest $request)
+{
+    $admins = $this->getAdmins();
+
+    foreach ($admins as $admin) {
+        $admin->notify(new \App\Notifications\NewDependentRequest($request));
+    }
+}
 
     /**
      * Initialize component state
@@ -60,10 +89,14 @@ class DependentList extends Component
 
             // Load pending dependents from cache with user-specific key
             $this->pendingDependents = Cache::get('dependents_' . Auth::id(), []);
+
+            // Load pending edit requests
+            $this->pendingEditRequests = DependentEditRequest::where('user_id', Auth::id())->where('status', 'pending')->get();
         } else {
             // If user is not logged in, fetch from session
             $this->dependents = session()->get('dependents', []);
-            $this->pendingDependents = []; // No pending dependents for guests
+            $this->pendingDependents = [];
+            $this->pendingEditRequests = [];
         }
     }
 
@@ -89,6 +122,13 @@ class DependentList extends Component
             if (!$dependent) {
                 session()->flash('error', 'Dependent not found!');
                 return;
+            }
+
+            // Check if there's already a pending edit request for this dependent
+            $existingRequest = DependentEditRequest::where('dependent_id', $index)->where('user_id', Auth::id())->where('status', 'pending')->first();
+
+            if ($existingRequest) {
+                session()->flash('info', 'You already have a pending edit request for this dependent.');
             }
 
             $this->dependent_full_name = $dependent->full_name;
@@ -135,47 +175,72 @@ class DependentList extends Component
     }
 
     /**
-     * Handle the submission of a new or edited pending dependent
+     * Handle the submission of a new dependent (requires admin approval)
      */
     public function submitPending()
     {
         $this->validate();
 
-        $newDependent = [
-            'full_name' => $this->dependent_full_name,
-            'relationship' => $this->dependent_relationship,
-            'age' => $this->dependent_age,
-            'ic_number' => $this->dependent_ic_number,
-        ];
-
-        if ($this->editPendingIndex !== null) {
-            // Update existing pending dependent
-            $this->pendingDependents[$this->editPendingIndex] = $newDependent;
-        } else {
-            // Add new pending dependent
-            $this->pendingDependents[] = $newDependent;
-        }
-
-        // Save to cache with user-specific key
         if (Auth::check()) {
-            Cache::put('dependents_' . Auth::id(), $this->pendingDependents, now()->addDay());
+            // Create a new addition request in the database
+            $request = DependentEditRequest::create([
+                'user_id' => Auth::id(),
+                'dependent_id' => null,
+                'full_name' => $this->dependent_full_name,
+                'relationship' => $this->dependent_relationship,
+                'age' => $this->dependent_age,
+                'ic_number' => $this->dependent_ic_number,
+                'status' => 'pending',
+                'request_type' => 'add',
+            ]);
+
+            // Notify admins about the new request
+            $this->notifyAdmins($request);
+
+            $this->resetFormFields();
+            $this->isModalOpen = false;
+            $this->refreshDependents();
+
+            session()->flash('message', 'Permintaan tambah tanggungan telah dibuat. Sila tunggu kelulusan admin.');
+        } else {
+            // For non-logged in users, continue with the current flow
+            $newDependent = [
+                'full_name' => $this->dependent_full_name,
+                'relationship' => $this->dependent_relationship,
+                'age' => $this->dependent_age,
+                'ic_number' => $this->dependent_ic_number,
+            ];
+
+            if ($this->editPendingIndex !== null) {
+                // Update existing pending dependent
+                $this->pendingDependents[$this->editPendingIndex] = $newDependent;
+            } else {
+                // Add new pending dependent
+                $this->pendingDependents[] = $newDependent;
+            }
+
+            // Save to cache with user-specific key
+            if (Auth::check()) {
+                Cache::put('dependents_' . Auth::id(), $this->pendingDependents, now()->addDay());
+            }
+
+            $this->resetFormFields();
+            $this->isModalOpen = false;
+
+            session()->flash('message', 'Tanggungan ditambahkan ke senarai menunggu.');
         }
-
-        $this->resetFormFields();
-        $this->isModalOpen = false;
-
-        session()->flash('message', 'Tanggungan ditambahkan ke senarai menunggu.');
     }
 
     /**
      * Handle the submission of edited dependent
+     * For logged-in users, this now creates an edit request instead of direct update
      */
     public function submitEdit()
     {
         $this->validate();
 
         if (Auth::check()) {
-            // Update in database for authenticated users
+            // Create edit request for authenticated users instead of updating directly
             $dependent = Dependent::where('dependent_id', $this->editDependentId)->first();
 
             if (!$dependent) {
@@ -183,14 +248,57 @@ class DependentList extends Component
                 return;
             }
 
-            $dependent->update([
-                'full_name' => $this->dependent_full_name,
-                'relationship' => $this->dependent_relationship,
-                'age' => $this->dependent_age,
-                'ic_number' => $this->dependent_ic_number,
-            ]);
+            // Check if anything actually changed
+            if ($dependent->full_name == $this->dependent_full_name &&
+                $dependent->relationship == $this->dependent_relationship &&
+                $dependent->age == $this->dependent_age &&
+                $dependent->ic_number == $this->dependent_ic_number) {
+
+                $this->resetFormFields();
+                $this->isModalOpen = false;
+                session()->flash('info', 'No changes were made to the dependent.');
+                return;
+            }
+
+            // Check if there's already a pending edit request for this dependent
+            $existingRequest = DependentEditRequest::where('dependent_id', $this->editDependentId)
+                ->where('user_id', Auth::id())
+                ->where('status', 'pending')
+                ->first();
+
+            if ($existingRequest) {
+                // Update the existing request - no need to notify again
+                $existingRequest->update([
+                    'full_name' => $this->dependent_full_name,
+                    'relationship' => $this->dependent_relationship,
+                    'age' => $this->dependent_age,
+                    'ic_number' => $this->dependent_ic_number,
+                    'request_type' => 'edit',
+                ]);
+            } else {
+                // Create a new edit request
+                $request = DependentEditRequest::create([
+                    'user_id' => Auth::id(),
+                    'dependent_id' => $this->editDependentId,
+                    'full_name' => $this->dependent_full_name,
+                    'relationship' => $this->dependent_relationship,
+                    'age' => $this->dependent_age,
+                    'ic_number' => $this->dependent_ic_number,
+                    'status' => 'pending',
+                    'request_type' => 'edit',
+                ]);
+
+                // Notify admins
+                $this->notifyAdmins($request);
+            }
+
+            $this->resetFormFields();
+            $this->isModalOpen = false;
+            $this->refreshDependents();
+
+            session()->flash('message', 'Permintaan kemaskini tanggungan telah dibuat. Sila tunggu kelulusan admin.');
         } else {
-            // Update in session for guests
+            // Update in session for guests (no approval needed)
             $this->dependents[$this->editDependentId] = [
                 'full_name' => $this->dependent_full_name,
                 'relationship' => $this->dependent_relationship,
@@ -199,13 +307,81 @@ class DependentList extends Component
             ];
 
             session()->put('dependents', $this->dependents);
+
+            $this->resetFormFields();
+            $this->isModalOpen = false;
+            $this->refreshDependents();
+
+            session()->flash('message', 'Dependent updated successfully!');
+        }
+    }
+
+    /**
+     * Handle the deletion request for a dependent (requires admin approval)
+     */
+    public function requestDelete($dependentId)
+{
+    if (Auth::check()) {
+        // Find the dependent
+        $dependent = Dependent::where('dependent_id', $dependentId)->first();
+
+        if (!$dependent) {
+            session()->flash('error', 'Tanggungan tidak dijumpai!');
+            return;
         }
 
-        $this->resetFormFields();
-        $this->isModalOpen = false;
+        // Check if there's already a pending delete request for this dependent
+        $existingRequest = DependentEditRequest::where('dependent_id', $dependentId)
+            ->where('user_id', Auth::id())
+            ->where('status', 'pending')
+            ->where('request_type', 'delete')
+            ->first();
+
+        if ($existingRequest) {
+            session()->flash('info', 'Permintaan padam untuk tanggungan ini sudah wujud dan sedang menunggu kelulusan.');
+            return;
+        }
+
+        // Create a delete request
+        $request = DependentEditRequest::create([
+            'user_id' => Auth::id(),
+            'dependent_id' => $dependentId,
+            'full_name' => $dependent->full_name,
+            'relationship' => $dependent->relationship,
+            'age' => $dependent->age,
+            'ic_number' => $dependent->ic_number,
+            'status' => 'pending',
+            'request_type' => 'delete',
+        ]);
+
+        // Notify admins
+        $this->notifyAdmins($request);
+
         $this->refreshDependents();
 
-        session()->flash('message', 'Dependent updated successfully!');
+        session()->flash('message', 'Permintaan padam tanggungan telah dibuat. Sila tunggu kelulusan admin.');
+        } else {
+            // For non-logged in users, continue with immediate deletion
+            unset($this->dependents[$dependentId]);
+            session()->put('dependents', $this->dependents);
+            $this->refreshDependents();
+
+            session()->flash('message', 'Tanggungan telah dipadam.');
+        }
+    }
+
+    /**
+     * Cancel a pending edit request
+     */
+    public function cancelEditRequest($requestId)
+    {
+        $request = DependentEditRequest::where('id', $requestId)->where('user_id', Auth::id())->where('status', 'pending')->first();
+
+        if ($request) {
+            $request->delete();
+            $this->refreshDependents();
+            session()->flash('message', 'Permintaan kemaskini tanggungan telah dibatalkan.');
+        }
     }
 
     /**
@@ -229,7 +405,7 @@ class DependentList extends Component
     }
 
     /**
-     * Delete the selected dependent
+     * Delete the selected dependent or create a delete request
      */
     public function deleteDependent()
     {
@@ -247,16 +423,14 @@ class DependentList extends Component
                 if (Auth::check()) {
                     Cache::put('dependents_' . Auth::id(), $this->pendingDependents, now()->addDay());
                 }
+
+                session()->flash('message', 'Permintaan tanggungan telah dipadam.');
             }
         } else {
             // Delete from regular list
             if (Auth::check()) {
-                // Delete from database for authenticated users
-                $dependent = Dependent::where('dependent_id', $this->dependentToDelete)->first();
-
-                if ($dependent) {
-                    $dependent->delete();
-                }
+                // Create delete request instead of immediate deletion
+                $this->requestDelete($this->dependentToDelete);
             } else {
                 // Delete from session for guests
                 $dependents = session()->get('dependents', []);
@@ -264,13 +438,13 @@ class DependentList extends Component
                 session()->put('dependents', $dependents);
 
                 $this->dispatch('dependentDeleted');
+
+                session()->flash('message', 'Tanggungan telah dipadam.');
             }
         }
 
         $this->isDeleteModalOpen = false;
         $this->refreshDependents();
-
-        session()->flash('message', 'Dependent deleted successfully!');
     }
 
     /**
@@ -318,10 +492,8 @@ class DependentList extends Component
     public function saveDependents()
     {
         session()->put('dependents', $this->dependents);
-
         $this->dispatch('redirectToInvoice');
         session()->flash('message', 'User registration is complete. You can now add dependents!');
-
         return $this->redirect('/register/invoice', navigate: true);
     }
 
@@ -363,27 +535,11 @@ class DependentList extends Component
     }
 
     /**
-     * Store dependents and redirect
-     */
-    public function submit()
-    {
-        session()->put('dependents', $this->dependents);
-        return redirect()->route('register.invoice');
-    }
-
-    /**
      * Reset form fields after submission
      */
     private function resetFormFields()
     {
-        $this->reset([
-            'dependent_full_name',
-            'dependent_relationship',
-            'dependent_age',
-            'dependent_ic_number',
-            'editDependentId',
-            'editPendingIndex'
-        ]);
+        $this->reset(['dependent_full_name', 'dependent_relationship', 'dependent_age', 'dependent_ic_number', 'editDependentId', 'editPendingIndex']);
     }
 
     /**

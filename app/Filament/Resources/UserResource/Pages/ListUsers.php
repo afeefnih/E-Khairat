@@ -8,13 +8,24 @@ use Filament\Actions;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
 use Filament\Notifications\Notification;
+use App\Filament\Widgets\UserStatsWidget;
 class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            UserStatsWidget::class,
+        ];
+    }
+
+
     protected function getHeaderActions(): array
     {
         return [
+
+
             Actions\CreateAction::make(),
 
             Actions\Action::make('exportPDF')

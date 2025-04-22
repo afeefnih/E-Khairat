@@ -22,6 +22,8 @@ class Login extends Component
     }
 
 
+
+
     public function login(Request $request)
     {
         // Validate credentials
@@ -35,7 +37,14 @@ class Login extends Component
             $request->session()->regenerate();
 
             // Redirect based on role
-            return $this->redirectToDashboard(Auth::user());
+            $user = Auth::user();
+            if ($user instanceof \App\Models\User) {
+                return $this->redirectToDashboard($user);
+            }
+
+            return back()->withErrors([
+                'ic_number' => 'Invalid credentials.',
+            ]);
         }
 
 

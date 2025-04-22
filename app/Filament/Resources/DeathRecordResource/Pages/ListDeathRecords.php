@@ -10,10 +10,14 @@ use App\Models\User;
 use App\Models\Dependent;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Filament\Widgets\DeathRecordsStatsWidget;
 
 class ListDeathRecords extends ListRecords
 {
     protected static string $resource = DeathRecordResource::class;
+
+
+
 
     protected function getHeaderActions(): array
     {
