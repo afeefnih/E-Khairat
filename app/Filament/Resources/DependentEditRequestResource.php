@@ -23,14 +23,16 @@ class DependentEditRequestResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
     protected static ?string $navigationLabel = 'Permohonan Kelulusan';
 
-    protected static ?string $navigationGroup = 'Pengurusan Ahli';
+    protected static ?string $navigationGroup = 'Pengurusan Keahlian';
+
+
 
      // Add the pending request count to the navigation
      public static function getNavigationBadge(): string
      {
          return (string) DependentEditRequest::where('status', 'pending')->count();
      }
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
     protected static ?string $modelLabel = 'Permohonan Kelulusan';
     protected static ?string $pluralModelLabel = 'Permohonan Kelulusan';
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\DependentResource\Pages;
 
 use App\Filament\Resources\DependentResource;
 use App\Filament\Resources\DeathRecordResource;
+use App\Filament\Resources\UserResource;
 use App\Models\DeathRecord;
 use App\Models\Dependent;
 use Filament\Actions;
@@ -20,28 +21,28 @@ class EditDependent extends EditRecord
     {
         return [
             Actions\Action::make('recordDeath')
-                ->label('Record Death')
+                ->label('Rekod Kematian')
                 ->icon('heroicon-o-document-text')
                 ->color('danger')
                 ->visible(fn($record) => $record && !$record->isDeceased())
                 ->form([
                     Forms\Components\DatePicker::make('date_of_death')
                         ->required()
-                        ->label('Date of Death')
+                        ->label('Tarikh Kematian')
                         ->validationMessages([
                             'required' => 'Tarikh kematian diperlukan.',
                         ]),
-                    Forms\Components\TimePicker::make('time_of_death')->label('Time of Death')->seconds(false),
+                    Forms\Components\TimePicker::make('time_of_death')->label('Masa Kematian')->seconds(false),
                     Forms\Components\TextInput::make('place_of_death')
-                        ->label('Place of Death')
+                        ->label('Tempat Kematian')
                         ->required()
                         ->validationMessages([
                             'required' => 'Tempat kematian diperlukan.',
                         ]),
-                    Forms\Components\Textarea::make('cause_of_death')->label('Cause of Death')->rows(3),
-                    Forms\Components\Textarea::make('death_notes')->label('Notes')->rows(3),
+                    Forms\Components\Textarea::make('cause_of_death')->label('Sebab Kematian')->rows(3),
+                    Forms\Components\Textarea::make('death_notes')->label('Catatan')->rows(3),
                     Forms\Components\FileUpload::make('death_attachment_path')
-                        ->label('Death Certificate')
+                        ->label('Sijil Kematian')
                         ->directory('death-certificates')
                         ->visibility('private')
                         ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -59,7 +60,7 @@ class EditDependent extends EditRecord
                         })->first();
 
                         if ($existingRecord) {
-                            throw new \Exception('A death record already exists for this dependent.');
+                            throw new \Exception('Rekod kematian sudah wujud untuk tanggungan ini.');
                         }
 
                         // Create the death record using polymorphic relationship
@@ -72,24 +73,34 @@ class EditDependent extends EditRecord
                         $deathRecord->cause_of_death = $data['cause_of_death'] ?? null;
                         $deathRecord->death_notes = $data['death_notes'] ?? null;
                         $deathRecord->death_attachment_path = $data['death_attachment_path'] ?? null;
+
+                        // Add member number if available
+                        if ($record->user && $record->user->No_Ahli) {
+                            $deathRecord->member_no = $record->user->No_Ahli;
+                        }
+
                         $deathRecord->save();
 
                         DB::commit();
 
-                        Notification::make()->success()->title('Death Record Created')->body('The death record has been created successfully.')->send();
+                        Notification::make()
+                            ->success()
+                            ->title('Rekod Kematian Dibuat')
+                            ->body('Rekod kematian telah berjaya dibuat.')
+                            ->send();
                     } catch (\Exception $e) {
                         DB::rollBack();
 
                         Notification::make()
                             ->danger()
-                            ->title('Error')
-                            ->body('Failed to create death record: ' . $e->getMessage())
+                            ->title('Ralat')
+                            ->body('Gagal membuat rekod kematian: ' . $e->getMessage())
                             ->send();
                     }
                 }),
 
             Actions\Action::make('viewDeathRecord')
-                ->label('View Death Details')
+                ->label('Lihat Maklumat Kematian')
                 ->icon('heroicon-o-eye')
                 ->color('info')
                 ->visible(fn($record) => $record && $record->isDeceased())
@@ -106,7 +117,20 @@ class EditDependent extends EditRecord
                     return null;
                 }),
 
-            Actions\DeleteAction::make(),
+            Actions\Action::make('view_member')
+                ->label('Lihat Ahli')
+                ->icon('heroicon-o-user')
+                ->color('success')
+                ->visible(fn (Dependent $record) => $record->user_id !== null)
+                ->url(function (Dependent $record) {
+                    // Link to the related User/Member resource page
+                    if ($record->user_id) {
+                        return UserResource::getUrl('edit', ['record' => $record->user_id]);
+                    }
+                    return null;
+                }),
+
+            Actions\DeleteAction::make()->label('Padam'),
         ];
     }
 }

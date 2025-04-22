@@ -28,11 +28,14 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationGroup = 'Ahli';
+    protected static ?string $navigationGroup = 'Pengurusan Keahlian';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationLabel = 'Users';
+    protected static ?string $navigationLabel = 'Ahli';
+
+    protected static ?string $pluralModelLabel = 'Ahli Khairat Masjid Taman Sutera';
+
 
     protected static ?int $navigationSort = 0;
 
@@ -40,6 +43,7 @@ class UserResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('name')
+                ->label('Nama')
                 ->required()
                 ->maxLength(255)
                 ->validationMessages([
@@ -49,6 +53,7 @@ class UserResource extends Resource
                 ]),
 
             Forms\Components\TextInput::make('email')
+                ->label('Emel')
                 ->email()
                 ->maxLength(255)
                 ->unique(User::class, 'email', ignoreRecord: true)
@@ -72,6 +77,7 @@ class UserResource extends Resource
                 ]),
 
             Forms\Components\TextInput::make('phone_number')
+                ->label('Nombor Telefon')
                 ->tel()
                 ->required()
                 ->numeric()
@@ -85,6 +91,7 @@ class UserResource extends Resource
                 ]),
 
             Forms\Components\TextInput::make('home_phone')
+                ->label('Telefon Rumah')
                 ->tel()
                 ->required()
                 ->numeric()
@@ -98,6 +105,7 @@ class UserResource extends Resource
                 ]),
 
             Forms\Components\Textarea::make('address')
+                ->label('Alamat')
                 ->required()
                 ->string()
                 ->maxLength(255)
@@ -108,6 +116,7 @@ class UserResource extends Resource
                 ]),
 
             Forms\Components\TextInput::make('age')
+                ->label('Umur')
                 ->required()
                 ->numeric()
                 ->minValue(18)
@@ -118,6 +127,7 @@ class UserResource extends Resource
                 ]),
 
             Forms\Components\Select::make('residence_status')
+                ->label('Status Kediaman')
                 ->required()
                 ->options([
                     'kekal' => 'Kekal',
@@ -129,6 +139,7 @@ class UserResource extends Resource
                 ]),
 
             Forms\Components\TextInput::make('password')
+                ->label('Kata Laluan')
                 ->password()
                 ->required(false) // Make it not required
                 ->minLength(8)
@@ -149,6 +160,7 @@ class UserResource extends Resource
 
             // Also make the confirmation optional
             Forms\Components\TextInput::make('password_confirmation')
+                ->label('Pengesahan Kata Laluan')
                 ->password()
                 ->required(false)
                 ->minLength(8)
@@ -162,62 +174,68 @@ class UserResource extends Resource
                 ]),
 
             // Role selector for admins
-            Forms\Components\Select::make('roles')->relationship('roles', 'name')->preload()->label('Peranan'),
+            Forms\Components\Select::make('roles')
+                ->relationship('roles', 'name')
+                ->preload()
+                ->label('Peranan'),
         ]);
     }
 
     public static function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            // Add a column to indicate if the user is deceased
-            Tables\Columns\IconColumn::make('isDeceased')
-            ->label('Kematian')
-            ->boolean()
-            ->trueIcon('heroicon-s-x-circle')  // Solid X circle for deceased
-            ->falseIcon('heroicon-s-check-circle')  // Solid check circle for alive
-            ->trueColor('danger')
-            ->falseColor('success')
-            ->getStateUsing(fn(User $record) => $record->isDeceased())
-            ->tooltip(fn(User $record) => $record->isDeceased() ? 'Ahli ini telah meninggal' : 'Ahli ini masih hidup'),
+    {
+        return $table
+            ->columns([
+                // Add a column to indicate if the user is deceased
+                Tables\Columns\IconColumn::make('isDeceased')
+                ->label('Status Kematian')
+                ->boolean()
+                ->trueIcon('heroicon-s-x-circle')  // Solid X circle for deceased
+                ->falseIcon('heroicon-s-check-circle')  // Solid check circle for alive
+                ->trueColor('danger')
+                ->falseColor('success')
+                ->getStateUsing(fn(User $record) => $record->isDeceased())
+                ->tooltip(fn(User $record) => $record->isDeceased() ? 'Ahli ini telah meninggal' : 'Ahli ini masih hidup'),
 
-            Tables\Columns\TextColumn::make('No_Ahli')
-                ->searchable()
-                ->sortable(),
+                Tables\Columns\TextColumn::make('No_Ahli')
+                    ->label('No. Ahli')
+                    ->searchable()
+                    ->sortable(),
 
-            Tables\Columns\TextColumn::make('name')
-                ->label('Nama')
-                ->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nama')
+                    ->searchable(),
 
-            Tables\Columns\TextColumn::make('email')
-                ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Emel')
+                    ->searchable(),
 
-            Tables\Columns\TextColumn::make('ic_number')
-                ->label('Nombor IC')
-                ->searchable(),
+                Tables\Columns\TextColumn::make('ic_number')
+                    ->label('Nombor IC')
+                    ->searchable(),
 
-            Tables\Columns\TextColumn::make('phone_number')
-                ->label('Nombor Telefon')
-                ->searchable(),
+                Tables\Columns\TextColumn::make('phone_number')
+                    ->label('Nombor Telefon')
+                    ->searchable(),
 
-            Tables\Columns\TextColumn::make('residence_status')
-                ->label('Status Kediaman'),
+                Tables\Columns\TextColumn::make('residence_status')
+                    ->label('Status Kediaman'),
 
-            Tables\Columns\TextColumn::make('roles.name')
-                ->badge()
-                ->label('Peranan'),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->badge()
+                    ->label('Peranan'),
 
-            // Add a column to show number of dependents
-            Tables\Columns\TextColumn::make('dependents_count')
-                ->label('Tanggungan')
-                ->counts('dependents')
-                ->badge(),
+                // Add a column to show number of dependents
+                Tables\Columns\TextColumn::make('dependents_count')
+                    ->label('Tanggungan')
+                    ->counts('dependents')
+                    ->badge(),
 
-            Tables\Columns\TextColumn::make('created_at')
-                ->dateTime()
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-        ])
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tarikh Cipta')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
             ->filters([
                 // Add filters if needed
             ])
@@ -227,13 +245,11 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-
-
+                    Tables\Actions\DeleteBulkAction::make()->label('Padam Terpilih'),
 
                     // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')
-                    ->label('Export to CSV')
+                    ->label('Eksport ke CSV')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
                     ->action(function (Collection $records) {
@@ -245,14 +261,14 @@ class UserResource extends Resource
                         // Check if any users remain after filtering
                         if ($filteredUsers->isEmpty()) {
                             Notification::make()
-                                ->title('No users to export')
+                                ->title('Tiada ahli untuk dieksport')
                                 ->danger()
                                 ->send();
                             return;
                         }
 
                         // Generate CSV file
-                        $csvFileName = 'users-' . date('Y-m-d') . '.csv';
+                        $csvFileName = 'ahli-' . date('Y-m-d') . '.csv';
                         $headers = [
                             'Content-Type' => 'text/csv',
                             'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
@@ -263,25 +279,25 @@ class UserResource extends Resource
 
                             // Add headers
                             fputcsv($file, [
-                                'No_Ahli',
-                                'Name',
-                                'Email',
-                                'IC Number',
-                                'Age',
-                                'Home Phone',
-                                'Phone Number',
-                                'Address',
-                                'Residence Status',
-                                'Dependents Count',
-                                'Created At',
+                                'No. Ahli',
+                                'Nama',
+                                'Emel',
+                                'Nombor IC',
+                                'Umur',
+                                'Telefon Rumah',
+                                'Nombor Telefon',
+                                'Alamat',
+                                'Status Kediaman',
+                                'Jumlah Tanggungan',
+                                'Tarikh Cipta',
                             ]);
 
                             // Add rows
                             foreach ($filteredUsers as $user) {
                                 fputcsv($file, [
-                                    $user->No_Ahli ?? 'N/A',
+                                    $user->No_Ahli ?? 'Tiada',
                                     $user->name,
-                                    $user->email ?? 'N/A',
+                                    $user->email ?? 'Tiada',
                                     $user->ic_number,
                                     $user->age,
                                     $user->home_phone,
@@ -298,47 +314,47 @@ class UserResource extends Resource
 
                         return response()->stream($callback, 200, $headers);
                     }),
-                      // Add PDF Export Bulk Action
-                      BulkAction::make('export-pdf')
-                      ->label('Export to PDF')
-                      ->icon('heroicon-o-document-arrow-down')
-                      ->color('danger')
-                      ->action(function (Collection $records) {
-                          // Exclude users with the 'admin' role
-                          $filteredUsers = $records->filter(function ($user) {
-                              return !$user->hasRole('admin');
-                          });
 
-                          // Check if any users remain after filtering
-                          if ($filteredUsers->isEmpty()) {
-                              Notification::make()
-                                  ->title('No users to export')
-                                  ->danger()
-                                  ->send();
-                              return;
-                          }
-                              try {
-                                  $pdf = Pdf::loadView('pdf.users', [
-                                      'users' => $filteredUsers,
-                                  ])
-                                  ->setPaper('A4', 'landscape'); // Landscape paper orientation
+                    // Add PDF Export Bulk Action
+                    BulkAction::make('export-pdf')
+                    ->label('Eksport ke PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (Collection $records) {
+                        // Exclude users with the 'admin' role
+                        $filteredUsers = $records->filter(function ($user) {
+                            return !$user->hasRole('admin');
+                        });
 
-                                  // Stream the PDF download response
-                                  return response()->streamDownload(function () use ($pdf) {
-                                      echo $pdf->output();
-                                  }, 'users-' . date('Y-m-d') . '.pdf');
+                        // Check if any users remain after filtering
+                        if ($filteredUsers->isEmpty()) {
+                            Notification::make()
+                                ->title('Tiada ahli untuk dieksport')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
 
-                              } catch (\Exception $e) {
-                                  // Handle errors and show a notification if PDF generation fails
-                                  Notification::make()
-                                      ->title('Error generating PDF')
-                                      ->danger()
-                                      ->body($e->getMessage())
-                                      ->send();
-                              }
-                          })
+                        try {
+                            $pdf = Pdf::loadView('pdf.users', [
+                                'users' => $filteredUsers,
+                            ])
+                            ->setPaper('A4', 'landscape'); // Landscape paper orientation
 
+                            // Stream the PDF download response
+                            return response()->streamDownload(function () use ($pdf) {
+                                echo $pdf->output();
+                            }, 'ahli-' . date('Y-m-d') . '.pdf');
 
+                        } catch (\Exception $e) {
+                            // Handle errors and show a notification if PDF generation fails
+                            Notification::make()
+                                ->title('Ralat menjana PDF')
+                                ->danger()
+                                ->body($e->getMessage())
+                                ->send();
+                        }
+                    })
                 ]),
             ]);
     }

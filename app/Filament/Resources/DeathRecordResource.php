@@ -27,9 +27,9 @@ class DeathRecordResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'Death Records';
+    protected static ?string $navigationLabel = 'Rekod Kematian';
 
-    protected static ?string $navigationGroup = 'Records Management';
+    protected static ?string $navigationGroup = 'Pengurusan Rekod';
 
     protected static ?int $navigationSort = 2;
 
@@ -37,12 +37,12 @@ class DeathRecordResource extends Resource
     {
         return $form->schema([
             // Death Record Type Selector
-            Forms\Components\Section::make('Death Record Information')->schema([
+            Forms\Components\Section::make('Maklumat Rekod Kematian')->schema([
                 Forms\Components\Select::make('deceased_type')
-                    ->label('Record Type')
+                    ->label('Jenis Rekod')
                     ->options([
-                        User::class => 'Primary Member',
-                        Dependent::class => 'Dependent',
+                        User::class => 'Ahli Utama',
+                        Dependent::class => 'Tanggungan',
                     ])
                     ->required()
                     ->reactive()
@@ -55,7 +55,7 @@ class DeathRecordResource extends Resource
                     ->default(Dependent::class),
 
                 Forms\Components\Select::make('deceased_id')
-                    ->label(fn(callable $get) => $get('deceased_type') === User::class ? 'Member' : 'Dependent')
+                    ->label(fn(callable $get) => $get('deceased_type') === User::class ? 'Ahli' : 'Tanggungan')
                     ->options(function (callable $get) {
                         $type = $get('deceased_type');
 
@@ -97,7 +97,7 @@ class DeathRecordResource extends Resource
             ]),
 
             // Member Information Section
-            Forms\Components\Section::make('Member Information')
+            Forms\Components\Section::make('Maklumat Ahli')
                 ->schema([
                     Forms\Components\TextInput::make('member_no')
                         ->label('No Ahli')
@@ -107,18 +107,18 @@ class DeathRecordResource extends Resource
                                 // If this is a User (Primary Member)
                                 if ($record->deceased_type === 'App\\Models\\User') {
                                     $user = User::find($record->deceased_id);
-                                    return $user ? $user->No_Ahli : 'N/A';
+                                    return $user ? $user->No_Ahli : 'Tiada';
                                 }
 
                                 // If this is a Dependent
                                 if ($record->deceased_type === 'App\\Models\\Dependent') {
                                     $dependent = Dependent::find($record->deceased_id);
                                     if ($dependent && $dependent->user) {
-                                        return $dependent->user->No_Ahli ?? 'N/A';
+                                        return $dependent->user->No_Ahli ?? 'Tiada';
                                     }
                                 }
 
-                                return 'N/A';
+                                return 'Tiada';
                             }
 
                             // For create form
@@ -126,42 +126,42 @@ class DeathRecordResource extends Resource
                             $deceasedId = $get('deceased_id');
 
                             if (!$deceasedType || !$deceasedId) {
-                                return 'N/A';
+                                return 'Tiada';
                             }
 
                             if ($deceasedType === User::class) {
                                 $user = User::find($deceasedId);
-                                return $user ? $user->No_Ahli : 'N/A';
+                                return $user ? $user->No_Ahli : 'Tiada';
                             } elseif ($deceasedType === Dependent::class) {
                                 $dependent = Dependent::find($deceasedId);
-                                return ($dependent && $dependent->user) ? $dependent->user->No_Ahli : 'N/A';
+                                return ($dependent && $dependent->user) ? $dependent->user->No_Ahli : 'Tiada';
                             }
 
-                            return 'N/A';
+                            return 'Tiada';
                         })
                         ->disabled()
                         ->dehydrated(false),
 
                     Forms\Components\Textarea::make('member_address')
-                        ->label('Address')
+                        ->label('Alamat')
                         ->formatStateUsing(function ($state, $record, $get) {
                             // For edit form with existing record
                             if ($record) {
                                 // If this is a User (Primary Member)
                                 if ($record->deceased_type === 'App\\Models\\User' || $record->deceased_type === User::class) {
                                     $user = User::find($record->deceased_id);
-                                    return $user ? $user->address : 'N/A';
+                                    return $user ? $user->address : 'Tiada';
                                 }
 
                                 // If this is a Dependent
                                 if ($record->deceased_type === 'App\\Models\\Dependent' || $record->deceased_type === Dependent::class) {
                                     $dependent = Dependent::find($record->deceased_id);
                                     if ($dependent && $dependent->user) {
-                                        return $dependent->user->address ?? 'N/A';
+                                        return $dependent->user->address ?? 'Tiada';
                                     }
                                 }
 
-                                return 'N/A';
+                                return 'Tiada';
                             }
 
                             // For create form
@@ -169,18 +169,18 @@ class DeathRecordResource extends Resource
                             $deceasedId = $get('deceased_id');
 
                             if (!$deceasedType || !$deceasedId) {
-                                return 'N/A';
+                                return 'Tiada';
                             }
 
                             if ($deceasedType === User::class) {
                                 $user = User::find($deceasedId);
-                                return $user ? $user->address : 'N/A';
+                                return $user ? $user->address : 'Tiada';
                             } elseif ($deceasedType === Dependent::class) {
                                 $dependent = Dependent::find($deceasedId);
-                                return ($dependent && $dependent->user) ? $dependent->user->address : 'N/A';
+                                return ($dependent && $dependent->user) ? $dependent->user->address : 'Tiada';
                             }
 
-                            return 'N/A';
+                            return 'Tiada';
                         })
                         ->disabled()
                         ->dehydrated(false)
@@ -190,19 +190,19 @@ class DeathRecordResource extends Resource
                 ->collapsible(),
 
             // Death Information
-            Forms\Components\DatePicker::make('date_of_death')->required()->label('Date of Death'),
+            Forms\Components\DatePicker::make('date_of_death')->required()->label('Tarikh Kematian'),
 
-            Forms\Components\TimePicker::make('time_of_death')->label('Time of Death')->seconds(false),
+            Forms\Components\TimePicker::make('time_of_death')->label('Masa Kematian')->seconds(false),
 
-            Forms\Components\TextInput::make('place_of_death')->label('Place of Death')->required()->maxLength(255),
+            Forms\Components\TextInput::make('place_of_death')->label('Tempat Kematian')->required()->maxLength(255),
 
-            Forms\Components\Textarea::make('cause_of_death')->label('Cause of Death')->rows(3)->maxLength(1000),
+            Forms\Components\Textarea::make('cause_of_death')->label('Sebab Kematian')->rows(3)->maxLength(1000),
 
-            Forms\Components\Textarea::make('death_notes')->label('Notes')->rows(3)->maxLength(1000),
+            Forms\Components\Textarea::make('death_notes')->label('Catatan')->rows(3)->maxLength(1000),
 
-            Forms\Components\Section::make('Death Certificate')->schema([
+            Forms\Components\Section::make('Sijil Kematian')->schema([
                 Forms\Components\FileUpload::make('death_attachment_path')
-                    ->label('Death Certificate')
+                    ->label('Sijil Kematian')
                     ->directory('death-certificates')
                     ->visibility('private')
                     ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
@@ -218,12 +218,12 @@ class DeathRecordResource extends Resource
             ->columns([
                 // Type indicator
                 Tables\Columns\TextColumn::make('deceased_type')
-                    ->label('Type')
+                    ->label('Jenis')
                     ->formatStateUsing(function ($state) {
                         if ($state === 'App\\Models\\User' || $state === 'AppModelsUser') {
-                            return 'Primary Member';
+                            return 'Ahli Utama';
                         }
-                        return 'Dependent';
+                        return 'Tanggungan';
                     })
                     ->badge()
                     ->color(fn($state) => $state === 'App\\Models\\User' || $state === 'AppModelsUser' ? 'danger' : 'warning'),
@@ -232,7 +232,7 @@ class DeathRecordResource extends Resource
                 Tables\Columns\TextColumn::make('deceased_name')
                     ->searchable()
                     ->sortable()
-                    ->label('Name')
+                    ->label('Nama')
                     ->getStateUsing(function ($record) {
                         // Safe access to record relationships
                         try {
@@ -242,18 +242,18 @@ class DeathRecordResource extends Resource
                             $isDependent = $record->deceased_type === '\\App\\Models\\Dependent' || $record->deceased_type === 'App\\Models\\Dependent' || strpos($record->deceased_type, 'Dependent') !== false;
 
                             if ($isUser && $record->deceased) {
-                                return $record->deceased->name ?? 'Unknown Member';
+                                return $record->deceased->name ?? 'Ahli Tidak Diketahui';
                             }
 
                             if ($isDependent && $record->deceased) {
-                                return $record->deceased->full_name ?? 'Unknown Dependent';
+                                return $record->deceased->full_name ?? 'Tanggungan Tidak Diketahui';
                             }
                         } catch (\Exception $e) {
                             // Log error for debugging but don't crash the page
                             \Illuminate\Support\Facades\Log::error("Error getting name for death record {$record->id}: " . $e->getMessage());
                         }
 
-                        return 'Unknown';
+                        return 'Tidak Diketahui';
                     }),
 
                 // No Ahli column
@@ -262,7 +262,7 @@ class DeathRecordResource extends Resource
                 // IC Number column
                 Tables\Columns\TextColumn::make('deceased_ic_number')
                     ->searchable()
-                    ->label('IC Number')
+                    ->label('No KP')
                     ->getStateUsing(function ($record) {
                         try {
                             // Check for string variants of class names
@@ -271,70 +271,52 @@ class DeathRecordResource extends Resource
                             $isDependent = $record->deceased_type === '\\App\\Models\\Dependent' || $record->deceased_type === 'App\\Models\\Dependent' || strpos($record->deceased_type, 'Dependent') !== false;
 
                             if ($isUser && $record->deceased) {
-                                return $record->deceased->ic_number ?? 'N/A';
+                                return $record->deceased->ic_number ?? 'Tiada';
                             }
 
                             if ($isDependent && $record->deceased) {
-                                return $record->deceased->ic_number ?? 'N/A';
+                                return $record->deceased->ic_number ?? 'Tiada';
                             }
                         } catch (\Exception $e) {
                             \Illuminate\Support\Facades\Log::error("Error getting IC for death record {$record->id}: " . $e->getMessage());
                         }
 
-                        return 'N/A';
+                        return 'Tiada';
                     }),
 
-                Tables\Columns\TextColumn::make('date_of_death')->date()->sortable()->label('Date of Death'),
+                Tables\Columns\TextColumn::make('date_of_death')->date()->sortable()->label('Tarikh Kematian'),
 
-                Tables\Columns\TextColumn::make('place_of_death')->searchable()->limit(30)->label('Place of Death'),
+                Tables\Columns\TextColumn::make('place_of_death')->searchable()->limit(30)->label('Tempat Kematian'),
 
-                Tables\Columns\IconColumn::make('death_attachment_path')->boolean()->label('Certificate')->trueIcon('heroicon-o-document')->falseIcon('heroicon-o-x-mark')->getStateUsing(fn(DeathRecord $record) => $record->death_attachment_path !== null),
+                Tables\Columns\IconColumn::make('death_attachment_path')->boolean()->label('Sijil')->trueIcon('heroicon-o-document')->falseIcon('heroicon-o-x-mark')->getStateUsing(fn(DeathRecord $record) => $record->death_attachment_path !== null),
 
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->label('Tarikh Cipta')->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('deceased_type')
-                    ->label('Record Type')
+                    ->label('Jenis Rekod')
                     ->options([
-                        User::class => 'Primary Member',
-                        Dependent::class => 'Dependent',
+                        User::class => 'Ahli Utama',
+                        Dependent::class => 'Tanggungan',
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('viewCertificate')->label('View Certificate')->icon('heroicon-o-eye')->color('info')->visible(fn($record) => $record->death_attachment_path)->url(fn($record) => $record->death_attachment_path ? Storage::url($record->death_attachment_path) : null, true),
 
-                // View Member Action for dependents
-                Tables\Actions\Action::make('view_member')
-                    ->label('View Member')
-                    ->icon('heroicon-o-users')
-                    ->color('success')
-                    ->url(function (DeathRecord $record) {
-                        // For dependents, link to their member
-                        if ($record->deceased_type === Dependent::class && $record->deceased && $record->deceased->user_id) {
-                            return UserResource::getUrl('edit', ['record' => $record->deceased->user_id]);
-                        }
+                Tables\Actions\Action::make('viewCertificate')->label('Lihat Sijil')->icon('heroicon-o-eye')->color('info')->visible(fn($record) => $record->death_attachment_path)->url(fn($record) => $record->death_attachment_path ? Storage::url($record->death_attachment_path) : null, true),
 
-                        // For primary members, don't show this button
-                        return null;
-                    })
-                    ->openUrlInNewTab()
-                    ->visible(function (DeathRecord $record) {
-                        // Only show for dependent records
-                        return $record->deceased_type === Dependent::class &&
-                               $record->deceased &&
-                               $record->deceased->user_id;
-                    }),
+                Tables\Actions\EditAction::make()->label('edit'),
 
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()->label('Padam'),
+
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label('Padam Terpilih'),
 
                     // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')
-                        ->label('Export CSV')
+                        ->label('Eksport CSV')
                         ->color('success')
                         ->icon('heroicon-o-document-arrow-down')
                         ->action(function () {
@@ -343,12 +325,12 @@ class DeathRecordResource extends Resource
 
                             // Check if any records exist
                             if ($records->isEmpty()) {
-                                Notification::make()->title('No death records to export')->danger()->send();
+                                Notification::make()->title('Tiada rekod kematian untuk dieksport')->danger()->send();
                                 return;
                             }
 
                             // Generate CSV file
-                            $csvFileName = 'death-records-' . date('Y-m-d') . '.csv';
+                            $csvFileName = 'rekod-kematian-' . date('Y-m-d') . '.csv';
                             $headers = [
                                 'Content-Type' => 'text/csv',
                                 'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
@@ -358,19 +340,19 @@ class DeathRecordResource extends Resource
                                 $file = fopen('php://output', 'w');
 
                                 // Add headers
-                                fputcsv($file, ['Record Type', 'Name', 'No Ahli', 'IC Number', 'Date of Death', 'Time of Death', 'Place of Death', 'Cause of Death', 'Death Notes', 'Certificate Available', 'Created At']);
+                                fputcsv($file, ['Jenis Rekod', 'Nama', 'No Ahli', 'No KP', 'Tarikh Kematian', 'Masa Kematian', 'Tempat Kematian', 'Sebab Kematian', 'Catatan', 'Sijil Ada', 'Tarikh Cipta']);
 
                                 // Add rows
                                 foreach ($records as $record) {
                                     // Determine record type
-                                    $recordType = 'Dependent';
-                                    $name = 'N/A';
-                                    $noAhli = 'N/A';
-                                    $icNumber = 'N/A';
+                                    $recordType = 'Tanggungan';
+                                    $name = 'Tiada';
+                                    $noAhli = 'Tiada';
+                                    $icNumber = 'Tiada';
 
                                     // Handle Primary Member (User)
                                     if ($record->deceased_type === 'App\\Models\\User' || strpos($record->deceased_type, 'User') !== false) {
-                                        $recordType = 'Primary Member';
+                                        $recordType = 'Ahli Utama';
 
                                         // Try to get user directly if relationship isn't loaded
                                         $user = $record->deceased;
@@ -379,9 +361,9 @@ class DeathRecordResource extends Resource
                                         }
 
                                         if ($user) {
-                                            $name = $user->name ?? 'Unknown';
-                                            $noAhli = $user->No_Ahli ?? 'N/A';
-                                            $icNumber = $user->ic_number ?? 'N/A';
+                                            $name = $user->name ?? 'Tidak Diketahui';
+                                            $noAhli = $user->No_Ahli ?? 'Tiada';
+                                            $icNumber = $user->ic_number ?? 'Tiada';
                                         }
                                     }
                                     // Handle Dependent
@@ -393,17 +375,17 @@ class DeathRecordResource extends Resource
                                         }
 
                                         if ($dependent) {
-                                            $name = $dependent->full_name ?? 'Unknown';
-                                            $icNumber = $dependent->ic_number ?? 'N/A';
+                                            $name = $dependent->full_name ?? 'Tidak Diketahui';
+                                            $icNumber = $dependent->ic_number ?? 'Tiada';
 
                                             // Get No_Ahli from the User related to this dependent
                                             if ($dependent->user) {
-                                                $noAhli = $dependent->user->No_Ahli ?? 'N/A';
+                                                $noAhli = $dependent->user->No_Ahli ?? 'Tiada';
                                             }
                                         }
                                     }
 
-                                    fputcsv($file, [$recordType, $name, $noAhli, $icNumber, $record->date_of_death ? $record->date_of_death->format('Y-m-d') : 'N/A', $record->time_of_death ? $record->time_of_death->format('H:i') : 'N/A', $record->place_of_death ?? 'N/A', $record->cause_of_death ?? 'N/A', $record->death_notes ?? 'N/A', $record->death_attachment_path ? 'Yes' : 'No', $record->created_at->format('Y-m-d')]);
+                                    fputcsv($file, [$recordType, $name, $noAhli, $icNumber, $record->date_of_death ? $record->date_of_death->format('Y-m-d') : 'Tiada', $record->time_of_death ? $record->time_of_death->format('H:i') : 'Tiada', $record->place_of_death ?? 'Tiada', $record->cause_of_death ?? 'Tiada', $record->death_notes ?? 'Tiada', $record->death_attachment_path ? 'Ya' : 'Tidak', $record->created_at->format('Y-m-d')]);
                                 }
 
                                 fclose($file);
@@ -413,13 +395,13 @@ class DeathRecordResource extends Resource
                         }),
                     // Add PDF Export Bulk Action
                     BulkAction::make('export-pdf')
-                        ->label('Export to PDF')
+                        ->label('Eksport ke PDF')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('danger')
                         ->action(function (Collection $records) {
                             // Check if any records are selected
                             if ($records->isEmpty()) {
-                                Notification::make()->title('No death records to export')->danger()->send();
+                                Notification::make()->title('Tiada rekod kematian untuk dieksport')->danger()->send();
                                 return;
                             }
 
@@ -430,7 +412,7 @@ class DeathRecordResource extends Resource
 
                             return response()->streamDownload(function () use ($pdf) {
                                 echo $pdf->output();
-                            }, 'death-records-' . date('Y-m-d') . '.pdf');
+                            }, 'rekod-kematian-' . date('Y-m-d') . '.pdf');
                         }),
                 ]),
             ]);

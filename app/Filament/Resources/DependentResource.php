@@ -23,9 +23,12 @@ class DependentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Ahli';
+    protected static ?string $navigationGroup = 'Pengurusan Keahlian';
 
-    protected static ?string $navigationLabel = 'Dependents';
+    protected static ?string $navigationLabel = 'Tanggungan';
+
+    protected static ?string $modelLabel = 'Tanggungan';
+    protected static ?string $pluralModelLabel = 'Tanggungan';
 
     protected static ?int $navigationSort = 1;
 
@@ -33,7 +36,7 @@ class DependentResource extends Resource
     {
         return $form->schema([
             Forms\Components\Select::make('user_id')
-                ->label('Member')
+                ->label('Ahli')
                 ->relationship(
                     name: 'user',
                     titleAttribute: 'name',
@@ -51,6 +54,7 @@ class DependentResource extends Resource
                 ]),
 
             Forms\Components\TextInput::make('full_name')
+                ->label('Nama Penuh')
                 ->required()
                 ->maxLength(255)
                 ->validationMessages([
@@ -59,18 +63,20 @@ class DependentResource extends Resource
                 ]),
 
             Forms\Components\Select::make('relationship')
+                ->label('Hubungan')
                 ->required()
                 ->options([
+                   'Bapa' => 'Bapa',
+                    'Ibu' => 'Ibu',
                     'Pasangan' => 'Pasangan',
                     'Anak' => 'Anak',
-                    'Ibu/Bapa' => 'Ibu/Bapa',
-                    'Adik-Beradik' => 'Adik-beradik',
                 ])
                 ->validationMessages([
                     'required' => 'Hubungan diperlukan.',
                 ]),
 
             Forms\Components\TextInput::make('age')
+                ->label('Umur')
                 ->required()
                 ->numeric()
                 ->validationMessages([
@@ -99,80 +105,94 @@ class DependentResource extends Resource
             ->columns([
                 // Add a column to indicate if the dependent is deceased
                 Tables\Columns\IconColumn::make('isDeceased')
-                    ->label('Deceased')
+                    ->label('Status Kematian')
                     ->boolean()
                     ->trueIcon('heroicon-o-x-circle')
                     ->falseIcon('heroicon-o-check-circle')
                     ->trueColor('danger')
                     ->falseColor('success')
                     ->getStateUsing(fn (Dependent $record) => $record->isDeceased())
-                    ->tooltip('Indicates if the dependent is deceased'),
+                    ->tooltip('Menunjukkan status kematian tanggungan'),
 
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Member')
+                    ->label('Ahli')
                     ->sortable()
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('full_name')
+                    ->label('Nama Penuh')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('relationship')
+                    ->label('Hubungan')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('age')
+                    ->label('Umur')
                     ->numeric()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('ic_number')
+                    ->label('Nombor IC')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tarikh Cipta')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
             ])
             // Rest of your table configuration...
             ->filters([
-                Tables\Filters\SelectFilter::make('user_id')->label('Member')->relationship('user', 'name')->searchable()->preload(),
+                Tables\Filters\SelectFilter::make('user_id')
+                    ->label('Ahli')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload(),
 
-                Tables\Filters\SelectFilter::make('relationship')->options([
-                    'Bapa' => 'Bapa',
-                    'Ibu' => 'Ibu',
-                    'Pasangan' => 'Pasangan',
-                    'Anak' => 'Anak',
-                ]),
+                Tables\Filters\SelectFilter::make('relationship')
+                    ->label('Hubungan')
+                    ->options([
+                        'Bapa' => 'Bapa',
+                        'Ibu' => 'Ibu',
+                        'Pasangan' => 'Pasangan',
+                        'Anak' => 'Anak',
+                        'Ibu/Bapa' => 'Ibu/Bapa',
+                        'Adik-Beradik' => 'Adik-beradik',
+                    ]),
             ])
             ->actions([
+                // Keeping the same name for these actions as requested
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+
                 // Add View Member Action
                 Action::make('view_member')
-                    ->label('View Member')
+                    ->label('Lihat Ahli')
                     ->icon('heroicon-o-user')
                     ->color('success')
                     ->url(fn (Dependent $record) => UserResource::getUrl('edit', ['record' => $record->user_id]))
-
                     ->visible(fn (Dependent $record) => $record->user_id !== null),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label('Padam Terpilih'),
 
                     // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')
-                        ->label('Export to CSV')
+                        ->label('Eksport ke CSV')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('success')
                         ->action(function (Collection $records) {
                             // Check if any dependents are selected
                             if ($records->isEmpty()) {
-                                Notification::make()->title('No dependents to export')->danger()->send();
+                                Notification::make()->title('Tiada tanggungan untuk dieksport')->danger()->send();
                                 return;
                             }
 
                             // Generate CSV file
-                            $csvFileName = 'dependents-' . date('Y-m-d') . '.csv';
+                            $csvFileName = 'tanggungan-' . date('Y-m-d') . '.csv';
                             $headers = [
                                 'Content-Type' => 'text/csv',
                                 'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
@@ -182,11 +202,18 @@ class DependentResource extends Resource
                                 $file = fopen('php://output', 'w');
 
                                 // Add headers
-                                fputcsv($file, ['Nama Ahli', 'Nama Penuh', 'Hubungan', 'Umur', 'Nombor KP', 'tarikh daftar']);
+                                fputcsv($file, ['Nama Ahli', 'Nama Penuh', 'Hubungan', 'Umur', 'Nombor KP', 'Tarikh Daftar']);
 
                                 // Add rows
                                 foreach ($records as $dependent) {
-                                    fputcsv($file, [$dependent->user ? $dependent->user->name : 'N/A', $dependent->full_name, $dependent->relationship, $dependent->age, $dependent->ic_number, $dependent->created_at]);
+                                    fputcsv($file, [
+                                        $dependent->user ? $dependent->user->name : 'Tiada',
+                                        $dependent->full_name,
+                                        $dependent->relationship,
+                                        $dependent->age,
+                                        $dependent->ic_number,
+                                        $dependent->created_at
+                                    ]);
                                 }
 
                                 fclose($file);
@@ -197,13 +224,13 @@ class DependentResource extends Resource
 
                     // Add PDF Export Bulk Action
                     BulkAction::make('export-pdf')
-                        ->label('Export to PDF')
+                        ->label('Eksport ke PDF')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('danger')
                         ->action(function (Collection $records) {
                             // Check if any dependents are selected
                             if ($records->isEmpty()) {
-                                Notification::make()->title('No dependents to export')->danger()->send();
+                                Notification::make()->title('Tiada tanggungan untuk dieksport')->danger()->send();
                                 return;
                             }
 
@@ -214,7 +241,7 @@ class DependentResource extends Resource
 
                             return response()->streamDownload(function () use ($pdf) {
                                 echo $pdf->output();
-                            }, 'dependents-' . date('Y-m-d') . '.pdf');
+                            }, 'tanggungan-' . date('Y-m-d') . '.pdf');
                         }),
                 ]),
             ]);
