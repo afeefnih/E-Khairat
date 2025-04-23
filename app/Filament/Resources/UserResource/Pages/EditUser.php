@@ -106,7 +106,9 @@ class EditUser extends EditRecord
                     return null;
                 }),
 
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+            ->hidden(fn($record) => $record->No_Ahli === 'ADM-0001'), // Hide delete for ADM-0001
+
         ];
     }
 }

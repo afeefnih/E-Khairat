@@ -21,11 +21,11 @@ class PaymentCategoryResource extends Resource
     protected static ?string $model = PaymentCategory::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    protected static ?string $navigationLabel = 'Kategori Pembayaran';
+    protected static ?string $navigationLabel = 'Senarai Kutipan';
     protected static ?string $navigationGroup = 'Pembayaran';
     protected static ?int  $navigationSort = 2;
 
-    protected static ?string $pluralLabel = 'Kutipan Pembayaran';
+    protected static ?string $pluralLabel = 'Senarai Kutipan Katagori';
 
     public static function form(Form $form): Form
     {
