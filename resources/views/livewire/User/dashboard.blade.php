@@ -136,7 +136,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 dark:text-indigo-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
         </svg>
-        Rekod Pemabayaran
+        Rekod Pembayaran
     </h3>
     <div class="overflow-x-auto rounded-xl">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
