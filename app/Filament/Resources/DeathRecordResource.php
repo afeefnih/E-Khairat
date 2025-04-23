@@ -31,6 +31,9 @@ class DeathRecordResource extends Resource
 
     protected static ?string $navigationGroup = 'Pengurusan Rekod';
 
+    protected static ?string $label = 'Rekod Kematian';
+    protected static ?string $pluralLabel = 'Rekod Kematian';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -46,11 +49,11 @@ class DeathRecordResource extends Resource
                     ])
                     ->required()
                     ->reactive()
-                    ->afterStateUpdated(function ($state, $set) {
+                    ->afterStateUpdated(function ($state, callable $set) {
                         $set('deceased_id', null);
                         // Clear member info fields
-                        $set('member_no', null);
-                        $set('member_address', null);
+                        $set('member_no', 'Tiada');
+                        $set('member_address', 'Tiada');
                     })
                     ->default(Dependent::class),
 
@@ -60,7 +63,14 @@ class DeathRecordResource extends Resource
                         $type = $get('deceased_type');
 
                         if ($type === User::class) {
-                            return User::query()->whereDoesntHave('deathRecord')->pluck('name', 'id')->toArray();
+                            // Filter out admin users from the list
+                            return User::query()
+                                ->whereDoesntHave('deathRecord')
+                                ->whereDoesntHave('roles', function ($query) {
+                                    $query->where('name', 'admin');
+                                })
+                                ->pluck('name', 'id')
+                                ->toArray();
                         }
 
                         if ($type === Dependent::class) {
@@ -76,7 +86,7 @@ class DeathRecordResource extends Resource
 
                         return [];
                     })
-                    ->getOptionLabelUsing(function ($value, $get) {
+                    ->getOptionLabelUsing(function ($value, callable $get) {
                         $type = $get('deceased_type');
 
                         if ($type === User::class) {
@@ -93,31 +103,74 @@ class DeathRecordResource extends Resource
                     })
                     ->searchable()
                     ->required()
-                    ->reactive(),
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                        $deceasedType = $get('deceased_type');
+
+                        // Reset to default values for all user fields
+                        $set('member_no', 'Tiada');
+                        $set('member_ic', 'Tiada');
+                        $set('member_name', 'Tiada');
+                        $set('member_email', 'Tiada');
+                        $set('member_phone', 'Tiada');
+                        $set('member_home_phone', 'Tiada');
+                        $set('member_age', 'Tiada');
+                        $set('member_residence_status', 'Tiada');
+                        $set('member_address', 'Tiada');
+
+                        if ($state && $deceasedType) {
+                            if ($deceasedType === User::class) {
+                                $user = User::find($state);
+                                if ($user) {
+                                    $set('member_no', $user->No_Ahli ?? 'Tiada');
+                                    $set('member_ic', $user->ic_number ?? 'Tiada');
+                                    $set('member_name', $user->name ?? 'Tiada');
+                                    $set('member_email', $user->email ?? 'Tiada');
+                                    $set('member_phone', $user->phone_number ?? 'Tiada');
+                                    $set('member_home_phone', $user->home_phone ?? 'Tiada');
+                                    $set('member_age', $user->age ?? 'Tiada');
+                                    $set('member_residence_status', $user->residence_status ?? 'Tiada');
+                                    $set('member_address', $user->address ?? 'Tiada');
+                                }
+                            } elseif ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($state);
+                                if ($dependent) {
+                                    // Set dependent's own information
+                                    $set('member_ic', $dependent->ic_number ?? 'Tiada');
+                                    $set('member_name', $dependent->full_name ?? 'Tiada');
+                                    $set('member_age', $dependent->age ?? 'Tiada');
+
+                                    // Set information from parent user
+                                    if ($dependent->user) {
+                                        $set('member_no', $dependent->user->No_Ahli ?? 'Tiada');
+                                        $set('member_email', $dependent->user->email ?? 'Tiada');
+                                        $set('member_phone', $dependent->user->phone_number ?? 'Tiada');
+                                        $set('member_home_phone', $dependent->user->home_phone ?? 'Tiada');
+                                        $set('member_residence_status', $dependent->user->residence_status ?? 'Tiada');
+                                        $set('member_address', $dependent->user->address ?? 'Tiada');
+                                    }
+                                }
+                            }
+                        }
+                    }),
             ]),
 
             // Member Information Section
             Forms\Components\Section::make('Maklumat Ahli')
                 ->schema([
+                    // No Ahli
                     Forms\Components\TextInput::make('member_no')
                         ->label('No Ahli')
-                        ->formatStateUsing(function ($state, $record, $get) {
+                        ->formatStateUsing(function ($state, $record, callable $get) {
                             // For edit form with existing record
                             if ($record) {
-                                // If this is a User (Primary Member)
-                                if ($record->deceased_type === 'App\\Models\\User') {
-                                    $user = User::find($record->deceased_id);
-                                    return $user ? $user->No_Ahli : 'Tiada';
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->No_Ahli ?? 'Tiada';
                                 }
 
-                                // If this is a Dependent
-                                if ($record->deceased_type === 'App\\Models\\Dependent') {
-                                    $dependent = Dependent::find($record->deceased_id);
-                                    if ($dependent && $dependent->user) {
-                                        return $dependent->user->No_Ahli ?? 'Tiada';
-                                    }
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->user->No_Ahli ?? 'Tiada';
                                 }
-
                                 return 'Tiada';
                             }
 
@@ -125,16 +178,57 @@ class DeathRecordResource extends Resource
                             $deceasedType = $get('deceased_type');
                             $deceasedId = $get('deceased_id');
 
-                            if (!$deceasedType || !$deceasedId) {
+                            if (!$deceasedId) {
                                 return 'Tiada';
                             }
 
                             if ($deceasedType === User::class) {
                                 $user = User::find($deceasedId);
-                                return $user ? $user->No_Ahli : 'Tiada';
-                            } elseif ($deceasedType === Dependent::class) {
+                                return $user ? ($user->No_Ahli ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
                                 $dependent = Dependent::find($deceasedId);
-                                return ($dependent && $dependent->user) ? $dependent->user->No_Ahli : 'Tiada';
+                                return ($dependent && $dependent->user) ? ($dependent->user->No_Ahli ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return $state ?? 'Tiada';
+                        })
+                        ->disabled()
+                        ->dehydrated(false),
+
+                    // IC Number
+                    Forms\Components\TextInput::make('member_ic')
+                        ->label('No KP')
+                        ->formatStateUsing(function ($state, $record, callable $get) {
+                            // For edit form with existing record
+                            if ($record) {
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->ic_number ?? 'Tiada';
+                                }
+
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->ic_number ?? 'Tiada';
+                                }
+                                return 'Tiada';
+                            }
+
+                            // For create form
+                            $deceasedType = $get('deceased_type');
+                            $deceasedId = $get('deceased_id');
+
+                            if (!$deceasedId) {
+                                return 'Tiada';
+                            }
+
+                            if ($deceasedType === User::class) {
+                                $user = User::find($deceasedId);
+                                return $user ? ($user->ic_number ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return $dependent ? ($dependent->ic_number ?? 'Tiada') : 'Tiada';
                             }
 
                             return 'Tiada';
@@ -142,9 +236,244 @@ class DeathRecordResource extends Resource
                         ->disabled()
                         ->dehydrated(false),
 
+                    // Name
+                    Forms\Components\TextInput::make('member_name')
+                        ->label('Nama')
+                        ->formatStateUsing(function ($state, $record, callable $get) {
+                            // For edit form with existing record
+                            if ($record) {
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->name ?? 'Tiada';
+                                }
+
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->full_name ?? 'Tiada';
+                                }
+                                return 'Tiada';
+                            }
+
+                            // For create form
+                            $deceasedType = $get('deceased_type');
+                            $deceasedId = $get('deceased_id');
+
+                            if (!$deceasedId) {
+                                return 'Tiada';
+                            }
+
+                            if ($deceasedType === User::class) {
+                                $user = User::find($deceasedId);
+                                return $user ? ($user->name ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return $dependent ? ($dependent->full_name ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return 'Tiada';
+                        })
+                        ->disabled()
+                        ->dehydrated(false),
+
+                    // Email
+                    Forms\Components\TextInput::make('member_email')
+                        ->label('Email')
+                        ->formatStateUsing(function ($state, $record, callable $get) {
+                            // For edit form with existing record
+                            if ($record) {
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->email ?? 'Tiada';
+                                }
+
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->user->email ?? 'Tiada';
+                                }
+                                return 'Tiada';
+                            }
+
+                            // For create form
+                            $deceasedType = $get('deceased_type');
+                            $deceasedId = $get('deceased_id');
+
+                            if (!$deceasedId) {
+                                return 'Tiada';
+                            }
+
+                            if ($deceasedType === User::class) {
+                                $user = User::find($deceasedId);
+                                return $user ? ($user->email ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return ($dependent && $dependent->user) ? ($dependent->user->email ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return 'Tiada';
+                        })
+                        ->disabled()
+                        ->dehydrated(false),
+
+                    // Phone Number
+                    Forms\Components\TextInput::make('member_phone')
+                        ->label('No Telefon')
+                        ->formatStateUsing(function ($state, $record, callable $get) {
+                            // For edit form with existing record
+                            if ($record) {
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->phone_number ?? 'Tiada';
+                                }
+
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->user->phone_number ?? 'Tiada';
+                                }
+                                return 'Tiada';
+                            }
+
+                            // For create form
+                            $deceasedType = $get('deceased_type');
+                            $deceasedId = $get('deceased_id');
+
+                            if (!$deceasedId) {
+                                return 'Tiada';
+                            }
+
+                            if ($deceasedType === User::class) {
+                                $user = User::find($deceasedId);
+                                return $user ? ($user->phone_number ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return ($dependent && $dependent->user) ? ($dependent->user->phone_number ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return 'Tiada';
+                        })
+                        ->disabled()
+                        ->dehydrated(false),
+
+                    // Home Phone
+                    Forms\Components\TextInput::make('member_home_phone')
+                        ->label('No Telefon Rumah')
+                        ->formatStateUsing(function ($state, $record, callable $get) {
+                            // For edit form with existing record
+                            if ($record) {
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->home_phone ?? 'Tiada';
+                                }
+
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->user->home_phone ?? 'Tiada';
+                                }
+                                return 'Tiada';
+                            }
+
+                            // For create form
+                            $deceasedType = $get('deceased_type');
+                            $deceasedId = $get('deceased_id');
+
+                            if (!$deceasedId) {
+                                return 'Tiada';
+                            }
+
+                            if ($deceasedType === User::class) {
+                                $user = User::find($deceasedId);
+                                return $user ? ($user->home_phone ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return ($dependent && $dependent->user) ? ($dependent->user->home_phone ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return 'Tiada';
+                        })
+                        ->disabled()
+                        ->dehydrated(false),
+
+                    // Age
+                    Forms\Components\TextInput::make('member_age')
+                        ->label('Umur')
+                        ->formatStateUsing(function ($state, $record, callable $get) {
+                            // For edit form with existing record
+                            if ($record) {
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->age ?? 'Tiada';
+                                }
+
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->age ?? 'Tiada';
+                                }
+                                return 'Tiada';
+                            }
+
+                            // For create form
+                            $deceasedType = $get('deceased_type');
+                            $deceasedId = $get('deceased_id');
+
+                            if (!$deceasedId) {
+                                return 'Tiada';
+                            }
+
+                            if ($deceasedType === User::class) {
+                                $user = User::find($deceasedId);
+                                return $user ? ($user->age ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return $dependent ? ($dependent->age ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return 'Tiada';
+                        })
+                        ->disabled()
+                        ->dehydrated(false),
+
+                    // Residence Status
+                    Forms\Components\TextInput::make('member_residence_status')
+                        ->label('Status Kediaman')
+                        ->formatStateUsing(function ($state, $record, callable $get) {
+                            // For edit form with existing record
+                            if ($record) {
+                                if ($record->deceased_type === 'App\\Models\\User' && $record->deceased) {
+                                    return $record->deceased->residence_status ?? 'Tiada';
+                                }
+
+                                if ($record->deceased_type === 'App\\Models\\Dependent' && $record->deceased) {
+                                    return $record->deceased->user->residence_status ?? 'Tiada';
+                                }
+                                return 'Tiada';
+                            }
+
+                            // For create form
+                            $deceasedType = $get('deceased_type');
+                            $deceasedId = $get('deceased_id');
+
+                            if (!$deceasedId) {
+                                return 'Tiada';
+                            }
+
+                            if ($deceasedType === User::class) {
+                                $user = User::find($deceasedId);
+                                return $user ? ($user->residence_status ?? 'Tiada') : 'Tiada';
+                            }
+
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return ($dependent && $dependent->user) ? ($dependent->user->residence_status ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return 'Tiada';
+                        })
+                        ->disabled()
+                        ->dehydrated(false),
+
+                    // Address
                     Forms\Components\Textarea::make('member_address')
                         ->label('Alamat')
-                        ->formatStateUsing(function ($state, $record, $get) {
+                        ->formatStateUsing(function ($state, $record, callable $get) {
                             // For edit form with existing record
                             if ($record) {
                                 // If this is a User (Primary Member)
@@ -168,23 +497,26 @@ class DeathRecordResource extends Resource
                             $deceasedType = $get('deceased_type');
                             $deceasedId = $get('deceased_id');
 
-                            if (!$deceasedType || !$deceasedId) {
+                            if (!$deceasedId) {
                                 return 'Tiada';
                             }
 
                             if ($deceasedType === User::class) {
                                 $user = User::find($deceasedId);
-                                return $user ? $user->address : 'Tiada';
-                            } elseif ($deceasedType === Dependent::class) {
-                                $dependent = Dependent::find($deceasedId);
-                                return ($dependent && $dependent->user) ? $dependent->user->address : 'Tiada';
+                                return $user ? ($user->address ?? 'Tiada') : 'Tiada';
                             }
 
-                            return 'Tiada';
+                            if ($deceasedType === Dependent::class) {
+                                $dependent = Dependent::find($deceasedId);
+                                return ($dependent && $dependent->user) ? ($dependent->user->address ?? 'Tiada') : 'Tiada';
+                            }
+
+                            return $state ?? 'Tiada';
                         })
                         ->disabled()
                         ->dehydrated(false)
-                        ->rows(2),
+                        ->rows(3)
+                        ->columnSpanFull(),
                 ])
                 ->columns(2)
                 ->collapsible(),
@@ -257,8 +589,10 @@ class DeathRecordResource extends Resource
                     }),
 
                 // No Ahli column
-                Tables\Columns\TextColumn::make('member_no')->label('No Ahli')->searchable(),
-
+                Tables\Columns\TextColumn::make('member_no')
+                ->label('No Ahli')
+                ->searchable()
+                ->sortable(),
                 // IC Number column
                 Tables\Columns\TextColumn::make('deceased_ic_number')
                     ->searchable()

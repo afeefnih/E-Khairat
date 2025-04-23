@@ -93,5 +93,25 @@ class DeathRecord extends Model
         return 'Unknown';
     }
 
-    // Other accessors...
+    /**
+ * Get the member number (No_Ahli) regardless of deceased type.
+ */
+public function getMemberNoAttribute()
+{
+    $type = $this->deceased_type;
+
+    // If the deceased is a User
+    if ($type === 'App\\Models\\User' && $this->deceased) {
+        return $this->deceased->No_Ahli ?? 'Tiada';
+    }
+
+    // If the deceased is a Dependent
+    if ($type === 'App\\Models\\Dependent' && $this->deceased) {
+        // Get the user related to the dependent
+        $user = $this->deceased->user;
+        return $user ? ($user->No_Ahli ?? 'Tiada') : 'Tiada';
+    }
+
+    return 'Tiada';
+}
 }
