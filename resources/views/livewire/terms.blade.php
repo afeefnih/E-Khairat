@@ -168,7 +168,7 @@
                                                 d="M5 13l4 4L19 7"></path>
                                         </svg>
                                         <span>Setiap ahli dikehendaki membayar <strong class="text-green-700">sumbangan
-                                                sebanyak RM100.00 SEKALI SAHAJA</strong> semasa mendaftar sebagai ahli
+                                                sebanyak RM{{ number_format($amount, 2) }} SEKALI SAHAJA</strong> semasa mendaftar sebagai ahli
                                             BKKMTS.</span>
                                     </li>
                                     <li class="flex">

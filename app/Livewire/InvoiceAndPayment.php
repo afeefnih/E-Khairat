@@ -4,12 +4,14 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Http; // Import Http facade
+use App\Models\PaymentCategory;
+use App\Http\Livewire\DependentRegistration;
 
 class InvoiceAndPayment extends Component
 {
     public $user_data;
     public $dependents;
-    public $amount = 100;
+    public $amount ;
 
     public function mount()
     {
@@ -17,6 +19,14 @@ class InvoiceAndPayment extends Component
         $this->user_data = session()->get('user_data', []);
         // Get dependent data from the session (if any)
         $this->dependents = session()->get('dependents', []);
+
+        $category = PaymentCategory::find(1);
+
+        if ($category) {
+            $this->amount = $category->amount;
+        } else {
+            $this->amount = 0; // Default if not found
+        }
     }
 
     public function paymentRegistration()
@@ -37,10 +47,6 @@ class InvoiceAndPayment extends Component
         }
     }
 
-    public function addDependent()
-    {
-        $this->redirect(DependentRegistration::class, navigate: true);
-    }
 
     public function backToRegister()
     {

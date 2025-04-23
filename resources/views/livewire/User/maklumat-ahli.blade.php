@@ -323,7 +323,7 @@
                         </div>
                         <div class="ml-3">
                             <p class="text-sm text-blue-700 dark:text-blue-300">
-                                Anda boleh mendaftar sehingga 8 orang tanggungan di bawah akaun anda. Tanggungan yang didaftarkan akan turut menerima manfaat khairat kematian.
+                                Tanggungan mestilah terdiri daripada isteri atau suami, anak-anak yang belum berkahwin, ibubapa kandung, atau ibu bapa mertua yang tinggal serumah dengan ahli. Anak yang telah berumah tangga atau ibubapa yang tidak tinggal serumah tidak dikira sebagai tanggungan dan perlu mendaftar secara berasingan.
                             </p>
                         </div>
                     </div>

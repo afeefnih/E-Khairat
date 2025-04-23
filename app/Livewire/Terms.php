@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Models\PaymentCategory;
+;
 
 class Terms extends Component
 {
@@ -10,6 +12,8 @@ class Terms extends Component
     public $language = 'ms'; // Default to Malay
     public $searchQuery = '';
     public $showMobileMenu = false;
+
+    public $amount;
 
     public $sections = [
         'tanggungan' => [
@@ -53,6 +57,17 @@ class Terms extends Component
     public function toggleMobileMenu()
     {
         $this->showMobileMenu = !$this->showMobileMenu;
+    }
+
+    public function mount(){
+
+        $category = PaymentCategory::find(1);
+
+        if ($category) {
+            $this->amount = $category->amount;
+        } else {
+            $this->amount = 0; // Default if not found
+        }
     }
 
     public function render()
