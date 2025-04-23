@@ -27,8 +27,8 @@ class PaymentResource extends Resource
     protected static ?string $model = Payment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?string $navigationLabel = 'Payment List';
-    protected static ?string $navigationGroup = 'Payments';
+    protected static ?string $navigationLabel = 'Senarai Pembayaran';
+    protected static ?string $navigationGroup = 'Pembayaran';
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -39,31 +39,53 @@ class PaymentResource extends Resource
         return $form
         ->schema([
             Forms\Components\Select::make('user_id')
-            ->relationship('user', 'name')
-            ->label('User')
-            ->disabled($isEditForm)
-            ->required(),
-
-            Forms\Components\Select::make('payment_category_id')
-            ->relationship(
-                'payment_category',
-                'category_name',
-                fn (Builder $query) => $query->where('category_status', 'active')
-            )
-            ->label('Payment Category')
-            ->disabled($isEditForm)
-            ->required(),
-
-            Forms\Components\TextInput::make('amount')
+                ->relationship(
+                    'user',
+                    'name',
+                    fn (Builder $query) => $query->whereDoesntHave('roles', function ($q) {
+                        $q->where('name', 'admin');
+                    })
+                )
+                ->label('Ahli')
+                ->searchable()
+                ->preload()
                 ->disabled($isEditForm)
                 ->required()
-                ->numeric(),
+                ->validationMessages([
+                    'required' => 'Ahli diperlukan.',
+                ]),
+
+            Forms\Components\Select::make('payment_category_id')
+                ->relationship(
+                    'payment_category',
+                    'category_name',
+                    fn (Builder $query) => $query->where('category_status', 'active')
+                )
+                ->label('Kategori Pembayaran')
+                ->searchable()
+                ->preload()
+                ->disabled($isEditForm)
+                ->required()
+                ->validationMessages([
+                    'required' => 'Kategori pembayaran diperlukan.',
+                ]),
+
+            Forms\Components\TextInput::make('amount')
+                ->label('Jumlah (RM)')
+                ->disabled($isEditForm)
+                ->required()
+                ->numeric()
+                ->prefix('RM')
+                ->validationMessages([
+                    'required' => 'Jumlah diperlukan.',
+                    'numeric' => 'Jumlah mesti berupa angka.',
+                ]),
 
             Forms\Components\Select::make('status_id')
                 ->label('Status')
                 ->options([
-                    '0' => 'Pending',
-                    '1' => 'Paid',
+                    '0' => 'Belum Dibayar',
+                    '1' => 'Dibayar',
                 ])
                 ->required()
                 ->live()
@@ -85,19 +107,26 @@ class PaymentResource extends Resource
                             $set('paid_at', now());
                         }
                     }
-                }),
+                })
+                ->validationMessages([
+                    'required' => 'Status diperlukan.',
+                ]),
 
             Forms\Components\TextInput::make('billcode')
+                ->label('Kod Bil')
                 ->maxLength(255)
-                ->placeholder('Auto-generated when payment is marked as Paid')
-                ->helperText('Will be auto-generated when payment is marked as Paid'),
+                ->placeholder('Dijana secara automatik apabila pembayaran ditandakan sebagai Dibayar')
+                ->helperText('Akan dijana secara automatik apabila pembayaran ditandakan sebagai Dibayar'),
 
             Forms\Components\TextInput::make('order_id')
+                ->label('ID Pesanan')
                 ->maxLength(255)
-                ->placeholder('Auto-generated when payment is marked as Paid')
-                ->helperText('Will be auto-generated when payment is marked as Paid'),
+                ->placeholder('Dijana secara automatik apabila pembayaran ditandakan sebagai Dibayar')
+                ->helperText('Akan dijana secara automatik apabila pembayaran ditandakan sebagai Dibayar'),
 
-            Forms\Components\DateTimePicker::make('paid_at'),
+            Forms\Components\DateTimePicker::make('paid_at')
+                ->label('Tarikh Dibayar')
+                ->placeholder('Pilih tarikh dan masa pembayaran'),
         ]);
     }
 
@@ -106,129 +135,204 @@ class PaymentResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
+                    ->label('Nama Ahli')
+                    ->searchable()
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('payment_category.category_name')
-                    ->numeric()
+                    ->label('Kategori Pembayaran')
+                    ->searchable()
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('amount')
-                    ->numeric()
+                    ->label('Jumlah')
+                    ->money('MYR')
                     ->sortable(),
-                    Tables\Columns\BadgeColumn::make('status_id')
+
+                Tables\Columns\BadgeColumn::make('status_id')
                     ->label('Status')
-                    ->formatStateUsing(fn (string $state): string => $state == '1' ? 'Paid' : 'Pending')
+                    ->formatStateUsing(fn (string $state): string => match($state) {
+                        '0' => 'Belum Dibayar',
+                        '1' => 'Dibayar',
+                        default => $state,
+                    })
                     ->colors([
                         'danger' => fn ($state) => $state == '0',
                         'success' => fn ($state) => $state == '1',
-                    ]),
+                    ])
+                    ->tooltip(fn (string $state): string => match($state) {
+                        '0' => 'Pembayaran ini belum dibayar',
+                        '1' => 'Pembayaran ini telah dibayar',
+                        default => '',
+                    }),
+
                 Tables\Columns\TextColumn::make('billcode')
-                    ->searchable(),
+                    ->label('Kod Bil')
+                    ->searchable()
+                    ->placeholder('Tiada'),
+
                 Tables\Columns\TextColumn::make('order_id')
-                    ->searchable(),
+                    ->label('ID Pesanan')
+                    ->searchable()
+                    ->placeholder('Tiada'),
+
                 Tables\Columns\TextColumn::make('paid_at')
+                    ->label('Tarikh Dibayar')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('Tiada'),
+
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tarikh Cipta')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Tarikh Kemaskini')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status_id')
+                    ->label('Status')
+                    ->options([
+                        '0' => 'Belum Dibayar',
+                        '1' => 'Dibayar',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('payment_category_id')
+                    ->label('Kategori Pembayaran')
+                    ->relationship('payment_category', 'category_name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Sunting'),
+
+                Tables\Actions\DeleteAction::make()
+                    ->label('Padam'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Padam Terpilih'),
 
-                         // Add CSV Export Bulk Action
-                         BulkAction::make('export-csv')
-                         ->label('Export to CSV')
-                         ->icon('heroicon-o-document-arrow-down')
-                         ->color('success')
-                         ->action(function (Collection $records) {
-                             // Check if any records are selected
-                             if ($records->isEmpty()) {
-                                 Notification::make()
-                                     ->title('No payments to export')
-                                     ->danger()
-                                     ->send();
-                                 return;
-                             }
+                    // Bulk action to mark selected payments as paid
+                    BulkAction::make('mark-as-paid')
+                        ->label('Tandakan Sebagai Dibayar')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->action(function (Collection $records) {
+                            $records->each(function ($record) {
+                                if ($record->status_id == '0') {
+                                    $record->status_id = '1';
+                                    $record->billcode = $record->billcode ?? 'BILL-' . time() . '-' . Str::random(6);
+                                    $record->order_id = $record->order_id ?? 'ORD-' . date('Ymd') . '-' . Str::random(6);
+                                    $record->paid_at = $record->paid_at ?? now();
+                                    $record->save();
+                                }
+                            });
 
-                             // Generate CSV file
-                             $csvFileName = 'payments-' . date('Y-m-d') . '.csv';
-                             $headers = [
-                                 'Content-Type' => 'text/csv',
-                                 'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
-                             ];
+                            Notification::make()
+                                ->title(count($records) . ' pembayaran telah ditandakan sebagai dibayar')
+                                ->success()
+                                ->send();
+                        })
+                        ->requiresConfirmation()
+                        ->deselectRecordsAfterCompletion(),
 
-                             $callback = function () use ($records) {
-                                 $file = fopen('php://output', 'w');
+                    // Add CSV Export Bulk Action
+                    BulkAction::make('export-csv')
+                        ->label('Eksport ke CSV')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('success')
+                        ->action(function (Collection $records) {
+                            // Check if any records are selected
+                            if ($records->isEmpty()) {
+                                Notification::make()
+                                    ->title('Tiada pembayaran untuk dieksport')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
 
-                                 // Add headers
-                                 fputcsv($file, [
-                                     'Member Name',
-                                     'Payment Category',
-                                     'Amount (RM)',
-                                     'Status',
-                                     'Billcode',
-                                     'Order ID',
-                                     'Paid At',
-                                     'Created At',
-                                 ]);
+                            // Generate CSV file
+                            $csvFileName = 'pembayaran-' . date('Y-m-d') . '.csv';
+                            $headers = [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
+                            ];
 
-                                 // Add rows
-                                 foreach ($records as $payment) {
-                                     fputcsv($file, [
-                                         $payment->user ? $payment->user->name : 'N/A',
-                                         $payment->payment_category ? $payment->payment_category->category_name : 'N/A',
-                                         $payment->amount,
-                                         $payment->status_id == '1' ? 'Paid' : 'Pending',
-                                         $payment->billcode ?? 'N/A',
-                                         $payment->order_id ?? 'N/A',
-                                         $payment->paid_at ? (is_string($payment->paid_at) ? $payment->paid_at : $payment->paid_at->format('Y-m-d H:i:s')) : 'N/A',                                         $payment->created_at->format('Y-m-d H:i:s'),
-                                     ]);
-                                 }
+                            $callback = function () use ($records) {
+                                $file = fopen('php://output', 'w');
 
-                                 fclose($file);
-                             };
+                                // Add headers
+                                fputcsv($file, [
+                                    'Nama Ahli',
+                                    'Kategori Pembayaran',
+                                    'Jumlah (RM)',
+                                    'Status',
+                                    'Kod Bil',
+                                    'ID Pesanan',
+                                    'Tarikh Dibayar',
+                                    'Tarikh Cipta',
+                                ]);
 
-                             return response()->stream($callback, 200, $headers);
-                         }),
+                                // Add rows
+                                foreach ($records as $payment) {
+                                    fputcsv($file, [
+                                        $payment->user ? $payment->user->name : 'Tiada',
+                                        $payment->payment_category ? $payment->payment_category->category_name : 'Tiada',
+                                        $payment->amount,
+                                        $payment->status_id == '1' ? 'Dibayar' : 'Belum Dibayar',
+                                        $payment->billcode ?? 'Tiada',
+                                        $payment->order_id ?? 'Tiada',
+                                        $payment->paid_at ? (is_string($payment->paid_at) ? $payment->paid_at : $payment->paid_at->format('Y-m-d H:i:s')) : 'Tiada',
+                                        $payment->created_at->format('Y-m-d H:i:s'),
+                                    ]);
+                                }
 
-                     // Add PDF Export Bulk Action
-                     BulkAction::make('export-pdf')
-                         ->label('Export to PDF')
-                         ->icon('heroicon-o-document-arrow-down')
-                         ->color('danger')
-                         ->action(function (Collection $records) {
-                             // Check if any records are selected
-                             if ($records->isEmpty()) {
-                                 Notification::make()
-                                     ->title('No payments to export')
-                                     ->danger()
-                                     ->send();
-                                 return;
-                             }
+                                fclose($file);
+                            };
 
-                             // Generate the PDF
-                             $pdf = Pdf::loadView('pdf.payments', [
-                                 'payments' => $records,
-                             ]);
+                            return response()->stream($callback, 200, $headers);
+                        }),
 
-                             return response()->streamDownload(function () use ($pdf) {
-                                 echo $pdf->output();
-                             }, 'payments-' . date('Y-m-d') . '.pdf');
-                         }),
+                    // Add PDF Export Bulk Action
+                    BulkAction::make('export-pdf')
+                        ->label('Eksport ke PDF')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('danger')
+                        ->action(function (Collection $records) {
+                            // Check if any records are selected
+                            if ($records->isEmpty()) {
+                                Notification::make()
+                                    ->title('Tiada pembayaran untuk dieksport')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
 
+                            try {
+                                // Generate the PDF
+                                $pdf = Pdf::loadView('pdf.payments', [
+                                    'payments' => $records,
+                                ])->setPaper('A4', 'landscape');
+
+                                return response()->streamDownload(function () use ($pdf) {
+                                    echo $pdf->output();
+                                }, 'pembayaran-' . date('Y-m-d') . '.pdf');
+                            } catch (\Exception $e) {
+                                Notification::make()
+                                    ->title('Ralat menjana PDF')
+                                    ->danger()
+                                    ->body($e->getMessage())
+                                    ->send();
+                            }
+                        }),
                 ]),
             ]);
     }

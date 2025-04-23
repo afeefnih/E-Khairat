@@ -1,7 +1,6 @@
 <div>
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+    <div class="flex justify-end mb-6">
         @if(Auth::check())
-        <!-- Add Dependent Button -->
         <button wire:click="addNewDependent"
                 class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors duration-200 dark:bg-indigo-700 dark:hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

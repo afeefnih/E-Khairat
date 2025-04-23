@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DeathRecordResource\Pages;
 use App\Filament\Resources\DeathRecordResource;
 use App\Filament\Resources\UserResource;
 use App\Models\Dependent;
+use App\Models\User;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Actions\Action;
@@ -16,9 +17,9 @@ class EditDeathRecord extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            // View Member Action
+            // View Member Action for both dependents and primary members
             Action::make('viewMember')
-                ->label('View Member')
+                ->label('Lihat Ahli')
                 ->icon('heroicon-o-users')
                 ->color('success')
                 ->url(function () {
@@ -41,6 +42,13 @@ class EditDeathRecord extends EditRecord
                             }
                         }
 
+                        // For primary members (User), link directly to their record
+                        if ($this->record->deceased_type === 'App\\Models\\User' ||
+                            $this->record->deceased_type === User::class) {
+
+                            return UserResource::getUrl('edit', ['record' => $this->record->deceased_id]);
+                        }
+
                         return null;
                     } catch (\Exception $e) {
                         // Log the error but don't crash
@@ -51,18 +59,15 @@ class EditDeathRecord extends EditRecord
                 ->openUrlInNewTab()
                 ->visible(function () {
                     try {
-                        $isDependent = $this->record->deceased_type === 'App\\Models\\Dependent' ||
-                                      $this->record->deceased_type === Dependent::class ||
-                                      $this->record->dependent_id;
-
-                        return $isDependent;
+                        // Always show the button for all record types
+                        return true;
                     } catch (\Exception $e) {
                         \Illuminate\Support\Facades\Log::error("Error in viewMember visibility: " . $e->getMessage());
                         return false;
                     }
                 }),
 
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()->label('Padam'),
         ];
     }
 }

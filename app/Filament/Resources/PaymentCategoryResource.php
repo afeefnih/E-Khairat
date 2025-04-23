@@ -21,16 +21,18 @@ class PaymentCategoryResource extends Resource
     protected static ?string $model = PaymentCategory::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    protected static ?string $navigationLabel = 'Payment Categories';
-    protected static ?string $navigationGroup = 'Payments';
+    protected static ?string $navigationLabel = 'Senarai Kutipan';
+    protected static ?string $navigationGroup = 'Pembayaran';
     protected static ?int  $navigationSort = 2;
+
+    protected static ?string $pluralLabel = 'Senarai Kutipan Katagori';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('category_name')
-                    ->label('Category Name')
+                    ->label('Nama Kategori')
                     ->required()
                     ->maxLength(255)
                     ->validationMessages([
@@ -39,7 +41,7 @@ class PaymentCategoryResource extends Resource
                     ]),
 
                 Forms\Components\Textarea::make('category_description')
-                    ->label('Description')
+                    ->label('Penerangan')
                     ->nullable()
                     ->maxLength(1000)
                     ->columnSpanFull()
@@ -48,7 +50,7 @@ class PaymentCategoryResource extends Resource
                     ]),
 
                 Forms\Components\TextInput::make('amount')
-                    ->label('Amount (RM)')
+                    ->label('Jumlah (RM)')
                     ->required()
                     ->numeric()
                     ->prefix('RM')
@@ -60,8 +62,8 @@ class PaymentCategoryResource extends Resource
                 Forms\Components\Select::make('category_status')
                     ->label('Status')
                     ->options([
-                        'active' => 'Active',
-                        'inactive' => 'Inactive',
+                        'active' => 'Aktif',
+                        'inactive' => 'Tidak Aktif',
                     ])
                     ->default('active')
                     ->required()
@@ -73,12 +75,12 @@ class PaymentCategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('category_name')
-                    ->label('Category Name')
+                    ->label('Nama Kategori')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('amount')
-                    ->label('Amount')
+                    ->label('Jumlah')
                     ->money('MYR')
                     ->sortable(),
 
@@ -90,19 +92,26 @@ class PaymentCategoryResource extends Resource
                         'inactive' => 'danger',
                         default => 'gray',
                     })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'active' => 'Aktif',
+                        'inactive' => 'Tidak Aktif',
+                        default => $state,
+                    })
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('payments_count')
-                    ->label('Payments')
+                    ->label('Pembayaran')
                     ->counts('payments')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tarikh Cipta')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Tarikh Kemaskini')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -111,8 +120,8 @@ class PaymentCategoryResource extends Resource
                 Tables\Filters\SelectFilter::make('category_status')
                     ->label('Status')
                     ->options([
-                        'active' => 'Active',
-                        'inactive' => 'Inactive',
+                        'active' => 'Aktif',
+                        'inactive' => 'Tidak Aktif',
                     ]),
             ])
             ->actions([
@@ -123,26 +132,27 @@ class PaymentCategoryResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
+                        ->label('Padam Terpilih')
                         ->requiresConfirmation()
                         ->deselectRecordsAfterCompletion(),
 
-                           // Add CSV Export Bulk Action
+                    // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')
-                    ->label('Export to CSV')
+                    ->label('Eksport ke CSV')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
                     ->action(function (Collection $records) {
                         // Check if any records are selected
                         if ($records->isEmpty()) {
                             Notification::make()
-                                ->title('No payment categories to export')
+                                ->title('Tiada kategori pembayaran untuk dieksport')
                                 ->danger()
                                 ->send();
                             return;
                         }
 
                         // Generate CSV file
-                        $csvFileName = 'payment-categories-' . date('Y-m-d') . '.csv';
+                        $csvFileName = 'kategori-pembayaran-' . date('Y-m-d') . '.csv';
                         $headers = [
                             'Content-Type' => 'text/csv',
                             'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
@@ -153,21 +163,21 @@ class PaymentCategoryResource extends Resource
 
                             // Add headers
                             fputcsv($file, [
-                                'Category Name',
-                                'Description',
-                                'Amount (RM)',
+                                'Nama Kategori',
+                                'Penerangan',
+                                'Jumlah (RM)',
                                 'Status',
-                                'Number of Payments',
-                                'Created At',
+                                'Bilangan Pembayaran',
+                                'Tarikh Cipta',
                             ]);
 
                             // Add rows
                             foreach ($records as $record) {
                                 fputcsv($file, [
                                     $record->category_name,
-                                    $record->category_description ?? 'N/A',
+                                    $record->category_description ?? 'Tiada',
                                     $record->amount,
-                                    $record->category_status,
+                                    $record->category_status === 'active' ? 'Aktif' : 'Tidak Aktif',
                                     $record->payments()->count(),
                                     $record->created_at->format('Y-m-d'),
                                 ]);
@@ -181,14 +191,14 @@ class PaymentCategoryResource extends Resource
 
                 // Add PDF Export Bulk Action
                 BulkAction::make('export-pdf')
-                    ->label('Export to PDF')
+                    ->label('Eksport ke PDF')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('danger')
                     ->action(function (Collection $records) {
                         // Check if any records are selected
                         if ($records->isEmpty()) {
                             Notification::make()
-                                ->title('No payment categories to export')
+                                ->title('Tiada kategori pembayaran untuk dieksport')
                                 ->danger()
                                 ->send();
                             return;
@@ -201,11 +211,10 @@ class PaymentCategoryResource extends Resource
 
                         return response()->streamDownload(function () use ($pdf) {
                             echo $pdf->output();
-                        }, 'payment-categories-' . date('Y-m-d') . '.pdf');
+                        }, 'kategori-pembayaran-' . date('Y-m-d') . '.pdf');
                     }),
-            ]),
-        ]);
-
+                ]),
+            ]);
     }
 
     public static function getRelations(): array
