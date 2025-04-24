@@ -24,6 +24,9 @@
     <body x-cloak x-data="{darkMode: $persist(false)}" :class="{'dark': darkMode === true }" class="antialiased">
 
     <x-guest-nav-bar />
+
+
+
         <div class="font-sans text-gray-900 antialiased">
 
             {{ $slot }}

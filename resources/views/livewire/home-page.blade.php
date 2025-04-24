@@ -1,7 +1,7 @@
 <div class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950 min-h-screen mt-7">
     <!-- Hero Section -->
     <div class="container max-w-screen-xl px-4 py-12 mx-auto lg:py-16">
-        <div class="grid lg:grid-cols-12 gap-8 items-center">
+        <div class="grid lg:grid-cols-12 gap-8 items-center mt-20">
             <div class="lg:col-span-7">
                 <div class="mb-6">
                     <span class="inline-block px-3 py-1 text-sm font-medium text-indigo-700 bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 rounded-full mb-3">Amanah Khairat Masyarakat</span>
@@ -40,7 +40,7 @@
     </div>
 
     <!-- About Us Section -->
-    <div class="container max-w-screen-xl px-4 py-12 mx-auto">
+    <div class="container max-w-screen-xl px-4 py-12 mx-auto mt-32">
         <div class="grid md:grid-cols-2 gap-8 items-center">
             <div>
                 <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Tentang Kami</h2>
@@ -48,7 +48,7 @@
                     Biro Khairat Kematian Masjid Taman Sutera merupakan institusi yang ditubuhkan untuk menyediakan bantuan dan perkhidmatan pengurusan kematian kepada komuniti Taman Sutera dan kawasan sekitarnya.
                 </p>
                 <p class="text-gray-600 dark:text-gray-400 mb-4">
-                    Sejak ditubuhkan, institusi kami telah membantu ratusan keluarga menguruskan hal ehwal kematian dengan pantas, efisien dan penuh penghormatan, mengikut ajaran Islam.
+                    Sejak ditubuhkan, institusi kami telah membantu ramai keluarga menguruskan hal ehwal kematian dengan pantas, efisien dan penuh penghormatan, mengikut ajaran Islam.
                 </p>
                 <p class="text-gray-600 dark:text-gray-400">
                     Kami percaya bahawa setiap individu berhak mendapat pengurusan jenazah yang sempurna dan keluarga yang ditinggalkan mendapat sokongan yang diperlukan pada masa-masa sukar.

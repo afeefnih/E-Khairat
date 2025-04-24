@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\PaymentCategory;
-;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Terms extends Component
 {
@@ -69,6 +69,28 @@ class Terms extends Component
             $this->amount = 0; // Default if not found
         }
     }
+
+    public function downloadPdf()
+{
+    $category = PaymentCategory::find(1);
+    $amount = $category ? $category->amount : 0;
+
+    // Pass the data to the PDF view
+    $pdf = Pdf::loadView('pdf.terms', [
+        'language' => $this->language,
+        'sections' => $this->sections,
+        'amount' => $amount
+    ]);
+
+    // Generate a unique filename
+    $filename = 'BKKMTS_' . ($this->language === 'ms' ? 'Terma_dan_Syarat' : 'Terms_and_Conditions') . '.pdf';
+
+    // Return the PDF as a download
+    return response()->streamDownload(
+        fn () => print($pdf->output()),
+        $filename
+    );
+}
 
     public function render()
     {

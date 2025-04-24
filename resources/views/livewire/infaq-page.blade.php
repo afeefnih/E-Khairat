@@ -175,15 +175,25 @@
 
 <script>
     function toggleOtherAmountInput() {
-        const otherAmountRadio = document.getElementById('amount-other');
-        const otherAmountContainer = document.getElementById('other_amount_container');
-        const otherAmountInput = document.getElementById('other_amount');
-
-        if (otherAmountRadio.checked) {
-            otherAmountContainer.classList.remove('hidden');
-            otherAmountInput.focus();
-        } else {
-            otherAmountContainer.classList.add('hidden');
-        }
+        const otherRadio = document.getElementById('amount-other');
+        const otherAmountInput = document.getElementById('other_amount_container');
+        otherAmountInput.classList.remove('hidden');
     }
+
+    document.getElementById('other_amount').addEventListener('input', function () {
+        const otherRadio = document.getElementById('amount-other');
+        if (this.value && parseFloat(this.value) > 0) {
+            otherRadio.value = this.value;
+        }
+    });
+
+    // Optional: hide other_amount input if one of the fixed radios is selected
+    document.querySelectorAll('input[name="amount"]').forEach(radio => {
+        if (radio.id !== 'amount-other') {
+            radio.addEventListener('change', () => {
+                document.getElementById('other_amount_container').classList.add('hidden');
+            });
+        }
+    });
 </script>
+

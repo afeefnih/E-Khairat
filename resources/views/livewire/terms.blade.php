@@ -3,7 +3,7 @@
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
-        <header class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg overflow-hidden">
+        <header class="bg-indigo-600 dark:bg-indigo-900 rounded-lg shadow-lg overflow-hidden">
             <div class="px-6 py-12 md:px-12 text-center">
                 <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">
                     {{ $language === 'ms' ? 'Terma dan Syarat BKKMTS' : 'BKKMTS Terms and Conditions' }}
