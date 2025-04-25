@@ -81,20 +81,9 @@ class InfaqController extends Controller
     {
         // Retrieve payment details from the request
         $status = $request->input('status_id'); // 1 = success, 0 = failure
-        $billCode = $request->input('billcode'); // ToyyibPay bill code
-        $amount = session('infaq_amount', 0); // Default to 0 if not found in session
 
         // Check if payment was successful
         if ($status === '1') {
-            // Save the donation record to the database
-            Infaq::create([
-                'bill_code' => $billCode,
-
-                'phone' => $request->input('billPhone', '0000000000'), // Default phone
-                'amount' => $amount / 100, // Convert amount back to RM
-                'status' => 'paid',
-            ]);
-
             // Redirect to a success page
             return redirect()->route('infaq')->with('success', 'Terima kasih atas sumbangan anda!');
         } else {

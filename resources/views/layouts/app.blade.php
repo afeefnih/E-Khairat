@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/app.blade.php --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -38,14 +39,17 @@
 
         <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950">
             @livewire('navigation-menu')
-
+            <div class="h-5"></div>
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="bg-white shadow dark:bg-gray-800 border-b border-indigo-100 dark:border-indigo-900">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header class="bg-white shadow dark:bg-gray-800 border-b border-indigo-100 dark:border-indigo-900/40 mt-16">
+                    <div class="max-w-screen-xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
+            @else
+                <!-- Add padding when no header to prevent content from hiding under navbar -->
+                <div class="pt-16"></div>
             @endif
 
             <!-- Page Content -->
@@ -53,10 +57,8 @@
                 {{ $slot }}
             </main>
         </div>
-
         @stack('modals')
 
         @livewireScripts
-
     </body>
 </html>

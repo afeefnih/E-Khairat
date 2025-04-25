@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Models\PaymentCategory;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Terms extends Component
 {
@@ -10,6 +12,8 @@ class Terms extends Component
     public $language = 'ms'; // Default to Malay
     public $searchQuery = '';
     public $showMobileMenu = false;
+
+    public $amount;
 
     public $sections = [
         'tanggungan' => [
@@ -54,6 +58,39 @@ class Terms extends Component
     {
         $this->showMobileMenu = !$this->showMobileMenu;
     }
+
+    public function mount(){
+
+        $category = PaymentCategory::find(1);
+
+        if ($category) {
+            $this->amount = $category->amount;
+        } else {
+            $this->amount = 0; // Default if not found
+        }
+    }
+
+    public function downloadPdf()
+{
+    $category = PaymentCategory::find(1);
+    $amount = $category ? $category->amount : 0;
+
+    // Pass the data to the PDF view
+    $pdf = Pdf::loadView('pdf.terms', [
+        'language' => $this->language,
+        'sections' => $this->sections,
+        'amount' => $amount
+    ]);
+
+    // Generate a unique filename
+    $filename = 'BKKMTS_' . ($this->language === 'ms' ? 'Terma_dan_Syarat' : 'Terms_and_Conditions') . '.pdf';
+
+    // Return the PDF as a download
+    return response()->streamDownload(
+        fn () => print($pdf->output()),
+        $filename
+    );
+}
 
     public function render()
     {

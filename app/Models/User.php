@@ -52,7 +52,7 @@ class User extends Authenticatable
         'age',
         'home_phone',
         'residence_status',
-        // 'role', // Remove this as we're using a separate table now
+
     ];
 
     /**

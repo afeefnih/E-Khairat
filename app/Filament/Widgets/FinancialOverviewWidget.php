@@ -4,97 +4,143 @@ namespace App\Filament\Widgets;
 
 use App\Models\Payment;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
+use Livewire\Attributes\On;
 
 class FinancialOverviewWidget extends BaseWidget
 {
     protected static ?string $pollingInterval = '60s';
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 30; // FinancialOverviewWidget
+
+    // Properties to store the date range
+    public $startDate;
+    public $endDate;
+
+    public function mount()
+    {
+        // Get date range from session
+        $this->startDate = Session::get('dashboard_start_date', Carbon::today()->subDays(29)->format('Y-m-d'));
+        $this->endDate = Session::get('dashboard_end_date', Carbon::today()->format('Y-m-d'));
+    }
+
+    #[On('dateRangeChanged')]
+    public function updateDateRange($data)
+    {
+        $this->startDate = $data['startDate'];
+        $this->endDate = $data['endDate'];
+
+        // In Filament 3.x, use this to refresh stats widget
+        $this->dispatch('stats-overview-widget-refresh', [
+            'statId' => $this->getStatsOverviewWidgetId(),
+        ]);
+    }
 
     protected function getStats(): array
     {
-        // Get all completed payments (status_id = 1)
-        $totalPayments = Payment::where('status_id', '1')->sum('amount');
+        $startDate = Carbon::parse($this->startDate);
+        $endDate = Carbon::parse($this->endDate);
 
-        // Get all pending payments (status_id = 0)
+        // Get all-time totals (not affected by date range)
+        $allTimePayments = Payment::where('status_id', '1')->sum('amount');
+        $allTimeIncome = Transaction::where('type', 'pendapatan')
+            ->where('status', 'completed')
+            ->sum('amount');
+        $allTimeExpenses = Transaction::where('type', 'perbelanjaan')
+            ->where('status', 'completed')
+            ->sum('amount');
+        $allTimeRevenue = $allTimePayments + $allTimeIncome;
+        $availableFunds = $allTimeRevenue - $allTimeExpenses;
+
+        // Get payments within selected date range
+        $rangePayments = Payment::where('status_id', '1')
+            ->whereBetween('paid_at', [$startDate, $endDate])
+            ->sum('amount');
+
+        // Get income transactions within selected date range
+        $rangeIncome = Transaction::where('type', 'pendapatan')
+            ->where('status', 'completed')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->sum('amount');
+
+        // Get expense transactions within selected date range
+        $rangeExpenses = Transaction::where('type', 'perbelanjaan')
+            ->where('status', 'completed')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->sum('amount');
+
+        // Calculate total revenue in range
+        $rangeRevenue = $rangePayments + $rangeIncome;
+
+        // Get pending payments (not affected by date range)
         $pendingPayments = Payment::where('status_id', '0')->sum('amount');
 
-        // Get income transactions (pendapatan)
-        $totalIncome = Transaction::where('type', 'pendapatan')
+        // Format the date range for display
+        $rangeDuration = $startDate->diffInDays($endDate) + 1;
+        $rangeLabel = $rangeDuration > 1
+            ? $startDate->format('d M Y') . ' - ' . $endDate->format('d M Y')
+            : $startDate->format('d M Y');
+
+        // Get previous period data for comparison
+        $periodLength = $endDate->diffInDays($startDate) + 1;
+        $previousStart = $startDate->copy()->subDays($periodLength);
+        $previousEnd = $startDate->copy()->subDays(1);
+
+        // Get previous period stats
+        $previousPayments = Payment::where('status_id', '1')
+            ->whereBetween('paid_at', [$previousStart, $previousEnd])
+            ->sum('amount');
+
+        $previousIncome = Transaction::where('type', 'pendapatan')
             ->where('status', 'completed')
+            ->whereBetween('transaction_date', [$previousStart, $previousEnd])
             ->sum('amount');
 
-        // Get expense transactions (perbelanjaan)
-        $totalExpenses = Transaction::where('type', 'perbelanjaan')
+        $previousExpenses = Transaction::where('type', 'perbelanjaan')
             ->where('status', 'completed')
+            ->whereBetween('transaction_date', [$previousStart, $previousEnd])
             ->sum('amount');
 
-        // Calculate total revenue (payments + income)
-        $totalRevenue = $totalPayments + $totalIncome;
-
-        // Calculate total funds available
-        $availableFunds = $totalRevenue - $totalExpenses;
-
-        // Get this month's revenue
-        $thisMonthRevenue = Payment::where('status_id', '1')
-            ->whereMonth('paid_at', now()->month)
-            ->whereYear('paid_at', now()->year)
-            ->sum('amount');
-
-        $thisMonthRevenue += Transaction::where('type', 'pendapatan')
-            ->where('status', 'completed')
-            ->whereMonth('transaction_date', now()->month)
-            ->whereYear('transaction_date', now()->year)
-            ->sum('amount');
-
-        // Get this month's expenses
-        $thisMonthExpenses = Transaction::where('type', 'perbelanjaan')
-            ->where('status', 'completed')
-            ->whereMonth('transaction_date', now()->month)
-            ->whereYear('transaction_date', now()->year)
-            ->sum('amount');
+        $previousRevenue = $previousPayments + $previousIncome;
 
         // Calculate trend percentages
-        $lastMonthRevenue = $this->getLastMonthRevenue();
-        $lastMonthExpenses = $this->getLastMonthExpenses();
-
-        $revenueTrend = $lastMonthRevenue > 0
-            ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 2)
+        $revenueTrend = $previousRevenue > 0
+            ? round((($rangeRevenue - $previousRevenue) / $previousRevenue) * 100, 2)
             : 0;
 
-        $expenseTrend = $lastMonthExpenses > 0
-            ? round((($thisMonthExpenses - $lastMonthExpenses) / $lastMonthExpenses) * 100, 2)
+        $expenseTrend = $previousExpenses > 0
+            ? round((($rangeExpenses - $previousExpenses) / $previousExpenses) * 100, 2)
             : 0;
 
         return [
-            // Dana Tersedia - Keep as is, most important financial metric
+            // Dana Tersedia - Overall funds, not limited by date range
             Stat::make('Jumlah Dana Tersedia', 'RM ' . number_format($availableFunds, 2))
                 ->description('Dana bersih selepas perbelanjaan')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('primary')
                 ->chart([
-                    $totalPayments / ($totalRevenue ?: 1) * 100,
-                    $totalIncome / ($totalRevenue ?: 1) * 100,
-                    $totalExpenses / ($totalRevenue ?: 1) * 100
+                    $allTimePayments / ($allTimeRevenue ?: 1) * 100,
+                    $allTimeIncome / ($allTimeRevenue ?: 1) * 100,
+                    $allTimeExpenses / ($allTimeRevenue ?: 1) * 100
                 ]),
 
-            // Consolidated Pendapatan - Combining total and monthly
-            Stat::make('Pendapatan', 'RM ' . number_format($totalRevenue, 2))
-                ->description('Bulan ini: RM ' . number_format($thisMonthRevenue, 2) .
+            // Pendapatan - Revenue within selected date range
+            Stat::make('Pendapatan', 'RM ' . number_format($rangeRevenue, 2))
+                ->description('Tempoh: ' . $rangeLabel .
                     ($revenueTrend != 0 ? ' (' . ($revenueTrend > 0 ? '+' : '') . $revenueTrend . '%)' : ''))
-                ->descriptionIcon('heroicon-m-arrow-trending-up')
+                ->descriptionIcon($revenueTrend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color('success'),
 
-            // Consolidated Perbelanjaan - Combining total and monthly
-            Stat::make('Perbelanjaan', 'RM ' . number_format($totalExpenses, 2))
-                ->description('Bulan ini: RM ' . number_format($thisMonthExpenses, 2) .
+            // Perbelanjaan - Expenses within selected date range
+            Stat::make('Perbelanjaan', 'RM ' . number_format($rangeExpenses, 2))
+                ->description('Tempoh: ' . $rangeLabel .
                     ($expenseTrend != 0 ? ' (' . ($expenseTrend > 0 ? '+' : '') . $expenseTrend . '%)' : ''))
-                ->descriptionIcon('heroicon-m-arrow-trending-down')
+                ->descriptionIcon($expenseTrend > 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color('danger'),
 
-            // Tunggakan - Keep as is, important financial metric
+            // Tunggakan - Pending payments (not affected by date range)
             Stat::make('Tunggakan', 'RM ' . number_format($pendingPayments, 2))
                 ->description('Bayaran yang belum diselesaikan')
                 ->descriptionIcon('heroicon-m-clock')
@@ -102,32 +148,13 @@ class FinancialOverviewWidget extends BaseWidget
         ];
     }
 
-    private function getLastMonthRevenue(): float
+    /**
+     * Get the widget's ID.
+     *
+     * @return string
+     */
+    protected function getStatsOverviewWidgetId(): string
     {
-        $lastMonth = now()->subMonth();
-
-        $lastMonthPayments = Payment::where('status_id', '1')
-            ->whereMonth('paid_at', $lastMonth->month)
-            ->whereYear('paid_at', $lastMonth->year)
-            ->sum('amount');
-
-        $lastMonthIncome = Transaction::where('type', 'pendapatan')
-            ->where('status', 'completed')
-            ->whereMonth('transaction_date', $lastMonth->month)
-            ->whereYear('transaction_date', $lastMonth->year)
-            ->sum('amount');
-
-        return $lastMonthPayments + $lastMonthIncome;
-    }
-
-    private function getLastMonthExpenses(): float
-    {
-        $lastMonth = now()->subMonth();
-
-        return Transaction::where('type', 'perbelanjaan')
-            ->where('status', 'completed')
-            ->whereMonth('transaction_date', $lastMonth->month)
-            ->whereYear('transaction_date', $lastMonth->year)
-            ->sum('amount');
+        return $this->getId();
     }
 }
