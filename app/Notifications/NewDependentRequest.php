@@ -38,23 +38,28 @@ class NewDependentRequest extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject('New Dependent Request Requires Approval')
-            ->greeting('Hello ' . $notifiable->name . '!');
+            ->subject('Permohonan Tanggungan Baharu Memerlukan Kelulusan')
+            ->greeting('Assalamualaikum ' . $notifiable->name);
 
-        $message->line('A new request to ' . $this->getActionText() . ' requires your approval.');
-        $message->line('Requested by: ' . $this->request->user->name);
+        $message->line('Permohonan baharu untuk ' . $this->getActionText() . ' memerlukan kelulusan anda.');
+        $message->line('Dimohon oleh: ' . $this->request->user->name . ' (' . $this->request->user->No_Ahli ?? $this->request->user->ic_number . ')');
+
+        if ($this->request->comments) {
+            $message->line('Catatan pemohon: ' . $this->request->comments);
+        }
 
         return $message
-            ->action('Review Request', url('/admin/dependent-edit-requests'))
-            ->line('Thank you for managing our system!');
+            ->action('Semak Permohonan', url('/admin/dependent-edit-requests'))
+            ->line('Terima kasih kerana menguruskan sistem e-Khairat!')
+            ->salutation('Terima kasih, e-Khairat');
     }
 
     /**
-     * Get the array representation of the notification.
+     * Get the database representation of the notification.
      *
      * @return array<string, mixed>
      */
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
         return [
             'request_id' => $this->request->id,
@@ -62,6 +67,7 @@ class NewDependentRequest extends Notification implements ShouldQueue
             'user_id' => $this->request->user_id,
             'user_name' => $this->request->user->name,
             'dependent_name' => $this->request->full_name,
+            'message' => 'Permohonan baharu untuk ' . $this->getActionText() . ' oleh ' . $this->request->user->name . ' memerlukan kelulusan anda.'
         ];
     }
 
@@ -72,13 +78,13 @@ class NewDependentRequest extends Notification implements ShouldQueue
     {
         switch ($this->request->request_type) {
             case 'add':
-                return 'add a new dependent (' . $this->request->full_name . ')';
+                return 'menambah tanggungan baharu (' . $this->request->full_name . ')';
             case 'edit':
-                return 'edit dependent information for ' . $this->request->full_name;
+                return 'mengemaskini maklumat tanggungan ' . $this->request->full_name;
             case 'delete':
-                return 'delete the dependent ' . $this->request->full_name;
+                return 'membuang tanggungan ' . $this->request->full_name;
             default:
-                return 'process a dependent request';
+                return 'memproses permohonan tanggungan';
         }
     }
 }

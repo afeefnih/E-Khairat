@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class DependentRequestProcessed extends Notification
+class DependentRequestProcessed extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -38,37 +38,41 @@ class DependentRequestProcessed extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject('Your Dependent Request Has Been Processed')
-            ->greeting('Hello ' . $notifiable->name . '!');
+            ->subject('Permohonan Tanggungan Anda Telah Diproses')
+            ->greeting('Assalamualaikum ' . $notifiable->name);
 
         if ($this->request->status == 'approved') {
-            $message->line('Your request to ' . $this->getActionText() . ' has been approved.');
-            $message->line('The changes have been applied to your account.');
+            $message->line('Permohonan anda untuk ' . $this->getActionText() . ' telah diluluskan.');
+            $message->line('Perubahan telah dikemas kini dalam akaun anda.');
         } else {
-            $message->line('Your request to ' . $this->getActionText() . ' has been rejected.');
+            $message->line('Permohonan anda untuk ' . $this->getActionText() . ' telah ditolak.');
             if ($this->request->admin_comments) {
-                $message->line('Reason: ' . $this->request->admin_comments);
+                $message->line('Sebab: ' . $this->request->admin_comments);
             }
         }
 
         return $message
-            ->action('View Your Dependents', url('/maklumat-ahli'))
-            ->line('Thank you for using our system!');
+            ->action('Lihat Senarai Tanggungan Anda', url('/maklumat-ahli'))
+            ->line('Terima kasih kerana menggunakan sistem e-Khairat.')
+            ->salutation('Terima kasih, e-Khairat');
     }
 
     /**
-     * Get the array representation of the notification.
+     * Get the database representation of the notification.
      *
      * @return array<string, mixed>
      */
-    public function toArray(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
+        $statusText = $this->request->status == 'approved' ? 'diluluskan' : 'ditolak';
+        
         return [
             'request_id' => $this->request->id,
             'request_type' => $this->request->request_type,
             'status' => $this->request->status,
             'comments' => $this->request->admin_comments,
             'dependent_name' => $this->request->full_name,
+            'message' => 'Permohonan anda untuk ' . $this->getActionText() . ' telah ' . $statusText . '.'
         ];
     }
 
@@ -79,13 +83,13 @@ class DependentRequestProcessed extends Notification
     {
         switch ($this->request->request_type) {
             case 'add':
-                return 'add a new dependent (' . $this->request->full_name . ')';
+                return 'menambah tanggungan baru (' . $this->request->full_name . ')';
             case 'edit':
-                return 'edit dependent information for ' . $this->request->full_name;
+                return 'mengemaskini maklumat tanggungan ' . $this->request->full_name;
             case 'delete':
-                return 'delete the dependent ' . $this->request->full_name;
+                return 'membuang tanggungan ' . $this->request->full_name;
             default:
-                return 'process a dependent request';
+                return 'memproses permintaan tanggungan';
         }
     }
 }

@@ -1,9 +1,7 @@
 <x-filament-panels::page>
-
     <div>
-
         <div class="space-y-6">
-            <!-- Period selector with better accessibility -->
+            <!-- Period selector with improved responsiveness -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <h2 class="text-lg font-medium">Tempoh Analisis</h2>
@@ -24,11 +22,11 @@
                 </div>
             </div>
 
-            <!-- Responsive grid for charts on larger screens -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Member Growth Chart -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 lg:col-span-2">
-                    <div class="flex items-start justify-between mb-4">
+            <!-- Improved responsive grid layout for charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <!-- Member Growth Chart - full width on all screens -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 col-span-1 md:col-span-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
                         <h2 class="text-lg font-medium">Pertumbuhan Keahlian</h2>
                         <div class="text-sm text-gray-500">
                             @if ($period === 'month')
@@ -40,12 +38,13 @@
                             @endif
                         </div>
                     </div>
-                    <div id="memberGrowthChart" style="min-height: 320px;"></div>
+                    <!-- Responsive height for chart -->
+                    <div id="memberGrowthChart" class="w-full h-64 sm:h-80 md:h-96"></div>
                 </div>
 
-                <!-- Payment Trends Chart -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 lg:col-span-2">
-                    <div class="flex items-start justify-between mb-4">
+                <!-- Payment Trends Chart - full width on all screens -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 col-span-1 md:col-span-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
                         <h2 class="text-lg font-medium">Trend Pembayaran</h2>
                         <div class="text-sm text-gray-500">
                             @if ($period === 'month')
@@ -57,23 +56,26 @@
                             @endif
                         </div>
                     </div>
-                    <div id="paymentTrendsChart" style="min-height: 320px;"></div>
+                    <!-- Responsive height for chart -->
+                    <div id="paymentTrendsChart" class="w-full h-64 sm:h-80 md:h-96"></div>
                 </div>
 
-                <!-- Death Records Chart -->
+                <!-- Death Records Chart - one column on small screens, two columns on larger screens -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                     <div class="flex items-start justify-between mb-4">
                         <h2 class="text-lg font-medium">Rekod Kematian</h2>
                     </div>
-                    <div id="deathRecordsChart" style="min-height: 320px;"></div>
+                    <!-- Responsive height for chart with reduced height -->
+                    <div id="deathRecordsChart" class="w-full h-52 sm:h-60"></div>
                 </div>
 
-                <!-- Age Distribution Chart -->
+                <!-- Age Distribution Chart - one column on small screens, two columns on larger screens -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                     <div class="flex items-start justify-between mb-4">
                         <h2 class="text-lg font-medium">Taburan Umur Ahli</h2>
                     </div>
-                    <div id="ageDistributionChart" style="min-height: 320px;"></div>
+                    <!-- Responsive height for chart - matched with death records chart -->
+                    <div id="ageDistributionChart" class="w-full h-52 sm:h-60"></div>
                 </div>
             </div>
         </div>
@@ -89,7 +91,11 @@
                     script.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3.41.0/dist/apexcharts.min.js';
                     script.integrity = 'sha384-OMKlJP6k8LIfzCC8/BgVvp1+PKJ8GVhNuUMPQM0XvRPvKIgSSLEGTqGZjLGIfMgB';
                     script.crossOrigin = 'anonymous';
-                    script.onload = initializeCharts;
+                    script.onload = function() {
+                        initializeCharts();
+                        // Add the CSS fix for dark mode toolbar
+                        addToolbarStyle();
+                    };
                     script.onerror = function() {
                         console.error('Failed to load ApexCharts');
                         showChartErrors();
@@ -97,11 +103,76 @@
                     document.head.appendChild(script);
                 } else {
                     initializeCharts();
+                    // Add the CSS fix for dark mode toolbar
+                    addToolbarStyle();
                 }
 
                 // Set up theme change detection
                 setupThemeChangeListener();
+
+                // Handle window resize events
+                window.addEventListener('resize', debounce(function() {
+                    // Only re-render if charts exist
+                    if (window.memberGrowthChart) window.memberGrowthChart.render();
+                    if (window.paymentTrendsChart) window.paymentTrendsChart.render();
+                    if (window.deathRecordsChart) window.deathRecordsChart.render();
+                    if (window.ageDistributionChart) window.ageDistributionChart.render();
+
+                    // Reapply toolbar fix after resize
+                    addToolbarStyle();
+                }, 250));
             });
+
+            // Function to add toolbar style fixes for dark mode
+            function addToolbarStyle() {
+                // Only apply in dark mode
+                if (!document.documentElement.classList.contains('dark')) return;
+
+                // Add a style tag if it doesn't exist
+                if (!document.getElementById('apexcharts-dark-fix')) {
+                    const style = document.createElement('style');
+                    style.id = 'apexcharts-dark-fix';
+                    style.textContent = `
+                        .apexcharts-toolbar svg path,
+                        .apexcharts-toolbar svg line,
+                        .apexcharts-toolbar svg rect,
+                        .apexcharts-toolbar svg circle,
+                        .apexcharts-toolbar svg polyline {
+                            stroke: #e5e7eb !important;
+                        }
+                        .apexcharts-menu {
+                            background: #374151 !important;
+                            border: 1px solid #4b5563 !important;
+                        }
+                        .apexcharts-menu-item {
+                            color: #e5e7eb !important;
+                        }
+                        .apexcharts-menu-item:hover {
+                            background-color: #4b5563 !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                // Direct style application to any existing elements
+                setTimeout(() => {
+                    const icons = document.querySelectorAll('.apexcharts-toolbar svg *');
+                    icons.forEach(icon => {
+                        icon.style.stroke = '#e5e7eb';
+                    });
+
+                    const menus = document.querySelectorAll('.apexcharts-menu');
+                    menus.forEach(menu => {
+                        menu.style.background = '#374151';
+                        menu.style.border = '1px solid #4b5563';
+                    });
+
+                    const menuItems = document.querySelectorAll('.apexcharts-menu-item');
+                    menuItems.forEach(item => {
+                        item.style.color = '#e5e7eb';
+                    });
+                }, 200);
+            }
 
             // Set up a mutation observer to watch for theme changes
             function setupThemeChangeListener() {
@@ -111,6 +182,23 @@
                         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                             // Reinitialize charts when theme changes
                             initializeCharts();
+
+                            // Fix toolbar colors immediately after theme changes
+                            setTimeout(() => {
+                                if (document.documentElement.classList.contains('dark')) {
+                                    // Fix for dark mode
+                                    const toolbarIcons = document.querySelectorAll('.apexcharts-toolbar svg, .apexcharts-toolbar line');
+                                    toolbarIcons.forEach(icon => {
+                                        icon.style.stroke = '#e5e7eb';
+                                    });
+                                } else {
+                                    // Reset for light mode
+                                    const toolbarIcons = document.querySelectorAll('.apexcharts-toolbar svg, .apexcharts-toolbar line');
+                                    toolbarIcons.forEach(icon => {
+                                        icon.style.stroke = '';
+                                    });
+                                }
+                            }, 300);
                         }
                     });
                 });
@@ -132,7 +220,7 @@
                     const element = document.querySelector(container);
                     if (element) {
                         element.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-64 text-gray-500">
+                <div class="flex flex-col items-center justify-center h-full text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -143,7 +231,7 @@
                 });
             }
 
-            // Create optimized chart configurations
+            // Create optimized chart configurations with dark mode fix for toolbar
             function getChartConfigs() {
                 // Detect if dark mode is active
                 const isDarkMode = document.documentElement.classList.contains('dark');
@@ -163,6 +251,19 @@
                             selection: true,
                             zoom: true,
                             reset: true
+                        },
+                        export: {
+                            csv: {
+                                filename: 'chart-data',
+                                headerCategory: 'category',
+                                headerValue: 'value'
+                            },
+                            svg: {
+                                filename: 'chart',
+                            },
+                            png: {
+                                filename: 'chart',
+                            }
                         }
                     },
                     animations: {
@@ -180,26 +281,114 @@
                     foreColor: textColor // This sets the base text color for the chart
                 };
 
-                // Responsive breakpoints for all charts
-                const responsive = [{
-                    breakpoint: 768,
-                    options: {
-                        chart: {
-                            height: 280
-                        },
-                        legend: {
-                            position: 'bottom',
-                            horizontalAlign: 'center'
+                // Apply toolbar color fix - direct CSS override for dark mode
+                if (isDarkMode) {
+                    // This will be added to the document head when charts are initialized
+                    const styleElement = document.createElement('style');
+                    styleElement.id = 'apexcharts-toolbar-fix';
+                    styleElement.textContent = `
+                        .apexcharts-menu-icon svg,
+                        .apexcharts-zoom-icon svg,
+                        .apexcharts-zoomin-icon svg,
+                        .apexcharts-zoomout-icon svg,
+                        .apexcharts-reset-icon svg,
+                        .apexcharts-pan-icon svg,
+                        .apexcharts-selection-icon svg,
+                        .apexcharts-menu-icon line,
+                        .apexcharts-toolbar-custom-icon svg {
+                            stroke: #e5e7eb !important;
+                        }
+                        .apexcharts-menu {
+                            background: #374151 !important;
+                            border: 1px solid #4b5563 !important;
+                        }
+                        .apexcharts-menu-item {
+                            color: #e5e7eb !important;
+                        }
+                        .apexcharts-menu-item:hover {
+                            background-color: #4b5563 !important;
+                        }
+                    `;
+
+                    // Remove existing style if it exists
+                    const existingStyle = document.getElementById('apexcharts-toolbar-fix');
+                    if (existingStyle) {
+                        existingStyle.remove();
+                    }
+
+                    document.head.appendChild(styleElement);
+                } else {
+                    // Remove the style if not in dark mode
+                    const existingStyle = document.getElementById('apexcharts-toolbar-fix');
+                    if (existingStyle) {
+                        existingStyle.remove();
+                    }
+                }
+
+                // More granular responsive breakpoints for better adaptability
+                const responsive = [
+                    {
+                        breakpoint: 1280,
+                        options: {
+                            chart: {
+                                height: '100%'
+                            }
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        options: {
+                            chart: {
+                                height: '100%'
+                            },
+                            legend: {
+                                position: 'bottom',
+                                horizontalAlign: 'center'
+                            },
+                            dataLabels: {
+                                offsetY: -10,
+                                style: {
+                                    fontSize: '10px'
+                                }
+                            }
+                        }
+                    },
+                    {
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                height: '100%'
+                            },
+                            legend: {
+                                position: 'bottom',
+                                horizontalAlign: 'center',
+                                fontSize: '11px'
+                            },
+                            xaxis: {
+                                labels: {
+                                    rotate: -90,
+                                    style: {
+                                        fontSize: '10px'
+                                    }
+                                }
+                            },
+                            yaxis: {
+                                labels: {
+                                    style: {
+                                        fontSize: '10px'
+                                    }
+                                }
+                            }
                         }
                     }
-                }];
+                ];
 
                 return {
                     memberGrowth: {
                         chart: {
                             ...commonConfig,
                             type: 'area',
-                            height: 320
+                            height: '100%'
                         },
                         stroke: {
                             curve: 'smooth',
@@ -271,7 +460,7 @@
                         chart: {
                             ...commonConfig,
                             type: 'bar',
-                            height: 320
+                            height: '100%'
                         },
                         plotOptions: {
                             bar: {
@@ -333,7 +522,7 @@
                         chart: {
                             ...commonConfig,
                             type: 'bar',
-                            height: 320,
+                            height: '100%',
                             stacked: true
                         },
                         plotOptions: {
@@ -391,7 +580,7 @@
                         chart: {
                             ...commonConfig,
                             type: 'donut',
-                            height: 320
+                            height: '100%'
                         },
                         colors: ['#0ea5e9', '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444'],
                         legend: {
@@ -472,20 +661,34 @@
                     // Get chart configurations
                     const configs = getChartConfigs();
 
+                    // Add custom CSS for toolbar after ApexCharts is initialized
+                    // This ensures the styles are applied to any ApexCharts instance
+                    if (document.documentElement.classList.contains('dark')) {
+                        // Add dark mode specific CSS for toolbar
+                        setTimeout(() => {
+                            const toolbarIcons = document.querySelectorAll('.apexcharts-toolbar svg, .apexcharts-toolbar line');
+                            toolbarIcons.forEach(icon => {
+                                icon.style.stroke = '#e5e7eb';
+                            });
+
+                            // Fix menu as well when created
+                            const menuItems = document.querySelectorAll('.apexcharts-menu');
+                            menuItems.forEach(menu => {
+                                menu.style.background = '#374151';
+                                menu.style.border = '1px solid #4b5563';
+                                const items = menu.querySelectorAll('.apexcharts-menu-item');
+                                items.forEach(item => {
+                                    item.style.color = '#e5e7eb';
+                                });
+                            });
+                        }, 300);
+                    }
+
                     // Initialize charts if data is available
                     initializeMemberGrowthChart(configs.memberGrowth);
                     initializePaymentTrendsChart(configs.paymentTrends);
                     initializeDeathRecordsChart(configs.deathRecords);
                     initializeAgeDistributionChart(configs.ageDistribution);
-
-                    // Add event listener for window resize to optimize chart responsiveness
-                    window.addEventListener('resize', debounce(function() {
-                        // Trigger ApexCharts internal resize method for each chart
-                        if (window.memberGrowthChart) window.memberGrowthChart.render();
-                        if (window.paymentTrendsChart) window.paymentTrendsChart.render();
-                        if (window.deathRecordsChart) window.deathRecordsChart.render();
-                        if (window.ageDistributionChart) window.ageDistributionChart.render();
-                    }, 250));
 
                 } catch (error) {
                     console.error('Error initializing charts:', error);
@@ -511,10 +714,10 @@
 
                 if (!memberData || memberData.length === 0) {
                     document.querySelector('#memberGrowthChart').innerHTML = `
-            <div class="flex items-center justify-center h-64 text-gray-500">
-                <p>Tiada data untuk dipaparkan</p>
-            </div>
-        `;
+                        <div class="flex items-center justify-center h-full text-gray-500">
+                            <p>Tiada data untuk dipaparkan</p>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -554,10 +757,10 @@
 
                 if (!paymentData || paymentData.length === 0) {
                     document.querySelector('#paymentTrendsChart').innerHTML = `
-            <div class="flex items-center justify-center h-64 text-gray-500">
-                <p>Tiada data untuk dipaparkan</p>
-            </div>
-        `;
+                        <div class="flex items-center justify-center h-full text-gray-500">
+                            <p>Tiada data untuk dipaparkan</p>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -597,10 +800,10 @@
 
                 if (!deathData || !deathData.labels || deathData.labels.length === 0) {
                     document.querySelector('#deathRecordsChart').innerHTML = `
-            <div class="flex items-center justify-center h-64 text-gray-500">
-                <p>Tiada data untuk dipaparkan</p>
-            </div>
-        `;
+                        <div class="flex items-center justify-center h-full text-gray-500">
+                            <p>Tiada data untuk dipaparkan</p>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -620,7 +823,7 @@
                         labels: {
                             rotate: -45,
                             style: {
-                                fontSize: '12px'
+                                fontSize: '11px'
                             }
                         }
                     },
@@ -632,6 +835,28 @@
                             formatter: function(val) {
                                 return val.toFixed(0);
                             }
+                        }
+                    },
+                    // Make the chart more compact
+                    chart: {
+                        ...configTemplate.chart,
+                        height: '100%'
+                    },
+                    // Reduce padding/margin
+                    plotOptions: {
+                        ...configTemplate.plotOptions,
+                        bar: {
+                            ...configTemplate.plotOptions?.bar,
+                            columnWidth: '60%'
+                        }
+                    },
+                    // Make legend more compact
+                    legend: {
+                        ...configTemplate.legend,
+                        fontSize: '11px',
+                        itemMargin: {
+                            horizontal: 5,
+                            vertical: 0
                         }
                     }
                 };
@@ -645,10 +870,10 @@
 
                 if (!ageData || ageData.length === 0) {
                     document.querySelector('#ageDistributionChart').innerHTML = `
-            <div class="flex items-center justify-center h-64 text-gray-500">
-                <p>Tiada data untuk dipaparkan</p>
-            </div>
-        `;
+                        <div class="flex items-center justify-center h-full text-gray-500">
+                            <p>Tiada data untuk dipaparkan</p>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -669,7 +894,5 @@
                 });
             });
         </script>
-
-
 
 </x-filament-panels::page>

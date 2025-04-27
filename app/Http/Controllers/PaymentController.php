@@ -14,12 +14,23 @@ use App\Models\KhairatKematianFund;
 use App\Livewire\UserRegistration;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\NewMemberRegistration;
 
 class PaymentController extends Controller
 {
     /**
      * Handle payment for user registration
      */
+
+     protected function getAdmins()
+{
+    // Using your role system to find admins
+    return \App\Models\User::whereHas('roles', function($query) {
+        $query->where('name', 'admin');
+    })->get();
+}
+
+
     public function paymentRegistration(Request $request)
     {
         $user_data = session()->get('user_data'); // Get user data from the session
@@ -53,7 +64,7 @@ class PaymentController extends Controller
             'billReturnUrl' => route('payment.callback'), // URL to redirect after payment
             'billExternalReferenceNo' => uniqid(), // Unique reference number
             'billTo' => $name, // User's name
-            'billEmail' => $email, // User's email
+            'billEmail' => $email ?? 'no-email@example.com', // Use default if email is not provided
             'billPhone' => $phone_number, // User's phone number
         ];
 
@@ -204,6 +215,12 @@ class PaymentController extends Controller
             $userRole = Role::where('name', 'user')->first();
             if ($userRole) {
                 $user->roles()->attach($userRole->id);
+            }
+
+            // Notify admins about new registration
+            $admins = $this->getAdmins();
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\NewMemberRegistration($user));
             }
 
             // Store the dependents

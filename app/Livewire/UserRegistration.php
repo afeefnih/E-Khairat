@@ -19,7 +19,7 @@ class UserRegistration extends Component
     // Validation rules
     protected $rules = [
         'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
+        'email' => 'nullable|email|max:255', // Allow email to be null
         'password' => 'required|min:8|confirmed',
         'ic_number' => 'required|numeric|digits:12|unique:users,ic_number',
         'age' => 'required|numeric|min:18',
@@ -34,9 +34,6 @@ class UserRegistration extends Component
         'name.required' => 'Nama diperlukan.',
         'name.string' => 'Nama mesti berupa teks.',
         'name.max' => 'Nama tidak boleh melebihi 255 aksara.',
-        'email.required' => 'Emel diperlukan.',
-        'email.email' => 'Emel mesti alamat emel yang sah.',
-        'email.unique' => 'Emel telah digunakan.',
         'password.required' => 'Kata laluan diperlukan.',
         'password.min' => 'Kata laluan mesti sekurang-kurangnya 8 aksara.',
         'password.confirmed' => 'Pengesahan kata laluan tidak sepadan.',
@@ -79,7 +76,7 @@ class UserRegistration extends Component
         session()->put('user_data', [
             'No_Ahli' => $nextNoAhli,
             'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
+            'email' => $validatedData['email'] ?? null, // Handle nullable email
             'password' => $validatedData['password'],
             'ic_number' => $validatedData['ic_number'],
             'age' => $validatedData['age'],
