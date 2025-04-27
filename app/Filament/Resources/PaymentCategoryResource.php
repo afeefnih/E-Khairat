@@ -128,13 +128,29 @@ class PaymentCategoryResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
+                    ->visible(fn ($record) => $record->id !== 1), // Hide delete button for ID 1
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Padam Terpilih')
                         ->requiresConfirmation()
-                        ->deselectRecordsAfterCompletion(),
+                        ->deselectRecordsAfterCompletion()
+                        ->action(function (Collection $records) {
+                            $filteredRecords = $records->reject(fn ($record) => $record->id === 1); // Exclude ID 1
+                            if ($filteredRecords->isEmpty()) {
+                                Notification::make()
+                                    ->title('kategori pembayaran tidak sah untuk dipadam')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                            $filteredRecords->each->delete();
+                            Notification::make()
+                                ->title('Kategori pembayaran berjaya dipadam')
+                                ->success()
+                                ->send();
+                        }),
 
                     // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')

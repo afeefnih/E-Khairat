@@ -16,7 +16,10 @@ class ListPayments extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('New Pembayaran')
+                ->color('primary')
+                ->icon('heroicon-o-plus'),
 
             Actions\Action::make('exportPDF')
                 ->label('Export PDF')

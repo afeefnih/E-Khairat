@@ -20,7 +20,10 @@ class ListUsers extends ListRecords
         return [
 
 
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('New Ahli')
+                ->color('primary')
+                ->icon('heroicon-o-plus'),
 
             Actions\Action::make('exportPDF')
                 ->label('Export PDF')

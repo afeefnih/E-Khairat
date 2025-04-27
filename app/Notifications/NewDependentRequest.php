@@ -42,7 +42,7 @@ class NewDependentRequest extends Notification implements ShouldQueue
             ->greeting('Assalamualaikum ' . $notifiable->name);
 
         $message->line('Permohonan baharu untuk ' . $this->getActionText() . ' memerlukan kelulusan anda.');
-        $message->line('Dimohon oleh: ' . $this->request->user->name . ' (' . $this->request->user->No_Ahli ?? $this->request->user->ic_number . ')');
+        $message->line('Dimohon oleh: ' . $this->request->user->name . ' (No Ahli: ' . ($this->request->user->No_Ahli ?? $this->request->user->ic_number) . ')');
 
         if ($this->request->comments) {
             $message->line('Catatan pemohon: ' . $this->request->comments);

@@ -22,7 +22,10 @@ class ListDeathRecords extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('New Rekod Kematian')
+                ->color('primary')
+                ->icon('heroicon-o-plus'),
 
             Actions\Action::make('exportPDF')
                 ->label('Export PDF')
