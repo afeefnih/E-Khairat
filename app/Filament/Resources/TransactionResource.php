@@ -101,7 +101,7 @@ class TransactionResource extends Resource
                 ->label('Status')
                 ->options([
                     'completed' => 'Selesai',
-                    'pending' => 'Belum Selesai',
+                    'pending' => 'Pending',
                     'cancelled' => 'Batal',
                 ])
                 ->default('completed')
@@ -173,7 +173,7 @@ class TransactionResource extends Resource
                     ->formatStateUsing(
                         fn(string $state): string => match ($state) {
                             'completed' => 'Selesai',
-                            'pending' => 'Belum Selesai',
+                            'pending' => 'Pending',
                             'cancelled' => 'Batal',
                             default => $state,
                         },
@@ -289,7 +289,7 @@ class TransactionResource extends Resource
 
                                     $status = match ($transaction->status) {
                                         'completed' => 'Selesai',
-                                        'pending' => 'Belum Selesai',
+                                        'pending' => 'Pending',
                                         'cancelled' => 'Batal',
                                         default => $transaction->status,
                                     };

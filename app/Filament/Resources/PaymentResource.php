@@ -29,6 +29,8 @@ class PaymentResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationLabel = 'Senarai Pembayaran';
     protected static ?string $navigationGroup = 'Pembayaran';
+
+    protected static ?string $pluralLabel = 'Senarai Pembayaran';
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -81,16 +83,16 @@ class PaymentResource extends Resource
                     'numeric' => 'Jumlah mesti berupa angka.',
                 ]),
 
-            Forms\Components\Select::make('status_id')
+                Forms\Components\Select::make('status_id')
                 ->label('Status')
                 ->options([
-                    '0' => 'Belum Dibayar',
-                    '1' => 'Dibayar',
+                    '0' => 'Pending',
+                    '1' => 'Selesai',
                 ])
                 ->required()
                 ->live()
                 ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                    // Only generate billcode and order_id when status changes to Paid (1)
+                    // Generate billcode and order_id when status changes to Paid (1)
                     if ($state === '1') {
                         // Check if billcode is empty
                         if (empty($get('billcode'))) {
@@ -106,6 +108,11 @@ class PaymentResource extends Resource
                         if (empty($get('paid_at'))) {
                             $set('paid_at', now());
                         }
+                    } else if ($state === '0') {
+                        // Reset fields when status is changed to Pending
+                        $set('billcode', null);
+                        $set('order_id', null);
+                        $set('paid_at', null);
                     }
                 })
                 ->validationMessages([
@@ -152,8 +159,8 @@ class PaymentResource extends Resource
                 Tables\Columns\BadgeColumn::make('status_id')
                     ->label('Status')
                     ->formatStateUsing(fn (string $state): string => match($state) {
-                        '0' => 'Belum Dibayar',
-                        '1' => 'Dibayar',
+                        '0' => 'Pending',
+                        '1' => 'Selesai',
                         default => $state,
                     })
                     ->colors([
@@ -212,14 +219,9 @@ class PaymentResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->label('Sunting'),
 
-                Tables\Actions\DeleteAction::make()
-                    ->label('Padam'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label('Padam Terpilih'),
-
                     // Bulk action to mark selected payments as paid
                     BulkAction::make('mark-as-paid')
                         ->label('Tandakan Sebagai Dibayar')
@@ -243,6 +245,30 @@ class PaymentResource extends Resource
                         })
                         ->requiresConfirmation()
                         ->deselectRecordsAfterCompletion(),
+
+                    // Bulk action to mark selected payments as unpaid
+                    BulkAction::make('mark-as-unpaid')
+                    ->label('Tandakan Sebagai Belum Dibayar')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->action(function (Collection $records) {
+                        $records->each(function ($record) {
+                            if ($record->status_id == '1') {
+                                $record->status_id = '0';
+                                $record->paid_at = null;
+                                $record->billcode = null; // Reset billcode
+                                $record->order_id = null; // Reset order_id
+                                $record->save();
+                            }
+                        });
+
+                        Notification::make()
+                            ->title(count($records) . ' pembayaran telah ditandakan sebagai belum dibayar')
+                            ->success()
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->deselectRecordsAfterCompletion(),
 
                     // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')
@@ -320,7 +346,7 @@ class PaymentResource extends Resource
                                 // Generate the PDF
                                 $pdf = Pdf::loadView('pdf.payments', [
                                     'payments' => $records,
-                                ])->setPaper('A4', 'landscape');
+                                ])->setPaper('A4', 'potrait');
 
                                 return response()->streamDownload(function () use ($pdf) {
                                     echo $pdf->output();

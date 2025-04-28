@@ -35,7 +35,7 @@ class NewMemberRegistration extends Notification implements ShouldQueue
             ->line('No. Kad Pengenalan: ' . $this->newUser->ic_number)
             ->line('E-mel: ' . ($this->newUser->email ?? 'Tiada e-mel'))
             ->line('Alamat: ' . $this->newUser->address)
-            ->action('Lihat Butiran Ahli', url('/admin/users/edit/' . $this->newUser->id))
+            ->action('Lihat Butiran Ahli', url('/admin/users/' . $this->newUser->id . '/edit'))
             ->line('Sila semak pendaftaran ini jika perlu.')
             ->salutation('Terima kasih, e-Khairat');
     }

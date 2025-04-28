@@ -20,12 +20,14 @@ class MemberStatisticsWidget extends BaseWidget
     // Properties to store the date range
     public $startDate;
     public $endDate;
+    public $preset;
 
     public function mount()
     {
         // Get date range from session
         $this->startDate = Session::get('dashboard_start_date', Carbon::today()->subDays(29)->format('Y-m-d'));
         $this->endDate = Session::get('dashboard_end_date', Carbon::today()->format('Y-m-d'));
+        $this->preset = Session::get('dashboard_date_preset', 'last30days');
     }
 
     #[On('dateRangeChanged')]
@@ -33,6 +35,10 @@ class MemberStatisticsWidget extends BaseWidget
     {
         $this->startDate = $data['startDate'];
         $this->endDate = $data['endDate'];
+        $this->preset = $data['preset'] ?? 'custom';
+
+        // Log for debugging
+        \Log::info("MemberStatisticsWidget updating date range: {$this->startDate} to {$this->endDate} (preset: {$this->preset})");
 
         // In Filament 3.x, use this to refresh stats widget
         $this->dispatch('stats-overview-widget-refresh', [
@@ -45,62 +51,52 @@ class MemberStatisticsWidget extends BaseWidget
         $startDate = Carbon::parse($this->startDate);
         $endDate = Carbon::parse($this->endDate);
 
-        // Get total active members (users with role 'user' not 'admin')
-        $totalMembers = User::whereHas('roles', function ($query) {
+        \Log::info("Generating member stats for date range: {$startDate->format('Y-m-d')} to {$endDate->format('Y-m-d')}");
+
+        // Base query for all members (users with role 'user' not 'admin'), INCLUDING deceased members
+        $memberQuery = User::whereHas('roles', function ($query) {
             $query->where('name', 'user');
-        })->whereDoesntHave('deathRecord')->count();
+        });
+        // Note: Removed the whereDoesntHave('deathRecord') condition
 
-        // Get total dependents
-        $totalDependents = Dependent::count();
+        // Get total members (including deceased)
+        $totalMembers = $memberQuery->count();
 
-        // Get new members during selected date range
+        // Get new members during selected date range - include ALL new members regardless of death status
         $newMembers = User::whereHas('roles', function ($query) {
             $query->where('name', 'user');
         })
         ->whereBetween('created_at', [$startDate, $endDate])
         ->count();
 
-        // Get residence status counts
-        $kekalMembers = User::whereHas('roles', function ($query) {
-            $query->where('name', 'user');
-        })
-        ->whereDoesntHave('deathRecord')
-        ->where('residence_status', 'kekal')
-        ->count();
+        $kekalMembers = (clone $memberQuery)
+            ->where('residence_status', 'kekal')
+            ->count();
 
-        $sewaMembers = User::whereHas('roles', function ($query) {
-            $query->where('name', 'user');
-        })
-        ->whereDoesntHave('deathRecord')
-        ->where('residence_status', 'sewa')
-        ->count();
+        $sewaMembers = (clone $memberQuery)
+            ->where('residence_status', 'sewa')
+            ->count();
 
-        // Calculate percentages
+        // Calculate percentages based on total members
         $kekalPercentage = $totalMembers > 0 ? round(($kekalMembers / $totalMembers) * 100) : 0;
         $sewaPercentage = $totalMembers > 0 ? round(($sewaMembers / $totalMembers) * 100) : 0;
 
+        // Get total dependents (not affected by date range)
+        $totalDependents = Dependent::count();
+
         // Family size distribution
-        $singleMembers = User::whereHas('roles', function ($query) {
-            $query->where('name', 'user');
-        })
-        ->whereDoesntHave('deathRecord')
-        ->has('dependents', '=', 0)
-        ->count();
+        $singleMembers = (clone $memberQuery)
+            ->has('dependents', '=', 0)
+            ->count();
 
-        $smallFamilies = User::whereHas('roles', function ($query) {
-            $query->where('name', 'user');
-        })
-        ->whereDoesntHave('deathRecord')
-        ->has('dependents', '>=', 1)
-        ->has('dependents', '<=', 3)
-        ->count();
+        $smallFamilies = (clone $memberQuery)
+            ->has('dependents', '>=', 1)
+            ->has('dependents', '<=', 3)
+            ->count();
 
-        $largeFamilies = User::whereHas('roles', function ($query) {
-            $query->where('name', 'user');
-        })
-        ->whereDoesntHave('deathRecord')
-        ->has('dependents', '>', 3)
-        ->count();
+        $largeFamilies = (clone $memberQuery)
+            ->has('dependents', '>', 3)
+            ->count();
 
         // Get average dependents per member
         $avgDependentsPerMember = $totalMembers > 0
@@ -112,10 +108,15 @@ class MemberStatisticsWidget extends BaseWidget
         $smallFamilyPercentage = $totalMembers > 0 ? round(($smallFamilies / $totalMembers) * 100) : 0;
         $largeFamilyPercentage = $totalMembers > 0 ? round(($largeFamilies / $totalMembers) * 100) : 0;
 
+        // Build description text based on whether we're in "all time" view or a specific period
+        $newMembersDescription = $this->preset === 'allTime'
+            ? 'Jumlah ahli baru'
+            : 'Ahli baru dalam tempoh';
+
         return [
             // First row
             Stat::make('Jumlah Ahli', $totalMembers)
-                ->description('Ahli baru: ' . $newMembers)
+                ->description($newMembersDescription . ': ' . $newMembers)
                 ->descriptionIcon('heroicon-m-user-plus')
                 ->chart([5, 7, 9, 8, 6, $totalMembers % 10])
                 ->color('primary'),

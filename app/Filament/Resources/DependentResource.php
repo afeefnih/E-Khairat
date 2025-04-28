@@ -107,12 +107,12 @@ class DependentResource extends Resource
                 Tables\Columns\IconColumn::make('isDeceased')
                     ->label('Status Kematian')
                     ->boolean()
-                    ->trueIcon('heroicon-o-x-circle')
-                    ->falseIcon('heroicon-o-check-circle')
+                    ->trueIcon('heroicon-s-x-circle')
+                    ->falseIcon('heroicon-s-check-circle')
                     ->trueColor('danger')
                     ->falseColor('success')
                     ->getStateUsing(fn (Dependent $record) => $record->isDeceased())
-                    ->tooltip('Menunjukkan status kematian tanggungan'),
+                    ->tooltip(fn (Dependent $record) => $record->isDeceased() ? 'Tanggungan ini telah meninggal' : 'Tanggungan ini masih hidup'),
 
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Ahli')

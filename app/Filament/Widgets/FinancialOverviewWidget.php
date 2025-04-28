@@ -4,6 +4,9 @@ namespace App\Filament\Widgets;
 
 use App\Models\Payment;
 use App\Models\Transaction;
+use App\Models\DeathRecord;
+use App\Models\User;
+use App\Models\Dependent;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -51,6 +54,18 @@ class FinancialOverviewWidget extends BaseWidget
         $allTimeExpenses = Transaction::where('type', 'perbelanjaan')
             ->where('status', 'completed')
             ->sum('amount');
+            
+        // Calculate all death costs
+        $allDeathRecords = DeathRecord::all();
+        $allTimeDeathCosts = 0;
+        
+        foreach ($allDeathRecords as $record) {
+            $allTimeDeathCosts += $record->total_cost;
+        }
+        
+        // Add death costs to total expenses
+        $allTimeExpenses += $allTimeDeathCosts;
+        
         $allTimeRevenue = $allTimePayments + $allTimeIncome;
         $availableFunds = $allTimeRevenue - $allTimeExpenses;
 
@@ -70,6 +85,17 @@ class FinancialOverviewWidget extends BaseWidget
             ->where('status', 'completed')
             ->whereBetween('transaction_date', [$startDate, $endDate])
             ->sum('amount');
+            
+        // Get death costs within the date range
+        $rangeDeathCosts = 0;
+        $deathRecordsInRange = DeathRecord::whereBetween('date_of_death', [$startDate, $endDate])->get();
+        
+        foreach ($deathRecordsInRange as $record) {
+            $rangeDeathCosts += $record->total_cost;
+        }
+        
+        // Add death costs to range expenses
+        $totalRangeExpenses = $rangeExpenses + $rangeDeathCosts;
 
         // Calculate total revenue in range
         $rangeRevenue = $rangePayments + $rangeIncome;
@@ -102,6 +128,17 @@ class FinancialOverviewWidget extends BaseWidget
             ->where('status', 'completed')
             ->whereBetween('transaction_date', [$previousStart, $previousEnd])
             ->sum('amount');
+            
+        // Get death costs for previous period
+        $previousDeathCosts = 0;
+        $previousDeathRecords = DeathRecord::whereBetween('date_of_death', [$previousStart, $previousEnd])->get();
+        
+        foreach ($previousDeathRecords as $record) {
+            $previousDeathCosts += $record->total_cost;
+        }
+        
+        // Add death costs to previous expenses
+        $previousTotalExpenses = $previousExpenses + $previousDeathCosts;
 
         $previousRevenue = $previousPayments + $previousIncome;
 
@@ -110,8 +147,45 @@ class FinancialOverviewWidget extends BaseWidget
             ? round((($rangeRevenue - $previousRevenue) / $previousRevenue) * 100, 2)
             : 0;
 
-        $expenseTrend = $previousExpenses > 0
-            ? round((($rangeExpenses - $previousExpenses) / $previousExpenses) * 100, 2)
+        $expenseTrend = $previousTotalExpenses > 0
+            ? round((($totalRangeExpenses - $previousTotalExpenses) / $previousTotalExpenses) * 100, 2)
+            : 0;
+            
+        // Calculate death costs trend
+        $deathCostsTrend = $previousDeathCosts > 0
+            ? round((($rangeDeathCosts - $previousDeathCosts) / $previousDeathCosts) * 100, 2)
+            : 0;
+
+        // Get death records stats for the time period
+        $totalDeaths = $deathRecordsInRange->count();
+        
+        // Count deaths by category for the period
+        $adultDeaths = 0;
+        $childDeaths = 0;
+        $infantDeaths = 0;
+        
+        foreach ($deathRecordsInRange as $record) {
+            if ($record->deceased_age <= 3) {
+                $infantDeaths++;
+            } elseif ($record->deceased_age >= 4 && $record->deceased_age <= 6) {
+                $childDeaths++;
+            } else {
+                $adultDeaths++;
+            }
+        }
+        
+        // Calculate previous period deaths for trend
+        $previousDeathsCount = $previousDeathRecords->count();
+        $deathCountTrend = $previousDeathsCount > 0
+            ? round((($totalDeaths - $previousDeathsCount) / $previousDeathsCount) * 100, 2)
+            : 0;
+        
+        // Calculate net balance
+        $netBalance = $rangeRevenue - $totalRangeExpenses;
+        $previousNetBalance = $previousRevenue - $previousTotalExpenses;
+        
+        $netBalanceTrend = $previousNetBalance != 0
+            ? round((($netBalance - $previousNetBalance) / abs($previousNetBalance)) * 100, 2)
             : 0;
 
         return [
@@ -133,18 +207,37 @@ class FinancialOverviewWidget extends BaseWidget
                 ->descriptionIcon($revenueTrend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color('success'),
 
-            // Perbelanjaan - Expenses within selected date range
+            // Perbelanjaan - Expenses within selected date range (excluding death costs)
             Stat::make('Perbelanjaan', 'RM ' . number_format($rangeExpenses, 2))
                 ->description('Tempoh: ' . $rangeLabel .
                     ($expenseTrend != 0 ? ' (' . ($expenseTrend > 0 ? '+' : '') . $expenseTrend . '%)' : ''))
                 ->descriptionIcon($expenseTrend > 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color('danger'),
+                
+            // Kos Khairat Kematian - Death costs within selected date range
+            Stat::make('Kos Khairat Kematian', 'RM ' . number_format($rangeDeathCosts, 2))
+                ->description('Tempoh: ' . $rangeLabel .
+                    ($deathCostsTrend != 0 ? ' (' . ($deathCostsTrend > 0 ? '+' : '') . $deathCostsTrend . '%)' : ''))
+                ->descriptionIcon($deathCostsTrend > 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                ->color('warning'),
 
             // Tunggakan - Pending payments (not affected by date range)
             Stat::make('Tunggakan', 'RM ' . number_format($pendingPayments, 2))
                 ->description('Bayaran yang belum diselesaikan')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning'),
+                
+            // NEW: Jumlah Kematian - Death count in the period
+            Stat::make('Jumlah Kematian', $totalDeaths)
+                ->description('Dewasa: ' . $adultDeaths . ' | Kanak: ' . $childDeaths . ' | Janin: ' . $infantDeaths .
+                    ($deathCountTrend != 0 ? ' (' . ($deathCountTrend > 0 ? '+' : '') . $deathCountTrend . '%)' : ''))
+                ->descriptionIcon('heroicon-m-user')
+                ->color('gray')
+                ->chart([
+                    $adultDeaths / ($totalDeaths ?: 1) * 100,
+                    $childDeaths / ($totalDeaths ?: 1) * 100,
+                    $infantDeaths / ($totalDeaths ?: 1) * 100
+                ]),
         ];
     }
 
