@@ -36,9 +36,9 @@ class DateRangeSelector extends Component
         if ($savedStartDate && $savedEndDate) {
             $this->startDate = $savedStartDate;
             $this->endDate = $savedEndDate;
-            $this->preset = $savedPreset ?? 'allTime';
+            $this->preset = $savedPreset ?? 'last30days'; // Default to last30days
         } else {
-            $this->setPresetDates('allTime');
+            $this->setPresetDates('last30days'); // Default to last30days
         }
     }
 

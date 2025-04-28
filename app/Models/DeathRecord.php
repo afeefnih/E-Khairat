@@ -20,11 +20,15 @@ class DeathRecord extends Model
         'place_of_death',
         'cause_of_death',
         'death_notes',
-        'death_attachment_path'
+        'death_attachment_path',
+        'custom_amount',  // Add this
+        'custom_amount_notes'  // Add this
     ];
+
     protected $casts = [
         'date_of_death' => 'date',
         'time_of_death' => 'datetime',
+        'custom_amount' => 'float',  // Add this to cast to float
     ];
 
     /**
@@ -38,10 +42,9 @@ class DeathRecord extends Model
     /**
      * Get the dependent associated with this death record.
      */
-    // In your DeathRecord model
     public function dependent(): BelongsTo
     {
-        return $this->belongsTo(Dependent::class, 'dependent_id', 'dependent_id'); // Specify the correct foreign key and primary key
+        return $this->belongsTo(Dependent::class, 'dependent_id', 'dependent_id');
     }
 
     /**
@@ -94,24 +97,100 @@ class DeathRecord extends Model
     }
 
     /**
- * Get the member number (No_Ahli) regardless of deceased type.
- */
-public function getMemberNoAttribute()
-{
-    $type = $this->deceased_type;
+     * Get the member number (No_Ahli) regardless of deceased type.
+     */
+    public function getMemberNoAttribute()
+    {
+        $type = $this->deceased_type;
 
-    // If the deceased is a User
-    if ($type === 'App\\Models\\User' && $this->deceased) {
-        return $this->deceased->No_Ahli ?? 'Tiada';
+        // If the deceased is a User
+        if ($type === 'App\\Models\\User' && $this->deceased) {
+            return $this->deceased->No_Ahli ?? 'Tiada';
+        }
+
+        // If the deceased is a Dependent
+        if ($type === 'App\\Models\\Dependent' && $this->deceased) {
+            // Get the user related to the dependent
+            $user = $this->deceased->user;
+            return $user ? ($user->No_Ahli ?? 'Tiada') : 'Tiada';
+        }
+
+        return 'Tiada';
     }
 
-    // If the deceased is a Dependent
-    if ($type === 'App\\Models\\Dependent' && $this->deceased) {
-        // Get the user related to the dependent
-        $user = $this->deceased->user;
-        return $user ? ($user->No_Ahli ?? 'Tiada') : 'Tiada';
+    /**
+     * Get the deceased's age
+     */
+    public function getDeceasedAgeAttribute()
+    {
+        $type = $this->deceased_type;
+
+        if ($type === 'App\\Models\\User' && $this->deceased) {
+            return $this->deceased->age ?? 0;
+        }
+
+        if ($type === 'App\\Models\\Dependent' && $this->deceased) {
+            return $this->deceased->age ?? 0;
+        }
+
+        return 0;
     }
 
-    return 'Tiada';
-}
+    /**
+     * Get the base death cost based on age category
+     */
+    public function getBaseCostAttribute()
+    {
+        $age = $this->deceased_age;
+
+        if ($age <= 3) {
+            return 450; // Janin - 3 tahun
+        } elseif ($age >= 4 && $age <= 6) {
+            return 650; // Kanak-kanak (4-6 tahun)
+        } else {
+            return 1050; // Dewasa
+        }
+    }
+
+    /**
+     * Get the total death cost (base + custom amount)
+     */
+    public function getTotalCostAttribute()
+    {
+        return $this->base_cost + ($this->custom_amount ?? 0);
+    }
+
+    /**
+     * Get the age category label
+     */
+    public function getAgeCategoryAttribute()
+    {
+        $age = $this->deceased_age;
+
+        if ($age <= 3) {
+            return 'Janin - 3 tahun';
+        } elseif ($age >= 4 && $age <= 6) {
+            return 'Kanak-kanak (4-6 tahun)';
+        } else {
+            return 'Dewasa';
+        }
+    }
+
+    /**
+     * Get the IC number of the deceased
+     */
+    public function getDeceasedIcNumberAttribute()
+    {
+        $type = $this->deceased_type;
+
+        if ($type === 'App\\Models\\User' && $this->deceased) {
+            return $this->deceased->ic_number ?? 'Tiada';
+        }
+
+        if ($type === 'App\\Models\\Dependent' && $this->deceased) {
+            return $this->deceased->ic_number ?? 'Tiada';
+        }
+
+        return 'Tiada';
+    }
 }

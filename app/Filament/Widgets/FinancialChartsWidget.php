@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
 use App\Models\Payment;
+use App\Models\DeathRecord; // Add this import
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Session;
@@ -20,9 +21,6 @@ class FinancialChartsWidget extends ChartWidget
     protected static ?int $sort = 40; // FinancialChartsWidget
 
     // Properties to store the date range
-
-
-
     public $startDate;
     public $endDate;
 
@@ -71,10 +69,27 @@ class FinancialChartsWidget extends ChartWidget
                     'borderWidth' => 1,
                 ],
                 [
+                    'label' => 'Death Costs',
+                    'data' => $data['death_costs'],
+                    'backgroundColor' => 'rgba(255, 159, 64, 0.7)',
+                    'borderColor' => 'rgb(255, 159, 64)',
+                    'borderWidth' => 1,
+                ],
+                [
                     'label' => 'Total Income',
                     'data' => $data['total_income'],
                     'backgroundColor' => 'rgba(0, 0, 0, 0)', // Transparent
                     'borderColor' => 'rgba(0, 200, 0, 1)',
+                    'borderWidth' => 2,
+                    'type' => 'line',
+                    'fill' => false,
+                    'tension' => 0.1,
+                ],
+                [
+                    'label' => 'Total Expenses',
+                    'data' => $data['total_expenses'],
+                    'backgroundColor' => 'rgba(0, 0, 0, 0)', // Transparent
+                    'borderColor' => 'rgba(255, 0, 0, 1)',
                     'borderWidth' => 2,
                     'type' => 'line',
                     'fill' => false,
@@ -118,6 +133,8 @@ class FinancialChartsWidget extends ChartWidget
         $transactionIncome = [];
         $totalIncome = [];
         $expenses = [];
+        $deathCosts = [];
+        $totalExpenses = [];
 
         $current = clone $start;
 
@@ -145,10 +162,23 @@ class FinancialChartsWidget extends ChartWidget
                 ->whereDate('transaction_date', $current)
                 ->sum('amount');
 
+            // Get death costs for this day
+            $dayDeathCosts = 0;
+            $dayDeathRecords = DeathRecord::whereDate('date_of_death', $current)->get();
+
+            foreach ($dayDeathRecords as $record) {
+                $dayDeathCosts += $record->total_cost;
+            }
+
+            // Calculate total expenses
+            $dayTotalExpenses = $dayExpenses + $dayDeathCosts;
+
             $paymentIncome[] = $dayPaymentIncome ?: 0;
             $transactionIncome[] = $dayTransactionIncome ?: 0;
             $totalIncome[] = $dayTotalIncome ?: 0;
             $expenses[] = $dayExpenses ?: 0;
+            $deathCosts[] = $dayDeathCosts ?: 0;
+            $totalExpenses[] = $dayTotalExpenses ?: 0;
 
             $current->addDay();
         }
@@ -159,6 +189,8 @@ class FinancialChartsWidget extends ChartWidget
             'transaction_income' => $transactionIncome,
             'total_income' => $totalIncome,
             'expenses' => $expenses,
+            'death_costs' => $deathCosts,
+            'total_expenses' => $totalExpenses,
         ];
     }
 
@@ -169,6 +201,8 @@ class FinancialChartsWidget extends ChartWidget
         $transactionIncome = [];
         $totalIncome = [];
         $expenses = [];
+        $deathCosts = [];
+        $totalExpenses = [];
 
         // Start from the beginning of the start month
         $current = $start->copy()->startOfMonth();
@@ -203,10 +237,25 @@ class FinancialChartsWidget extends ChartWidget
                 ->whereMonth('transaction_date', $current->month)
                 ->sum('amount');
 
+            // Get death costs for this month
+            $monthDeathCosts = 0;
+            $monthStart = $current->copy()->startOfMonth();
+            $monthEnd = $current->copy()->endOfMonth();
+            $monthDeathRecords = DeathRecord::whereBetween('date_of_death', [$monthStart, $monthEnd])->get();
+
+            foreach ($monthDeathRecords as $record) {
+                $monthDeathCosts += $record->total_cost;
+            }
+
+            // Calculate total expenses
+            $monthTotalExpenses = $monthExpenses + $monthDeathCosts;
+
             $paymentIncome[] = $monthPaymentIncome ?: 0;
             $transactionIncome[] = $monthTransactionIncome ?: 0;
             $totalIncome[] = $monthTotalIncome ?: 0;
             $expenses[] = $monthExpenses ?: 0;
+            $deathCosts[] = $monthDeathCosts ?: 0;
+            $totalExpenses[] = $monthTotalExpenses ?: 0;
 
             $current->addMonth();
         }
@@ -217,6 +266,8 @@ class FinancialChartsWidget extends ChartWidget
             'transaction_income' => $transactionIncome,
             'total_income' => $totalIncome,
             'expenses' => $expenses,
+            'death_costs' => $deathCosts,
+            'total_expenses' => $totalExpenses,
         ];
     }
 
@@ -227,6 +278,8 @@ class FinancialChartsWidget extends ChartWidget
         $transactionIncome = [];
         $totalIncome = [];
         $expenses = [];
+        $deathCosts = [];
+        $totalExpenses = [];
 
         // Start from the beginning of the start quarter
         $current = $start->copy()->startOfQuarter();
@@ -262,10 +315,23 @@ class FinancialChartsWidget extends ChartWidget
                 ->whereBetween('transaction_date', [$quarterStart, $quarterEnd])
                 ->sum('amount');
 
+            // Get death costs for this quarter
+            $quarterDeathCosts = 0;
+            $quarterDeathRecords = DeathRecord::whereBetween('date_of_death', [$quarterStart, $quarterEnd])->get();
+
+            foreach ($quarterDeathRecords as $record) {
+                $quarterDeathCosts += $record->total_cost;
+            }
+
+            // Calculate total expenses
+            $quarterTotalExpenses = $quarterExpenses + $quarterDeathCosts;
+
             $paymentIncome[] = $quarterPaymentIncome ?: 0;
             $transactionIncome[] = $quarterTransactionIncome ?: 0;
             $totalIncome[] = $quarterTotalIncome ?: 0;
             $expenses[] = $quarterExpenses ?: 0;
+            $deathCosts[] = $quarterDeathCosts ?: 0;
+            $totalExpenses[] = $quarterTotalExpenses ?: 0;
 
             $current->addQuarter();
         }
@@ -276,6 +342,8 @@ class FinancialChartsWidget extends ChartWidget
             'transaction_income' => $transactionIncome,
             'total_income' => $totalIncome,
             'expenses' => $expenses,
+            'death_costs' => $deathCosts,
+            'total_expenses' => $totalExpenses,
         ];
     }
 
@@ -289,6 +357,11 @@ class FinancialChartsWidget extends ChartWidget
                 'tooltip' => [
                     'mode' => 'index',
                     'intersect' => false,
+                ],
+            ],
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
                 ],
             ],
         ];
