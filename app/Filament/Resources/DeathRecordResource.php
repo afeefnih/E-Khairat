@@ -46,24 +46,27 @@ class DeathRecordResource extends Resource
                     ->options([
                         User::class => 'Ahli Utama',
                         Dependent::class => 'Tanggungan',
+                        'non_member' => 'Bukan Ahli',
                     ])
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set) {
                         $set('deceased_id', null);
-                        // Clear member info fields
                         $set('member_no', 'Tiada');
                         $set('member_address', 'Tiada');
+                        // Clear non-member fields
+                        $set('non_member_name', null);
+                        $set('non_member_ic_number', null);
+                        $set('non_member_age', null);
+                        $set('non_member_relationship', null);
                     })
                     ->default(Dependent::class),
 
                 Forms\Components\Select::make('deceased_id')
-                    ->label(fn(callable $get) => $get('deceased_type') === User::class ? 'Ahli' : 'Tanggungan')
+                    ->label(fn(callable $get) => $get('deceased_type') === User::class ? 'Ahli' : ($get('deceased_type') === Dependent::class ? 'Tanggungan' : ''))
                     ->options(function (callable $get) {
                         $type = $get('deceased_type');
-
                         if ($type === User::class) {
-                            // Filter out admin users from the list
                             return User::query()
                                 ->whereDoesntHave('deathRecord')
                                 ->whereDoesntHave('roles', function ($query) {
@@ -72,42 +75,33 @@ class DeathRecordResource extends Resource
                                 ->pluck('name', 'id')
                                 ->toArray();
                         }
-
                         if ($type === Dependent::class) {
-                            // Use full_name for display but dependent_id as the value
                             $dependents = Dependent::query()
                                 ->select(['dependent_id', 'full_name'])
                                 ->whereDoesntHave('deathRecord')
                                 ->get();
-
-                            // Create an associative array with dependent_id => full_name
                             return $dependents->pluck('full_name', 'dependent_id')->toArray();
                         }
-
                         return [];
                     })
                     ->getOptionLabelUsing(function ($value, callable $get) {
                         $type = $get('deceased_type');
-
                         if ($type === User::class) {
                             $user = User::find($value);
                             return $user ? $user->name : null;
                         }
-
                         if ($type === Dependent::class) {
                             $dependent = Dependent::find($value);
                             return $dependent ? $dependent->full_name : null;
                         }
-
                         return null;
                     })
                     ->searchable()
-                    ->required()
+                    ->required(fn(callable $get) => $get('deceased_type') !== 'non_member')
+                    ->visible(fn(callable $get) => $get('deceased_type') !== 'non_member')
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set, callable $get) {
                         $deceasedType = $get('deceased_type');
-
-                        // Reset to default values for all user fields
                         $set('member_no', 'Tiada');
                         $set('member_ic', 'Tiada');
                         $set('member_name', 'Tiada');
@@ -117,64 +111,118 @@ class DeathRecordResource extends Resource
                         $set('member_age', 'Tiada');
                         $set('member_residence_status', 'Tiada');
                         $set('member_address', 'Tiada');
-
-                        // Inside your existing afterStateUpdated function for deceased_id field:
-                        // After setting all the member info fields, add:
-
-                        // Calculate death cost based on age
                         if ($state && $deceasedType) {
-                            if ($deceasedType === User::class) {
-                                $user = User::find($state);
-                                if ($user && is_numeric($user->age)) {
-                                    $age = (int) $user->age;
-                                    // Update the age category and calculated amount fields
-                                    if ($age <= 3) {
-                                        $set('age_category', 'Janin - 3 tahun');
-                                        $set('calculated_amount', '450');
-                                        $set('final_amount', '450');
-                                    } elseif ($age >= 4 && $age <= 6) {
-                                        $set('age_category', 'Kanak-kanak (4-6 tahun)');
-                                        $set('calculated_amount', '650');
-                                        $set('final_amount', '650');
-                                    } else {
-                                        $set('age_category', 'Dewasa');
-                                        $set('calculated_amount', '1050');
-                                        $set('final_amount', '1050');
-                                    }
-                                } else {
-                                    $set('age_category', 'Tiada');
-                                    $set('calculated_amount', 'Tiada');
-                                    $set('final_amount', 'Tiada');
+                            if ($deceasedType === \App\Models\User::class) {
+                                $user = \App\Models\User::find($state);
+                                if ($user) {
+                                    $set('member_no', $user->No_Ahli ?? 'Tiada');
+                                    $set('member_ic', $user->ic_number ?? 'Tiada');
+                                    $set('member_name', $user->name ?? 'Tiada');
+                                    $set('member_email', $user->email ?? 'Tiada');
+                                    $set('member_phone', $user->phone_number ?? 'Tiada');
+                                    $set('member_home_phone', $user->home_phone ?? 'Tiada');
+                                    $set('member_age', $user->age ?? 'Tiada');
+                                    $set('member_residence_status', $user->residence_status ?? 'Tiada');
+                                    $set('member_address', $user->address ?? 'Tiada');
                                 }
-                            } elseif ($deceasedType === Dependent::class) {
-                                $dependent = Dependent::find($state);
-                                if ($dependent && is_numeric($dependent->age)) {
-                                    $age = (int) $dependent->age;
-                                    // Update the age category and calculated amount fields
-                                    if ($age <= 3) {
-                                        $set('age_category', 'Janin - 3 tahun');
-                                        $set('calculated_amount', '450');
-                                        $set('final_amount', '450');
-                                    } elseif ($age >= 4 && $age <= 6) {
-                                        $set('age_category', 'Kanak-kanak (4-6 tahun)');
-                                        $set('calculated_amount', '650');
-                                        $set('final_amount', '650');
-                                    } else {
-                                        $set('age_category', 'Dewasa');
-                                        $set('calculated_amount', '1050');
-                                        $set('final_amount', '1050');
-                                    }
+                            } elseif ($deceasedType === \App\Models\Dependent::class) {
+                                $dependent = \App\Models\Dependent::find($state);
+                                if ($dependent) {
+                                    $set('member_no', $dependent->user->No_Ahli ?? 'Tiada');
+                                    $set('member_ic', $dependent->ic_number ?? 'Tiada');
+                                    $set('member_name', $dependent->full_name ?? 'Tiada');
+                                    $set('member_email', $dependent->user->email ?? 'Tiada');
+                                    $set('member_phone', $dependent->user->phone_number ?? 'Tiada');
+                                    $set('member_home_phone', $dependent->user->home_phone ?? 'Tiada');
+                                    $set('member_age', $dependent->age ?? 'Tiada');
+                                    $set('member_residence_status', $dependent->user->residence_status ?? 'Tiada');
+                                    $set('member_address', $dependent->user->address ?? 'Tiada');
+                                }
+                            }
+                            // Calculate death cost based on age
+                            if ($deceasedType === \App\Models\User::class && isset($user) && is_numeric($user->age)) {
+                                $age = (int) $user->age;
+                                if ($age <= 3) {
+                                    $set('age_category', 'Janin - 3 tahun');
+                                    $set('calculated_amount', '450');
+                                    $set('final_amount', '450');
+                                } elseif ($age >= 4 && $age <= 6) {
+                                    $set('age_category', 'Kanak-kanak (4-6 tahun)');
+                                    $set('calculated_amount', '650');
+                                    $set('final_amount', '650');
                                 } else {
-                                    $set('age_category', 'Tiada');
-                                    $set('calculated_amount', 'Tiada');
-                                    $set('final_amount', 'Tiada');
+                                    $set('age_category', 'Dewasa');
+                                    $set('calculated_amount', '1050');
+                                    $set('final_amount', '1050');
+                                }
+                            } elseif ($deceasedType === \App\Models\Dependent::class && isset($dependent) && is_numeric($dependent->age)) {
+                                $age = (int) $dependent->age;
+                                if ($age <= 3) {
+                                    $set('age_category', 'Janin - 3 tahun');
+                                    $set('calculated_amount', '450');
+                                    $set('final_amount', '450');
+                                } elseif ($age >= 4 && $age <= 6) {
+                                    $set('age_category', 'Kanak-kanak (4-6 tahun)');
+                                    $set('calculated_amount', '650');
+                                    $set('final_amount', '650');
+                                } else {
+                                    $set('age_category', 'Dewasa');
+                                    $set('calculated_amount', '1050');
+                                    $set('final_amount', '1050');
                                 }
                             }
                         }
                     }),
+
+                // Non-member fields in a card layout
+                Forms\Components\Card::make([
+                    Forms\Components\TextInput::make('non_member_name')
+                        ->label('Nama Si Mati (Bukan Ahli)')
+                        ->required(fn(callable $get) => $get('deceased_type') === 'non_member')
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('non_member_ic_number')
+                        ->label('No KP Si Mati (Bukan Ahli)')
+                        ->required(fn(callable $get) => $get('deceased_type') === 'non_member')
+                        ->minLength(12)
+                        ->maxLength(12)
+                        ->rule('digits:12')
+                        ->helperText('No KP mesti 12 digit. Contoh: 031114160355')
+                        ->validationMessages([
+                            'required' => 'Sila masukkan No KP si mati.',
+                            'digits' => 'No KP mestilah 12 digit.',
+                            'min' => 'No KP mestilah 12 digit.',
+                            'max' => 'No KP mestilah 12 digit.'
+                        ])
+                        ->reactive()
+                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                            if ($get('deceased_type') === 'non_member' && preg_match('/^\d{12}$/', $state)) {
+                                $year = substr($state, 0, 2);
+                                $currentYear = (int) date('y');
+                                $fullYear = (int) $year;
+                                $century = ((int) date('Y')) - $currentYear >= 100 ? 2000 : 1900;
+                                $birthYear = $fullYear + ($fullYear > $currentYear ? 1900 : 2000);
+                                $age = (int) date('Y') - $birthYear;
+                                $set('non_member_age', $age);
+                            } else {
+                                $set('non_member_age', null);
+                            }
+                        }),
+                    Forms\Components\TextInput::make('non_member_age')
+                        ->label('Umur Si Mati (Bukan Ahli)')
+                        ->disabled()
+                        ->dehydrated(true)
+                        ->helperText('Umur akan diisi secara automatik berdasarkan No KP.')
+                        ->validationMessages([
+                            'required' => 'Umur si mati diperlukan.',
+                        ]),
+                    Forms\Components\TextInput::make('non_member_relationship')
+                        ->label('Hubungan dengan Wakil (Bukan Ahli)')
+                        ->required(fn(callable $get) => $get('deceased_type') === 'non_member'),
+                ])->visible(fn(callable $get) => $get('deceased_type') === 'non_member')
+                ->columns(2),
             ]),
 
-            // Member Information Section
+            // Hide Maklumat Ahli section for non-member
             Forms\Components\Section::make('Maklumat Ahli')
                 ->schema([
                     // No Ahli
@@ -538,7 +586,8 @@ class DeathRecordResource extends Resource
                         ->columnSpanFull(),
                 ])
                 ->columns(2)
-                ->collapsible(),
+                ->collapsible()
+                ->visible(fn(callable $get) => $get('deceased_type') !== 'non_member'),
 
             // Add this after your death information fields but before the certificate section
             Forms\Components\Section::make('Kos Khairat Kematian')
@@ -547,20 +596,15 @@ class DeathRecordResource extends Resource
                         ->label('Kategori Umur')
                         ->disabled()
                         ->formatStateUsing(function ($state, $record, callable $get) {
-                            // For edit form with existing record
                             if ($record) {
                                 return $record->age_category ?? 'Tiada';
                             }
-
-                            // For create form - use member_age field
-                            $age = $get('member_age');
-
+                            $deceasedType = $get('deceased_type');
+                            $age = $deceasedType === 'non_member' ? $get('non_member_age') : $get('member_age');
                             if ($age === null || $age === 'Tiada' || $age === '') {
                                 return 'Tiada';
                             }
-
-                            $age = (int) $age; // Make sure it's an integer
-
+                            $age = (int) $age;
                             if ($age <= 3) {
                                 return 'Janin - 3 tahun';
                             } elseif ($age >= 4 && $age <= 6) {
@@ -576,20 +620,15 @@ class DeathRecordResource extends Resource
                         ->disabled()
                         ->prefix('RM')
                         ->formatStateUsing(function ($state, $record, callable $get) {
-                            // For edit form with existing record
                             if ($record) {
                                 return $record->base_cost ?? 'Tiada';
                             }
-
-                            // For create form - use member_age field
-                            $age = $get('member_age');
-
+                            $deceasedType = $get('deceased_type');
+                            $age = $deceasedType === 'non_member' ? $get('non_member_age') : $get('member_age');
                             if ($age === null || $age === 'Tiada' || $age === '') {
                                 return 'Tiada';
                             }
-
-                            $age = (int) $age; // Make sure it's an integer
-
+                            $age = (int) $age;
                             if ($age <= 3) {
                                 return '450';
                             } elseif ($age >= 4 && $age <= 6) {
@@ -599,37 +638,6 @@ class DeathRecordResource extends Resource
                             }
                         })
                         ->dehydrated(false),
-                    Forms\Components\TextInput::make('custom_amount')
-                        ->label('Jumlah Custom (Jika Berlainan)')
-                        ->prefix('RM')
-                        ->numeric()
-                        ->nullable()
-                        ->reactive()
-                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                            // Get calculated amount
-                            $calculatedAmount = $get('calculated_amount');
-                            $calcValue = 0;
-
-                            // Convert calculated amount to integer if valid
-                            if ($calculatedAmount !== 'Tiada' && is_numeric($calculatedAmount)) {
-                                $calcValue = (int) $calculatedAmount;
-                            }
-
-                            // Add custom amount if provided
-                            $customValue = 0;
-                            if ($state !== null && $state !== '' && is_numeric($state)) {
-                                $customValue = (int) $state;
-                            }
-
-                            // Calculate total and update final amount
-                            $total = $calcValue + $customValue;
-                            $set('final_amount', $total > 0 ? (string) $total : 'Tiada');
-                        })
-                        ->helperText('Isi untuk menambah kepada jumlah kategori'),
-
-                    // Notes field for the custom amount
-                    Forms\Components\Textarea::make('custom_amount_notes')->label('Catatan Jumlah Custom')->rows(2)->nullable()->helperText('Sila nyatakan sebab penambahan jumlah custom')->visible(fn(callable $get) => $get('custom_amount') > 0), // Only show when custom amount is entered
-
                     Forms\Components\TextInput::make('final_amount')
                         ->label('Jumlah Akhir')
                         ->disabled()
@@ -639,28 +647,19 @@ class DeathRecordResource extends Resource
                             if ($record) {
                                 return $record->total_cost ?? 'Tiada';
                             }
-
+                            $deceasedType = $get('deceased_type');
+                            $age = $deceasedType === 'non_member' ? $get('non_member_age') : $get('member_age');
                             $calculatedAmount = $get('calculated_amount');
                             $customAmount = $get('custom_amount');
-
-                            // Initialize values
                             $calcValue = 0;
                             $customValue = 0;
-
-                            // Convert calculated amount to integer if it's not 'Tiada'
                             if ($calculatedAmount !== 'Tiada' && is_numeric($calculatedAmount)) {
                                 $calcValue = (int) $calculatedAmount;
                             }
-
-                            // Add custom amount if provided
                             if ($customAmount !== null && $customAmount !== '' && is_numeric($customAmount)) {
                                 $customValue = (int) $customAmount;
                             }
-
-                            // Calculate total
                             $total = $calcValue + $customValue;
-
-                            // Return result or 'Tiada' if both values are zero/empty
                             return $total > 0 ? (string) $total : 'Tiada';
                         })
                         ->dehydrated(false),
@@ -703,17 +702,29 @@ class DeathRecordResource extends Resource
                     if ($state === 'App\\Models\\User' || $state === 'AppModelsUser') {
                         return 'Ahli Utama';
                     }
-                    return 'Tanggungan';
+                    if ($state === 'App\\Models\\Dependent' || $state === 'AppModelsDependent') {
+                        return 'Tanggungan';
+                    }
+                    return 'Bukan Ahli';
                 })
                 ->badge()
-                ->color(fn($state) => $state === 'App\\Models\\User' || $state === 'AppModelsUser' ? 'danger' : 'warning'),
+                ->color(function($state) {
+                    if ($state === 'App\\Models\\User' || $state === 'AppModelsUser') {
+                        return 'danger';
+                    }
+                    if ($state === 'App\\Models\\Dependent' || $state === 'AppModelsDependent') {
+                        return 'warning';
+                    }
+                    return 'success';
+                }),
 
             // Name column
             Tables\Columns\TextColumn::make('deceased_name')
-                ->searchable()
-                ->sortable()
                 ->label('Nama')
                 ->getStateUsing(function ($record) {
+                    if (empty($record->deceased_type) || $record->deceased_type === 'non_member') {
+                        return $record->non_member_name ?? 'Tidak Diketahui';
+                    }
                     // Safe access to record relationships
                     try {
                         // Check for string variants of class names
@@ -739,14 +750,38 @@ class DeathRecordResource extends Resource
             // No Ahli column
             Tables\Columns\TextColumn::make('member_no')
                 ->label('No Ahli')
-                ->searchable()
-                ->sortable(),
+                ->getStateUsing(function ($record) {
+                    if (empty($record->deceased_type) || $record->deceased_type === 'non_member') {
+                        return 'Bukan Ahli';
+                    }
+                    // Safe access to record relationships
+                    try {
+                        // Check for string variants of class names
+                        $isUser = $record->deceased_type === '\\App\\Models\\User' || $record->deceased_type === 'App\\Models\\User' || strpos($record->deceased_type, 'User') !== false;
+
+                        $isDependent = $record->deceased_type === '\\App\\Models\\Dependent' || $record->deceased_type === 'App\\Models\\Dependent' || strpos($record->deceased_type, 'Dependent') !== false;
+
+                        if ($isUser && $record->deceased) {
+                            return $record->deceased->No_Ahli ?? 'Tiada';
+                        }
+
+                        if ($isDependent && $record->deceased) {
+                            return $record->deceased->user->No_Ahli ?? 'Tiada';
+                        }
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error("Error getting No Ahli for death record {$record->id}: " . $e->getMessage());
+                    }
+
+                    return 'Tiada';
+                }),
 
             // IC Number column
             Tables\Columns\TextColumn::make('deceased_ic_number')
-                ->searchable()
                 ->label('No KP')
                 ->getStateUsing(function ($record) {
+                    if (empty($record->deceased_type) || $record->deceased_type === 'non_member') {
+                        return $record->non_member_ic_number ?? 'Tiada';
+                    }
                     try {
                         // Check for string variants of class names
                         $isUser = $record->deceased_type === '\\App\\Models\\User' || $record->deceased_type === 'App\\Models\\User' || strpos($record->deceased_type, 'User') !== false;

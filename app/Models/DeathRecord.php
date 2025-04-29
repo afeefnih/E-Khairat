@@ -21,8 +21,12 @@ class DeathRecord extends Model
         'cause_of_death',
         'death_notes',
         'death_attachment_path',
-        'custom_amount',  // Add this
-        'custom_amount_notes'  // Add this
+        'custom_amount',
+        'custom_amount_notes',
+        'non_member_name',
+        'non_member_ic_number',
+        'non_member_age',
+        'non_member_relationship',
     ];
 
     protected $casts = [
@@ -125,14 +129,16 @@ class DeathRecord extends Model
     {
         $type = $this->deceased_type;
 
+        // For non-member
+        if (empty($type) || $type === 'non_member') {
+            return $this->non_member_age ?? 0;
+        }
         if ($type === 'App\\Models\\User' && $this->deceased) {
             return $this->deceased->age ?? 0;
         }
-
         if ($type === 'App\\Models\\Dependent' && $this->deceased) {
             return $this->deceased->age ?? 0;
         }
-
         return 0;
     }
 
@@ -142,13 +148,12 @@ class DeathRecord extends Model
     public function getBaseCostAttribute()
     {
         $age = $this->deceased_age;
-
         if ($age <= 3) {
-            return 450; // Janin - 3 tahun
+            return 450;
         } elseif ($age >= 4 && $age <= 6) {
-            return 650; // Kanak-kanak (4-6 tahun)
+            return 650;
         } else {
-            return 1050; // Dewasa
+            return 1050;
         }
     }
 
