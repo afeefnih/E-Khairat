@@ -275,7 +275,7 @@ class AdvancedAnalytics extends Page
                     ->count();
 
                 $dependentCount = DeathRecord::where('deceased_type', 'App\\Models\\Dependent')
-                    ->whereDate('date_of_death', $date)
+                    ->whereDate('deceased_type', $date)
                     ->count();
 
                 $memberDeaths[] = $memberCount;
@@ -292,8 +292,9 @@ class AdvancedAnalytics extends Page
 
     private function loadAgeDistributionData()
     {
-        // Age distribution for members
         $ageRanges = [
+            '0-12' => [0, 12],
+            '13-17' => [13, 17],
             '18-30' => [18, 30],
             '31-40' => [31, 40],
             '41-50' => [41, 50],
@@ -304,7 +305,8 @@ class AdvancedAnalytics extends Page
         $distribution = [];
 
         foreach ($ageRanges as $range => $limits) {
-            $count = User::whereHas('roles', function ($query) {
+            // Count members in this age range
+            $memberCount = User::whereHas('roles', function ($query) {
                 $query->where('name', 'user');
             })
             ->whereDoesntHave('deathRecord')
@@ -312,9 +314,16 @@ class AdvancedAnalytics extends Page
             ->where('age', '<=', $limits[1])
             ->count();
 
+            // Count dependents in this age range
+            $dependentCount = \App\Models\Dependent::whereDoesntHave('deathRecord')
+                ->where('age', '>=', $limits[0])
+                ->where('age', '<=', $limits[1])
+                ->count();
+
+            // Total count for this age range
             $distribution[] = [
                 'range' => $range,
-                'count' => $count
+                'count' => $memberCount + $dependentCount
             ];
         }
 
