@@ -7,6 +7,7 @@ use App\Models\Dependent;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -35,67 +36,90 @@ class DependentResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Select::make('user_id')
-                ->label('Ahli')
-                ->relationship(
-                    name: 'user',
-                    titleAttribute: 'name',
-                    modifyQueryUsing: fn($query) => $query->whereDoesntHave('roles', function ($q) {
-                        $q->where('name', 'admin');
-                    }),
-                )
-                ->searchable()
-                ->preload()
-                ->required()
-                ->default(fn() => request()->input('data.user_id'))
-                ->disabled(fn() => request()->has('data.user_id'))
-                ->validationMessages([
-                    'required' => 'Ahli diperlukan.',
-                ]),
+            Section::make('Maklumat Tanggungan')
+                ->schema([
+                    Forms\Components\Select::make('user_id')
+                        ->label('Ahli')
+                        ->relationship(
+                            name: 'user',
+                            modifyQueryUsing: fn($query) => $query->whereDoesntHave('roles', function ($q) {
+                                $q->where('name', 'admin');
+                            }),
+                        )
+                        ->getOptionLabelFromRecordUsing(fn (User $record) => "{$record->name} ({$record->ic_number})")
+                        ->searchable(['name', 'ic_number'])
+                        ->preload()
+                        ->required()
+                        ->default(fn() => request()->input('data.user_id'))
+                        ->disabled(fn() => request()->has('data.user_id'))
+                        ->validationMessages([
+                            'required' => 'Ahli diperlukan.',
+                        ]),
 
-            Forms\Components\TextInput::make('full_name')
-                ->label('Nama Penuh')
-                ->required()
-                ->maxLength(255)
-                ->validationMessages([
-                    'required' => 'Nama penuh diperlukan.',
-                    'max' => 'Nama penuh tidak boleh melebihi 255 aksara.',
-                ]),
+                    Forms\Components\TextInput::make('full_name')
+                        ->label('Nama Penuh')
+                        ->required()
+                        ->maxLength(255)
+                        ->validationMessages([
+                            'required' => 'Nama penuh diperlukan.',
+                            'max' => 'Nama penuh tidak boleh melebihi 255 aksara.',
+                        ]),
 
-            Forms\Components\Select::make('relationship')
-                ->label('Hubungan')
-                ->required()
-                ->options([
-                   'Bapa' => 'Bapa',
-                    'Ibu' => 'Ibu',
-                    'Pasangan' => 'Pasangan',
-                    'Anak' => 'Anak',
-                ])
-                ->validationMessages([
-                    'required' => 'Hubungan diperlukan.',
-                ]),
+                    Forms\Components\Select::make('relationship')
+                        ->label('Hubungan')
+                        ->required()
+                        ->options([
+                           'Bapa' => 'Bapa',
+                            'Ibu' => 'Ibu',
+                            'Pasangan' => 'Pasangan',
+                            'Anak' => 'Anak',
+                        ])
+                        ->validationMessages([
+                            'required' => 'Hubungan diperlukan.',
+                        ]),
 
-            Forms\Components\TextInput::make('age')
-                ->label('Umur')
-                ->required()
-                ->numeric()
-                ->validationMessages([
-                    'required' => 'Umur diperlukan.',
-                    'numeric' => 'Umur mesti berupa angka.',
-                ]),
+                    Forms\Components\TextInput::make('ic_number')
+                        ->required()
+                        ->label('Nombor IC')
+                        ->unique(Dependent::class, 'ic_number', fn($record) => $record)
+                        ->minLength(12)
+                        ->maxLength(12)
+                        ->rule('digits:12')
+                        ->numeric()
+                        ->mask('999999999999')
+                        ->helperText('Nombor IC mesti 12 digit. Contoh: 031114160355')
+                        ->live()
+                        ->validationMessages([
+                            'required' => 'Nombor IC diperlukan.',
+                            'digits' => 'Nombor IC mestilah 12 digit.',
+                            'min' => 'Nombor IC mestilah 12 digit.',
+                            'max' => 'Nombor IC mestilah 12 digit.',
+                            'numeric' => 'Nombor IC mesti berupa angka.',
+                            'unique' => 'Nombor IC telah digunakan.',
+                        ])
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if (preg_match('/^\d{12}$/', $state)) {
+                                $year = substr($state, 0, 2);
+                                $currentYear = (int) date('y');
+                                $birthYear = (int) $year + ((int) $year > $currentYear ? 1900 : 2000);
+                                $age = (int) date('Y') - $birthYear;
+                                $set('age', $age);
+                            } else {
+                                $set('age', null);
+                            }
+                        }),
 
-            Forms\Components\TextInput::make('ic_number')
-                ->required()
-                ->label('Nombor IC')
-                ->unique(Dependent::class, 'ic_number', fn($record) => $record)
-                ->length(12)
-                ->numeric()
-                ->validationMessages([
-                    'required' => 'Nombor IC diperlukan.',
-                    'digits' => 'Nombor IC mesti 12 digit.',
-                    'unique' => 'Nombor IC telah digunakan.',
-                    'numeric' => 'Nombor IC mesti berupa angka.',
-                ]),
+                    Forms\Components\TextInput::make('age')
+                        ->label('Umur')
+                        ->disabled()
+                        ->live()
+                        ->dehydrated(true)
+                        ->numeric()
+                        ->validationMessages([
+                            'required' => 'Umur diperlukan.',
+                            'numeric' => 'Umur mesti berupa angka.',
+                        ]),
+                ])->columns(2)
         ]);
     }
 
@@ -103,7 +127,6 @@ class DependentResource extends Resource
     {
         return $table
             ->columns([
-                // Add a column to indicate if the dependent is deceased
                 Tables\Columns\IconColumn::make('isDeceased')
                     ->label('Status Kematian')
                     ->boolean()
@@ -115,17 +138,23 @@ class DependentResource extends Resource
                     ->tooltip(fn (Dependent $record) => $record->isDeceased() ? 'Tanggungan ini telah meninggal' : 'Tanggungan ini masih hidup'),
 
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('Ahli')
+                    ->label('Ahli (Nama)')
                     ->sortable()
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('user.ic_number')
+                    ->label('Ahli (No KP)')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('full_name')
-                    ->label('Nama Penuh')
+                    ->label('Nama Penuh Tanggungan')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('relationship')
                     ->label('Hubungan')
+                    ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('age')
@@ -134,7 +163,7 @@ class DependentResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('ic_number')
-                    ->label('Nombor IC')
+                    ->label('No KP Tanggungan')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -143,7 +172,6 @@ class DependentResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
             ])
-            // Rest of your table configuration...
             ->filters([
                 Tables\Filters\SelectFilter::make('user_id')
                     ->label('Ahli')
@@ -158,16 +186,37 @@ class DependentResource extends Resource
                         'Ibu' => 'Ibu',
                         'Pasangan' => 'Pasangan',
                         'Anak' => 'Anak',
-                        'Ibu/Bapa' => 'Ibu/Bapa',
-                        'Adik-Beradik' => 'Adik-beradik',
-                    ]),
+                    ])
+                    ->multiple(),
+
+                Tables\Filters\Filter::make('age_range')
+                    ->label('Julat Umur')
+                    ->form([
+                        Forms\Components\TextInput::make('min_age')
+                            ->label('Umur Minimum')
+                            ->numeric()
+                            ->minValue(0),
+                        Forms\Components\TextInput::make('max_age')
+                            ->label('Umur Maksimum')
+                            ->numeric()
+                            ->minValue(0),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['min_age'],
+                                fn (Builder $query, $min): Builder => $query->where('age', '>=', $min),
+                            )
+                            ->when(
+                                $data['max_age'],
+                                fn (Builder $query, $max): Builder => $query->where('age', '<=', $max),
+                            );
+                    }),
             ])
             ->actions([
-                // Keeping the same name for these actions as requested
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
 
-                // Add View Member Action
                 Action::make('view_member')
                     ->label('Lihat Ahli')
                     ->icon('heroicon-o-user')
@@ -179,66 +228,51 @@ class DependentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()->label('Padam Terpilih'),
 
-                    // Add CSV Export Bulk Action
                     BulkAction::make('export-csv')
                         ->label('Eksport ke CSV')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('success')
                         ->action(function (Collection $records) {
-                            // Check if any dependents are selected
                             if ($records->isEmpty()) {
                                 Notification::make()->title('Tiada tanggungan untuk dieksport')->danger()->send();
                                 return;
                             }
-
-                            // Generate CSV file
                             $csvFileName = 'tanggungan-' . date('Y-m-d') . '.csv';
                             $headers = [
                                 'Content-Type' => 'text/csv',
                                 'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
                             ];
-
                             $callback = function () use ($records) {
                                 $file = fopen('php://output', 'w');
-
-                                // Add headers
-                                fputcsv($file, ['Nama Ahli', 'Nama Penuh', 'Hubungan', 'Umur', 'Nombor KP', 'Tarikh Daftar']);
-
-                                // Add rows
+                                fputcsv($file, ['Nama Ahli', 'No KP Ahli', 'Nama Penuh Tanggungan', 'No KP Tanggungan', 'Hubungan', 'Umur', 'Tarikh Daftar']);
                                 foreach ($records as $dependent) {
                                     fputcsv($file, [
-                                        $dependent->user ? $dependent->user->name : 'Tiada',
+                                        $dependent->user?->name ?? 'Tiada',
+                                        $dependent->user?->ic_number ?? 'Tiada',
                                         $dependent->full_name,
+                                        $dependent->ic_number,
                                         $dependent->relationship,
                                         $dependent->age,
-                                        $dependent->ic_number,
                                         $dependent->created_at
                                     ]);
                                 }
-
                                 fclose($file);
                             };
-
                             return response()->stream($callback, 200, $headers);
                         }),
 
-                    // Add PDF Export Bulk Action
                     BulkAction::make('export-pdf')
                         ->label('Eksport ke PDF')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('danger')
                         ->action(function (Collection $records) {
-                            // Check if any dependents are selected
                             if ($records->isEmpty()) {
                                 Notification::make()->title('Tiada tanggungan untuk dieksport')->danger()->send();
                                 return;
                             }
-
-                            // Generate the PDF
                             $pdf = Pdf::loadView('pdf.dependents', [
-                                'dependents' => $records,
+                                'dependents' => $records->load('user'),
                             ]);
-
                             return response()->streamDownload(function () use ($pdf) {
                                 echo $pdf->output();
                             }, 'tanggungan-' . date('Y-m-d') . '.pdf');

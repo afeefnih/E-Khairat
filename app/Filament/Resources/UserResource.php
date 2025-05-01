@@ -69,14 +69,33 @@ class UserResource extends Resource
                         ->required()
                         ->label('Nombor IC')
                         ->unique(User::class, 'ic_number', ignoreRecord: true)
-                        ->length(12)
+                        ->minLength(12)
+                        ->maxLength(12)
+                        ->rule('digits:12')
                         ->numeric()
+                        ->mask('999999999999') // Added mask to restrict input length
+                        ->helperText('Nombor IC mesti 12 digit. Contoh: 920101123456
+')
+                        ->live() // Keep live() for immediate age calculation
                         ->validationMessages([
                             'required' => 'Nombor IC diperlukan.',
-                            'digits' => 'Nombor IC mesti 12 digit.',
-                            'unique' => 'Nombor IC telah digunakan.',
+                            'digits' => 'Nombor IC mestilah 12 digit.',
+                            'min' => 'Nombor IC mestilah 12 digit.',
+                            'max' => 'Nombor IC mestilah 12 digit.',
                             'numeric' => 'Nombor IC mesti berupa angka.',
-                        ]),
+                            'unique' => 'Nombor IC telah digunakan.',
+                        ])
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if (preg_match('/^\\d{12}$/', $state)) {
+                                $year = substr($state, 0, 2);
+                                $currentYear = (int) date('y');
+                                $birthYear = (int) $year + ((int) $year > $currentYear ? 1900 : 2000);
+                                $age = (int) date('Y') - $birthYear;
+                                $set('age', $age);
+                            } else {
+                                $set('age', null);
+                            }
+                        }),
                 ])
                 ->columns(2),
 
@@ -136,6 +155,9 @@ class UserResource extends Resource
 
                     Forms\Components\TextInput::make('age')
                         ->label('Umur')
+                        ->disabled()
+                        ->live() // Keep live() for immediate display update
+                        ->dehydrated(true)
                         ->required(function (Forms\Get $get, $record) {
                             // Check the selected role in the form OR the existing role for the record
                             return $get('roles') !== '1' && !($record && $record->hasRole('admin'));
