@@ -79,7 +79,10 @@
                         type="text"
                         name="dependent_ic_number"
                         id="dependent_ic_number"
-                        wire:model="dependent_ic_number"
+                        wire:model.live="dependent_ic_number"
+                        maxlength="12"
+                        pattern="\d{12}"
+                        inputmode="numeric"
                         class="pl-10 w-full px-4 py-2.5 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
                         placeholder="Masukkan nombor KP"
                     >
@@ -105,8 +108,9 @@
                         name="dependent_age"
                         id="dependent_age"
                         wire:model="dependent_age"
-                        class="pl-10 w-full px-4 py-2.5 text-gray-900 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
-                        placeholder="Masukkan umur"
+                        readonly
+                        class="pl-10 w-full px-4 py-2.5 text-gray-500 bg-gray-50 dark:bg-gray-700 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200 cursor-not-allowed"
+                        placeholder="Umur akan dijana"
                     >
                 </div>
                 @error('dependent_age')
@@ -125,7 +129,7 @@
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-indigo-700 dark:text-indigo-300">
-                        Sila pastikan maklumat yang dimasukkan adalah tepat. Maklumat ini akan digunakan untuk tujuan pengesahan identiti.
+                        Sila pastikan maklumat yang dimasukkan adalah tepat. Maklumat ini akan digunakan untuk tujuan pengesahan identiti. Umur akan dikira secara automatik berdasarkan Nombor Kad Pengenalan.
                     </p>
                 </div>
             </div>

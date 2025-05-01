@@ -74,7 +74,7 @@ class UserResource extends Resource
                         ->rule('digits:12')
                         ->numeric()
                         ->mask('999999999999') // Added mask to restrict input length
-                        ->helperText('Nombor IC mesti 12 digit. Contoh: 920101123456
+                        ->helperText('Nombor IC mesti 12 digit. Contoh: 92010112345678
 ')
                         ->live() // Keep live() for immediate age calculation
                         ->validationMessages([

@@ -90,6 +90,26 @@ class UserRegistration extends Component
         return $this->redirect('/register/dependent', navigate: true);
     }
 
+    public function updatedIcNumber($value)
+    {
+        // Only calculate if 12 digits
+        if (preg_match('/^\d{12}$/', $value)) {
+            $year = substr($value, 0, 2);
+            $month = substr($value, 2, 2);
+            $day = substr($value, 4, 2);
+            $currentYear = 2025; // Use current year from context
+            $currentMonth = 5;   // May
+            $currentDay = 1;
+            $birthYear = (int)$year + ((int)$year > ($currentYear % 100) ? 1900 : 2000);
+            $age = $currentYear - $birthYear;
+            // If birthday hasn't occurred yet this year, subtract 1
+
+            $this->age = $age;
+        } else {
+            $this->age = null;
+        }
+    }
+
     public function render()
     {
 
