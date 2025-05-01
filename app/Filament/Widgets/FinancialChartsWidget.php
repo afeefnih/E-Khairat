@@ -13,7 +13,7 @@ use Livewire\Attributes\Computed;
 
 class FinancialChartsWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Income vs Expenses';
+    protected static ?string $heading = 'Pendapatan & Perbelanjaan';
     protected int | string | array $columnSpan = 'full';
     protected static ?string $maxHeight = '300px';
 
@@ -44,56 +44,28 @@ class FinancialChartsWidget extends ChartWidget
     protected function getData(): array
     {
         $data = $this->getIncomeVsExpenseData();
-
         return [
             'datasets' => [
                 [
-                    'label' => 'Payment Income',
-                    'data' => $data['payment_income'],
+                    'label' => 'Pendapatan',
+                    'data' => $data['total_income'],
                     'backgroundColor' => 'rgba(54, 162, 235, 0.7)',
                     'borderColor' => 'rgb(54, 162, 235)',
                     'borderWidth' => 1,
                 ],
                 [
-                    'label' => 'Transaction Income',
-                    'data' => $data['transaction_income'],
-                    'backgroundColor' => 'rgba(75, 192, 192, 0.7)',
-                    'borderColor' => 'rgb(75, 192, 192)',
-                    'borderWidth' => 1,
-                ],
-                [
-                    'label' => 'Expenses',
-                    'data' => $data['expenses'],
+                    'label' => 'Perbelanjaan',
+                    'data' => $data['total_expenses'],
                     'backgroundColor' => 'rgba(255, 99, 132, 0.7)',
                     'borderColor' => 'rgb(255, 99, 132)',
                     'borderWidth' => 1,
                 ],
                 [
-                    'label' => 'Death Costs',
+                    'label' => 'Kos Kematian',
                     'data' => $data['death_costs'],
-                    'backgroundColor' => 'rgba(255, 159, 64, 0.7)',
-                    'borderColor' => 'rgb(255, 159, 64)',
+                    'backgroundColor' => 'rgba(255, 206, 86, 0.7)',
+                    'borderColor' => 'rgb(255, 206, 86)',
                     'borderWidth' => 1,
-                ],
-                [
-                    'label' => 'Total Income',
-                    'data' => $data['total_income'],
-                    'backgroundColor' => 'rgba(0, 0, 0, 0)', // Transparent
-                    'borderColor' => 'rgba(0, 200, 0, 1)',
-                    'borderWidth' => 2,
-                    'type' => 'line',
-                    'fill' => false,
-                    'tension' => 0.1,
-                ],
-                [
-                    'label' => 'Total Expenses',
-                    'data' => $data['total_expenses'],
-                    'backgroundColor' => 'rgba(0, 0, 0, 0)', // Transparent
-                    'borderColor' => 'rgba(255, 0, 0, 1)',
-                    'borderWidth' => 2,
-                    'type' => 'line',
-                    'fill' => false,
-                    'tension' => 0.1,
                 ],
             ],
             'labels' => $data['labels'],
@@ -134,6 +106,7 @@ class FinancialChartsWidget extends ChartWidget
         $totalIncome = [];
         $expenses = [];
         $deathCosts = [];
+        $nonMemberDeathCosts = [];
         $totalExpenses = [];
 
         $current = clone $start;
@@ -164,10 +137,15 @@ class FinancialChartsWidget extends ChartWidget
 
             // Get death costs for this day
             $dayDeathCosts = 0;
+            $dayNonMemberDeathCosts = 0;
             $dayDeathRecords = DeathRecord::whereDate('date_of_death', $current)->get();
 
             foreach ($dayDeathRecords as $record) {
-                $dayDeathCosts += $record->total_cost;
+                if ($record->deceased_type === 'non_member') {
+                    $dayNonMemberDeathCosts += $record->total_cost;
+                } else {
+                    $dayDeathCosts += $record->total_cost;
+                }
             }
 
             // Calculate total expenses
@@ -178,6 +156,7 @@ class FinancialChartsWidget extends ChartWidget
             $totalIncome[] = $dayTotalIncome ?: 0;
             $expenses[] = $dayExpenses ?: 0;
             $deathCosts[] = $dayDeathCosts ?: 0;
+            $nonMemberDeathCosts[] = $dayNonMemberDeathCosts ?: 0;
             $totalExpenses[] = $dayTotalExpenses ?: 0;
 
             $current->addDay();
@@ -190,6 +169,7 @@ class FinancialChartsWidget extends ChartWidget
             'total_income' => $totalIncome,
             'expenses' => $expenses,
             'death_costs' => $deathCosts,
+            'non_member_death_costs' => $nonMemberDeathCosts,
             'total_expenses' => $totalExpenses,
         ];
     }
@@ -202,6 +182,7 @@ class FinancialChartsWidget extends ChartWidget
         $totalIncome = [];
         $expenses = [];
         $deathCosts = [];
+        $nonMemberDeathCosts = [];
         $totalExpenses = [];
 
         // Start from the beginning of the start month
@@ -239,12 +220,17 @@ class FinancialChartsWidget extends ChartWidget
 
             // Get death costs for this month
             $monthDeathCosts = 0;
+            $monthNonMemberDeathCosts = 0;
             $monthStart = $current->copy()->startOfMonth();
             $monthEnd = $current->copy()->endOfMonth();
             $monthDeathRecords = DeathRecord::whereBetween('date_of_death', [$monthStart, $monthEnd])->get();
 
             foreach ($monthDeathRecords as $record) {
-                $monthDeathCosts += $record->total_cost;
+                if ($record->deceased_type === 'non_member') {
+                    $monthNonMemberDeathCosts += $record->total_cost;
+                } else {
+                    $monthDeathCosts += $record->total_cost;
+                }
             }
 
             // Calculate total expenses
@@ -255,6 +241,7 @@ class FinancialChartsWidget extends ChartWidget
             $totalIncome[] = $monthTotalIncome ?: 0;
             $expenses[] = $monthExpenses ?: 0;
             $deathCosts[] = $monthDeathCosts ?: 0;
+            $nonMemberDeathCosts[] = $monthNonMemberDeathCosts ?: 0;
             $totalExpenses[] = $monthTotalExpenses ?: 0;
 
             $current->addMonth();
@@ -267,6 +254,7 @@ class FinancialChartsWidget extends ChartWidget
             'total_income' => $totalIncome,
             'expenses' => $expenses,
             'death_costs' => $deathCosts,
+            'non_member_death_costs' => $nonMemberDeathCosts,
             'total_expenses' => $totalExpenses,
         ];
     }
@@ -279,6 +267,7 @@ class FinancialChartsWidget extends ChartWidget
         $totalIncome = [];
         $expenses = [];
         $deathCosts = [];
+        $nonMemberDeathCosts = [];
         $totalExpenses = [];
 
         // Start from the beginning of the start quarter
@@ -317,10 +306,15 @@ class FinancialChartsWidget extends ChartWidget
 
             // Get death costs for this quarter
             $quarterDeathCosts = 0;
+            $quarterNonMemberDeathCosts = 0;
             $quarterDeathRecords = DeathRecord::whereBetween('date_of_death', [$quarterStart, $quarterEnd])->get();
 
             foreach ($quarterDeathRecords as $record) {
-                $quarterDeathCosts += $record->total_cost;
+                if ($record->deceased_type === 'non_member') {
+                    $quarterNonMemberDeathCosts += $record->total_cost;
+                } else {
+                    $quarterDeathCosts += $record->total_cost;
+                }
             }
 
             // Calculate total expenses
@@ -331,6 +325,7 @@ class FinancialChartsWidget extends ChartWidget
             $totalIncome[] = $quarterTotalIncome ?: 0;
             $expenses[] = $quarterExpenses ?: 0;
             $deathCosts[] = $quarterDeathCosts ?: 0;
+            $nonMemberDeathCosts[] = $quarterNonMemberDeathCosts ?: 0;
             $totalExpenses[] = $quarterTotalExpenses ?: 0;
 
             $current->addQuarter();
@@ -343,6 +338,7 @@ class FinancialChartsWidget extends ChartWidget
             'total_income' => $totalIncome,
             'expenses' => $expenses,
             'death_costs' => $deathCosts,
+            'non_member_death_costs' => $nonMemberDeathCosts,
             'total_expenses' => $totalExpenses,
         ];
     }

@@ -474,7 +474,7 @@
                             columnWidth: '70%'
                         }
                     },
-                    colors: ['#ef4444', '#7c3aed'],
+                    colors: ['#ef4444', '#7c3aed', '#10b981'],
                     dataLabels: {
                         enabled: false
                     },
@@ -484,6 +484,9 @@
                     }, {
                         name: 'Tanggungan',
                         data: deathData.dependentDeaths
+                    }, {
+                        name: 'Bukan Ahli',
+                        data: deathData.nonMemberDeaths
                     }],
                     xaxis: {
                         categories: deathData.labels,
