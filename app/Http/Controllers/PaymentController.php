@@ -258,10 +258,10 @@ class PaymentController extends Controller
             session()->regenerate(); // Regenerate the session to avoid conflicts
 
             // Redirect to the dashboard after successful registration
-            return redirect()->route('dashboard')->with('success', 'Registration completed successfully! Welcome to our platform.');
+            return redirect()->route('dashboard')->with('success', 'Tahniah! Pendaftaran anda telah berjaya. Selamat datang ke platform e-Khairat.');
         } else {
             // Payment failed
-            return redirect()->route('home')->with('error', 'Payment failed! Please try again.');
+            return redirect()->route('home')->with('error', 'Pembayaran gagal! Sila cuba lagi.');
         }
     }
 

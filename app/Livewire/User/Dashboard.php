@@ -7,6 +7,8 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PaymentCategory;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Jobs\GeneratePaymentReceipt;
+use Illuminate\Support\Facades\Storage;
 
 class Dashboard extends Component
 {
@@ -71,27 +73,40 @@ class Dashboard extends Component
     public function downloadReceipt($paymentId)
     {
         // Get payment with related data
-        $payment = Payment::with(['user', 'payment_category'])
-            ->findOrFail($paymentId);
+        $payment = Payment::findOrFail($paymentId);
 
         // Check if user is authorized to view this receipt
         if (auth()->id() !== $payment->user_id && !auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Generate receipt number with better formatting
+        // Check if receipt already exists
         $receiptNumber = 'INV-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
+        $filename = "receipts/" . auth()->id() . "/{$receiptNumber}.pdf";
 
-        // Generate PDF
-        $pdf = PDF::loadView('pdf.paymentReceipt', [
-            'payment' => $payment,
-            'receiptNumber' => $receiptNumber
+        if (Storage::disk('public')->exists($filename)) {
+            return Storage::disk('public')->download($filename);
+        }
+
+        // Dispatch job to generate PDF
+        GeneratePaymentReceipt::dispatch($paymentId, auth()->id());
+
+        // Notify user that PDF is being generated
+        $this->dispatch('notify', [
+            'type' => 'info',
+            'message' => 'Your receipt is being generated. You will be notified when it\'s ready.'
         ]);
+    }
 
-        // Return the PDF for download
-        return response()->streamDownload(
-            fn () => print($pdf->output()),
-            'receipt-' . $receiptNumber . '.pdf'
-        );
+    public function downloadGeneratedReceipt($filename)
+    {
+        if (Storage::disk('public')->exists($filename)) {
+            return Storage::disk('public')->download($filename);
+        }
+
+        $this->dispatch('notify', [
+            'type' => 'error',
+            'message' => 'Receipt file not found. Please try generating it again.'
+        ]);
     }
 }

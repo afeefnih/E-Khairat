@@ -71,6 +71,13 @@ class DeathRecordsTimelineWidget extends ChartWidget
                     'borderColor' => 'rgb(54, 162, 235)',
                     'borderWidth' => 1
                 ],
+                [
+                    'label' => 'Bukan Ahli',
+                    'data' => $data['non_member_deaths'],
+                    'backgroundColor' => 'rgba(255, 206, 86, 0.2)',
+                    'borderColor' => 'rgb(255, 206, 86)',
+                    'borderWidth' => 1
+                ],
             ],
             'labels' => $data['labels'],
         ];
@@ -107,6 +114,7 @@ class DeathRecordsTimelineWidget extends ChartWidget
         $labels = [];
         $memberDeaths = [];
         $dependentDeaths = [];
+        $nonMemberDeaths = [];
 
         $current = clone $start;
 
@@ -122,9 +130,14 @@ class DeathRecordsTimelineWidget extends ChartWidget
                 ->whereDate('date_of_death', $current)
                 ->count();
 
+            $nonMemberDeathCount = DeathRecord::where('deceased_type', 'non_member')
+                ->whereDate('date_of_death', $current)
+                ->count();
+
             $labels[] = $dayLabel;
             $memberDeaths[] = $memberDeathCount;
             $dependentDeaths[] = $dependentDeathCount;
+            $nonMemberDeaths[] = $nonMemberDeathCount;
 
             $current->addDay();
         }
@@ -133,6 +146,7 @@ class DeathRecordsTimelineWidget extends ChartWidget
             'labels' => $labels,
             'member_deaths' => $memberDeaths,
             'dependent_deaths' => $dependentDeaths,
+            'non_member_deaths' => $nonMemberDeaths,
         ];
     }
 
@@ -141,6 +155,7 @@ class DeathRecordsTimelineWidget extends ChartWidget
         $labels = [];
         $memberDeaths = [];
         $dependentDeaths = [];
+        $nonMemberDeaths = [];
 
         // Start from the beginning of the start month
         $current = $start->copy()->startOfMonth();
@@ -162,9 +177,15 @@ class DeathRecordsTimelineWidget extends ChartWidget
                 ->whereMonth('date_of_death', $current->month)
                 ->count();
 
+            $nonMemberDeathCount = DeathRecord::where('deceased_type', 'non_member')
+                ->whereYear('date_of_death', $current->year)
+                ->whereMonth('date_of_death', $current->month)
+                ->count();
+
             $labels[] = $monthLabel;
             $memberDeaths[] = $memberDeathCount;
             $dependentDeaths[] = $dependentDeathCount;
+            $nonMemberDeaths[] = $nonMemberDeathCount;
 
             $current->addMonth();
         }
@@ -173,6 +194,7 @@ class DeathRecordsTimelineWidget extends ChartWidget
             'labels' => $labels,
             'member_deaths' => $memberDeaths,
             'dependent_deaths' => $dependentDeaths,
+            'non_member_deaths' => $nonMemberDeaths,
         ];
     }
 
@@ -181,6 +203,7 @@ class DeathRecordsTimelineWidget extends ChartWidget
         $labels = [];
         $memberDeaths = [];
         $dependentDeaths = [];
+        $nonMemberDeaths = [];
 
         // Start from the beginning of the start quarter
         $current = $start->copy()->startOfQuarter();
@@ -203,9 +226,14 @@ class DeathRecordsTimelineWidget extends ChartWidget
                 ->whereBetween('date_of_death', [$quarterStart, $quarterEnd])
                 ->count();
 
+            $nonMemberDeathCount = DeathRecord::where('deceased_type', 'non_member')
+                ->whereBetween('date_of_death', [$quarterStart, $quarterEnd])
+                ->count();
+
             $labels[] = $quarterLabel;
             $memberDeaths[] = $memberDeathCount;
             $dependentDeaths[] = $dependentDeathCount;
+            $nonMemberDeaths[] = $nonMemberDeathCount;
 
             $current->addQuarter();
         }
@@ -214,6 +242,7 @@ class DeathRecordsTimelineWidget extends ChartWidget
             'labels' => $labels,
             'member_deaths' => $memberDeaths,
             'dependent_deaths' => $dependentDeaths,
+            'non_member_deaths' => $nonMemberDeaths,
         ];
     }
 }

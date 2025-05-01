@@ -225,6 +225,7 @@ class AdvancedAnalytics extends Page
         $period = $this->period;
         $memberDeaths = [];
         $dependentDeaths = [];
+        $nonMemberDeaths = [];
         $labels = [];
 
         if ($period == 'year') {
@@ -243,8 +244,14 @@ class AdvancedAnalytics extends Page
                     ->whereYear('date_of_death', $month->year)
                     ->count();
 
+                $nonMemberCount = DeathRecord::where('deceased_type', 'non_member')
+                    ->whereMonth('date_of_death', $month->month)
+                    ->whereYear('date_of_death', $month->year)
+                    ->count();
+
                 $memberDeaths[] = $memberCount;
                 $dependentDeaths[] = $dependentCount;
+                $nonMemberDeaths[] = $nonMemberCount;
             }
         } elseif ($period == 'quarter') {
             // Weekly death records for the last 3 months
@@ -261,8 +268,13 @@ class AdvancedAnalytics extends Page
                     ->whereBetween('date_of_death', [$startDate, $endDate])
                     ->count();
 
+                $nonMemberCount = DeathRecord::where('deceased_type', 'non_member')
+                    ->whereBetween('date_of_death', [$startDate, $endDate])
+                    ->count();
+
                 $memberDeaths[] = $memberCount;
                 $dependentDeaths[] = $dependentCount;
+                $nonMemberDeaths[] = $nonMemberCount;
             }
         } else { // month
             // Last 30 days death records
@@ -275,18 +287,24 @@ class AdvancedAnalytics extends Page
                     ->count();
 
                 $dependentCount = DeathRecord::where('deceased_type', 'App\\Models\\Dependent')
-                    ->whereDate('deceased_type', $date)
+                    ->whereDate('date_of_death', $date)
+                    ->count();
+
+                $nonMemberCount = DeathRecord::where('deceased_type', 'non_member')
+                    ->whereDate('date_of_death', $date)
                     ->count();
 
                 $memberDeaths[] = $memberCount;
                 $dependentDeaths[] = $dependentCount;
+                $nonMemberDeaths[] = $nonMemberCount;
             }
         }
 
         $this->deathRecordsData = [
             'labels' => $labels,
             'memberDeaths' => $memberDeaths,
-            'dependentDeaths' => $dependentDeaths
+            'dependentDeaths' => $dependentDeaths,
+            'nonMemberDeaths' => $nonMemberDeaths,
         ];
     }
 

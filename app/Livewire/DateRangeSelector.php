@@ -15,7 +15,6 @@ class DateRangeSelector extends Component
     public $endDate;
     public $preset = 'thisYear'; // Default to allTime
     public $presets = [
-        'allTime' => 'Semua Masa',
         'today' => 'Hari Ini',
         'yesterday' => 'Semalam',
         'last7days' => '7 Hari Lepas',
