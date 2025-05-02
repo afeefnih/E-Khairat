@@ -92,12 +92,14 @@
                                         name="ic_number"
                                         id="ic_number"
                                         wire:model="state.ic_number"
+                                        maxlength="12" minlength="12" pattern="\d{12}"
+                                        inputmode="numeric"
                                         class="border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:text-white
                                         {{ $editMode
                                             ? 'bg-gray-50 border-gray-300 focus:ring-indigo-600 focus:border-indigo-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-indigo-500 dark:focus:border-indigo-500'
                                             : 'bg-gray-100 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:border-gray-700'
                                         }}"
-                                        placeholder="xxxxxx-xx-xxxx"
+                                        placeholder="xxxxxxxxxxxx"
                                         {{ $editMode ? '' : 'readonly' }}
                                     >
                                     @error('state.ic_number') <span class="text-red-500 text-sm mt-1">{{ $message }}</span> @enderror
@@ -111,13 +113,9 @@
                                         name="age"
                                         id="age"
                                         wire:model="state.age"
-                                        class="border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:text-white
-                                        {{ $editMode
-                                            ? 'bg-gray-50 border-gray-300 focus:ring-indigo-600 focus:border-indigo-600 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-indigo-500 dark:focus:border-indigo-500'
-                                            : 'bg-gray-100 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:border-gray-700'
-                                        }}"
+                                        readonly
+                                        class="border text-gray-500 text-sm rounded-lg block w-full p-2.5 bg-gray-50 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 cursor-not-allowed"
                                         placeholder="Umur anda"
-                                        {{ $editMode ? '' : 'readonly' }}
                                     >
                                     @error('state.age') <span class="text-red-500 text-sm mt-1">{{ $message }}</span> @enderror
                                 </div>

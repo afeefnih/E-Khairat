@@ -7,7 +7,6 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PaymentCategory;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Jobs\GeneratePaymentReceipt;
 use Illuminate\Support\Facades\Storage;
 
 class Dashboard extends Component
@@ -72,30 +71,29 @@ class Dashboard extends Component
     // Add the download receipt function
     public function downloadReceipt($paymentId)
     {
-        // Get payment with related data
-        $payment = Payment::findOrFail($paymentId);
+        $payment = Payment::with('user', 'payment_category')->findOrFail($paymentId);
 
         // Check if user is authorized to view this receipt
         if (auth()->id() !== $payment->user_id && !auth()->user()->hasRole('admin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Check if receipt already exists
         $receiptNumber = 'INV-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
         $filename = "receipts/" . auth()->id() . "/{$receiptNumber}.pdf";
 
-        if (Storage::disk('public')->exists($filename)) {
-            return Storage::disk('public')->download($filename);
-        }
-
-        // Dispatch job to generate PDF
-        GeneratePaymentReceipt::dispatch($paymentId, auth()->id());
-
-        // Notify user that PDF is being generated
-        $this->dispatch('notify', [
-            'type' => 'info',
-            'message' => 'Your receipt is being generated. You will be notified when it\'s ready.'
+        // Generate PDF from Blade view
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.paymentReceipt', [
+            'payment' => $payment,
+            'receiptNumber' => $receiptNumber,
         ]);
+
+        // Save PDF to storage (optional)
+        \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $pdf->output());
+
+        // Return PDF as download
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $receiptNumber . '.pdf');
     }
 
     public function downloadGeneratedReceipt($filename)

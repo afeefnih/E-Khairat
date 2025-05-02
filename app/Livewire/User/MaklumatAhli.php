@@ -97,6 +97,26 @@ class MaklumatAhli extends Component
 
 
     }
+
+    public function updatedStateIcNumber($value)
+    {
+        // Only calculate if 12 digits
+        if (preg_match('/^\d{12}$/', $value)) {
+            $year = substr($value, 0, 2);
+            $month = substr($value, 2, 2);
+            $day = substr($value, 4, 2);
+            $currentYear = 2025; // Use current year from context
+            $currentMonth = 5;   // May
+            $currentDay = 3;
+            $birthYear = (int)$year + ((int)$year > ($currentYear % 100) ? 1900 : 2000);
+            $age = $currentYear - $birthYear;
+
+            $this->state['age'] = $age;
+        } else {
+            $this->state['age'] = null;
+        }
+    }
+
     public function render()
     {
         return view('livewire.user.maklumat-ahli');

@@ -549,4 +549,22 @@ protected function notifyAdmins(DependentEditRequest $request)
     {
         return view('livewire.dependent-list');
     }
+
+    public function updatedDependentIcNumber($value)
+    {
+        // Only calculate if 12 digits
+        if (preg_match('/^\d{12}$/', $value)) {
+            $year = substr($value, 0, 2);
+            $month = substr($value, 2, 2);
+            $day = substr($value, 4, 2);
+            $currentYear = date('Y');
+            $currentMonth = date('m');
+            $currentDay = date('d');
+            $birthYear = (int)$year + ((int)$year > ($currentYear % 100) ? 1900 : 2000);
+            $age = $currentYear - $birthYear;
+            $this->dependent_age = $age;
+        } else {
+            $this->dependent_age = null;
+        }
+    }
 }
