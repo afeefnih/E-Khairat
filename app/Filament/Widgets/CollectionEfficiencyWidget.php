@@ -7,39 +7,34 @@ use App\Models\PaymentCategory;
 use Filament\Widgets\ChartWidget;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Session;
-use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Log;
 
 class CollectionEfficiencyWidget extends ChartWidget
 {
     protected static ?string $heading = 'Peratusan Pembayaran Mengikut Kategori'; // "Payment Percentage by Category"
-    protected static ?int $sort = 50;
+    protected static ?int $sort = 80;
     protected int | string | array $columnSpan = 'full';
     protected static ?string $maxHeight = '300px';
-
-    // Properties to store the date range
-    public $startDate;
-    public $endDate;
-
-    public function mount(): void
-
-    {
-        // Get date range from session
-        $this->startDate = Session::get('dashboard_start_date', Carbon::today()->subDays(29)->format('Y-m-d'));
-        $this->endDate = Session::get('dashboard_end_date', Carbon::today()->format('Y-m-d'));
-    }
-
-    #[On('dateRangeChanged')]
-    public function updateDateRange($data)
-    {
-        $this->startDate = $data['startDate'];
-        $this->endDate = $data['endDate'];
-        $this->updateChartData();
-    }
 
     protected function getData(): array
     {
         $data = $this->getCollectionEfficiencyData();
+
+        // If no data, provide default values to ensure the chart renders
+        if (empty($data['percentagePaid'])) {
+            return [
+                'datasets' => [
+                    [
+                        'label' => 'Peratus Dibayar',
+                        'data' => [100],
+                        'backgroundColor' => ['rgba(200, 200, 200, 0.7)'],
+                        'borderColor' => ['rgb(200, 200, 200)'],
+                        'borderWidth' => 1
+                    ],
+                ],
+                'labels' => ['Tiada Data'],
+            ];
+        }
 
         return [
             'datasets' => [
@@ -52,11 +47,17 @@ class CollectionEfficiencyWidget extends ChartWidget
                         'rgba(255, 159, 64, 0.7)',
                         'rgba(54, 162, 235, 0.7)',
                         'rgba(255, 99, 132, 0.7)',
+                        'rgba(255, 205, 86, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
                     ],
                     'borderColor' => [
                         'rgb(75, 192, 192)',
                         'rgb(153, 102, 255)',
                         'rgb(255, 159, 64)',
+                        'rgb(54, 162, 235)',
+                        'rgb(255, 99, 132)',
+                        'rgb(255, 205, 86)',
                         'rgb(54, 162, 235)',
                         'rgb(255, 99, 132)',
                     ],
@@ -74,10 +75,7 @@ class CollectionEfficiencyWidget extends ChartWidget
 
     private function getCollectionEfficiencyData(): array
     {
-        $startDate = Carbon::parse($this->startDate);
-        $endDate = Carbon::parse($this->endDate);
-
-        // Based on your PaymentCategoryResource structure
+        // Get active payment categories
         $categories = PaymentCategory::where('category_status', 'active')
             ->get();
 
@@ -85,25 +83,40 @@ class CollectionEfficiencyWidget extends ChartWidget
         $percentagePaid = [];
 
         foreach ($categories as $category) {
-            // Count total payments for this category within date range
+            // Count total payments for this category (without date filtering)
             $totalPayments = Payment::where('payment_category_id', $category->id)
-                ->whereBetween('created_at', [$startDate, $endDate])
                 ->count();
 
-            // Count paid payments for this category within date range
+            // Count paid payments (status_id = 1) for this category
             $paidPayments = Payment::where('payment_category_id', $category->id)
                 ->where('status_id', '1')
-                ->whereBetween('created_at', [$startDate, $endDate])
                 ->count();
 
-            // Calculate percentage
-            $percentage = $totalPayments > 0
-                ? round(($paidPayments / $totalPayments) * 100)
-                : 0;
+            // If no payments at all for this category, show as 0% collection
+            if ($totalPayments == 0) {
+                if ($category->amount > 0) {
+                    // This is a valid payment category with no payments yet
+                    $labels[] = $category->category_name . ' (0/0)';
+                    $percentagePaid[] = 0;
+                }
+                continue;
+            }
 
-            // Create a label that includes the raw data
+            // Calculate percentage
+            $percentage = round(($paidPayments / $totalPayments) * 100);
+
+            // Always add categories that have data
             $labels[] = $category->category_name . ' (' . $paidPayments . '/' . $totalPayments . ')';
             $percentagePaid[] = $percentage;
+        }
+
+        // If still no data at all, create a static example
+        if (empty($labels)) {
+            // Create sample data
+            foreach (['Yuran Bulanan', 'Yuran Tahunan', 'Khairat Kematian'] as $index => $name) {
+                $labels[] = $name . ' (Sampel)';
+                $percentagePaid[] = ($index + 1) * 25;
+            }
         }
 
         return [
@@ -115,6 +128,8 @@ class CollectionEfficiencyWidget extends ChartWidget
     protected function getOptions(): array
     {
         return [
+            'responsive' => true,
+            'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => [
                     'display' => true,

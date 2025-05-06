@@ -8,6 +8,8 @@ use App\Models\User;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\ValidationException;
+use App\Notifications\NewPaymentCategoryNotification;
+use Illuminate\Support\Facades\Bus;
 
 class CreatePaymentCategory extends CreateRecord
 {
@@ -32,14 +34,15 @@ class CreatePaymentCategory extends CreateRecord
         // Get the newly created payment category
         $paymentCategory = $this->record;
 
-        // Get IDs of all non-admin users
+        // ======== PART 1: CREATE PAYMENT RECORDS FOR ALL USERS ========
+        // Get IDs of ALL non-admin users (no limit)
         $nonAdminUserIds = User::whereDoesntHave('roles', function ($query) {
                 $query->where('name', 'admin');
             })
             ->pluck('id')
             ->toArray();
 
-        // Prepare batch insert data
+        // Prepare batch insert data for ALL users (payment records for everyone)
         $paymentRecords = [];
         $now = now();
 
@@ -58,9 +61,34 @@ class CreatePaymentCategory extends CreateRecord
         }
 
         // Use chunk insert for better performance with large datasets
+        // THIS CREATES PAYMENT RECORDS FOR ALL USERS
         $chunkSize = 50; // Adjust based on your database capabilities
         foreach (array_chunk($paymentRecords, $chunkSize) as $chunk) {
             Payment::insert($chunk);
         }
+
+        // ======== PART 2: SEND NOTIFICATIONS TO ONLY 5 USERS ========
+        // Get ONLY 5 non-admin users for notifications (development limit)
+        $nonAdminUsers = User::whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'admin');
+            })
+            ->take(5) // Limit to ONLY 5 users for notifications during development
+            ->get();
+
+        // Send notifications to ONLY those 5 limited users via queue
+        foreach ($nonAdminUsers as $user) {
+            $user->notify(new NewPaymentCategoryNotification($paymentCategory));
+        }
+
+        // Total number of payment records created vs number of notifications sent
+        $totalPayments = count($nonAdminUserIds);
+        $totalNotifications = count($nonAdminUsers);
+
+        // Show admin notification about successful notification dispatch
+        Notification::make()
+            ->title('Kutipan sumbangan berjaya ditambah')
+            ->body("Rekod pembayaran dicipta untuk {$totalPayments} ahli. Notifikasi dihantar kepada {$totalNotifications} ahli sahaja (had pembangunan).")
+            ->success()
+            ->send();
     }
 }
