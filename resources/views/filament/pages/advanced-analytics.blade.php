@@ -39,7 +39,7 @@
                             @endif
                         </div>
                     </div>
-                    <div id="memberGrowthChart" style="min-height: 300px; width: 100%"></div>
+                    <div id="memberGrowthChart" class="w-full max-w-full min-h-[300px] relative overflow-x-auto bg-white dark:bg-gray-800" style="min-height: 300px; width: 100%"></div>
                 </div>
 
                 <!-- Payment Trends Chart - always full width -->
@@ -56,7 +56,7 @@
                             @endif
                         </div>
                     </div>
-                    <div id="paymentTrendsChart" style="min-height: 300px; width: 100%"></div>
+                    <div id="paymentTrendsChart" class="w-full max-w-full min-h-[300px] relative overflow-x-auto bg-white dark:bg-gray-800" style="min-height: 300px; width: 100%"></div>
                 </div>
 
                 <!-- Small charts container - separate grid for small charts -->
@@ -66,7 +66,7 @@
                         <div class="flex items-start justify-between mb-4">
                             <h2 class="text-lg font-medium">Rekod Kematian</h2>
                         </div>
-                        <div id="deathRecordsChart" style="min-height: 300px; width: 100%"></div>
+                        <div id="deathRecordsChart" class="w-full max-w-full min-h-[300px] relative overflow-x-auto bg-white dark:bg-gray-800" style="min-height: 300px; width: 100%"></div>
                     </div>
 
                     <!-- Age Distribution Chart -->
@@ -74,7 +74,7 @@
                         <div class="flex items-start justify-between mb-4">
                             <h2 class="text-lg font-medium">Taburan Umur Ahli dan Tanggungan</h2>
                         </div>
-                        <div id="ageDistributionChart" style="min-height: 300px; width: 100%"></div>
+                        <div id="ageDistributionChart" class="w-full max-w-full min-h-[300px] relative overflow-x-auto bg-white dark:bg-gray-800" style="min-height: 300px; width: 100%"></div>
                     </div>
                 </div>
             </div>
@@ -151,11 +151,22 @@
                 const container = document.getElementById(containerId);
                 if (!container) return;
 
+                // Destroy previous chart instance if exists
+                if (window[containerId] && typeof window[containerId].destroy === 'function') {
+                    window[containerId].destroy();
+                }
+
                 container.innerHTML = '';
 
                 // Create and store chart instance
                 window[containerId] = new ApexCharts(container, config);
                 window[containerId].render();
+                // Force resize after render to fix responsiveness in light mode
+                setTimeout(() => {
+                    if (window[containerId] && typeof window[containerId].resize === 'function') {
+                        window[containerId].resize();
+                    }
+                }, 100);
             }
 
             // Set up a mutation observer to watch for theme changes
@@ -246,7 +257,8 @@
                             speed: 500
                         },
                         redrawOnWindowResize: true,
-                        redrawOnParentResize: true
+                        redrawOnParentResize: true,
+                        width: '100%'
                     },
                     theme: {
                         mode: isDarkMode ? 'dark' : 'light',
@@ -305,7 +317,8 @@
                     chart: {
                         ...baseConfig.chart,
                         type: 'area',
-                        height: 300
+                        height: 300,
+                        width: '100%',
                     },
                     stroke: {
                         curve: 'smooth',
@@ -386,7 +399,8 @@
                     chart: {
                         ...baseConfig.chart,
                         type: 'bar',
-                        height: 300
+                        height: 300,
+                        width: '100%'
                     },
                     plotOptions: {
                         bar: {
@@ -465,7 +479,8 @@
                         ...baseConfig.chart,
                         type: 'bar',
                         height: 300,
-                        stacked: true
+                        stacked: true,
+                        width: '100%'
                     },
                     plotOptions: {
                         bar: {
@@ -540,7 +555,8 @@
                     chart: {
                         ...baseConfig.chart,
                         type: 'donut',
-                        height: 300
+                        height: 300,
+                        width: '100%'
                     },
                     colors: ['#0ea5e9', '#14b8a6', '#f59e0b', '#8b5cf6', '#ef4444', '#3b82f6', '#10b981'],
                     series: ageData.map(item => item.count),

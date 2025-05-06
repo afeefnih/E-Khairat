@@ -10,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 
 class EditPaymentCategory extends EditRecord
 {
+    //title
+    protected static ?string $title = 'Edit Jenis Kutipan Sumbangan';
     protected static string $resource = PaymentCategoryResource::class;
 
     // Add validation error notification

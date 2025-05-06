@@ -14,7 +14,7 @@ class CollectionEfficiencyWidget extends ChartWidget
     protected static ?string $heading = 'Peratusan Pembayaran Mengikut Kategori'; // "Payment Percentage by Category"
     protected static ?int $sort = 80;
     protected int | string | array $columnSpan = 'full';
-    protected static ?string $maxHeight = '300px';
+    protected static ?string $maxHeight = '200px';
 
     protected function getData(): array
     {
@@ -138,6 +138,10 @@ class CollectionEfficiencyWidget extends ChartWidget
                 'tooltip' => [
                     'enabled' => true,
                 ],
+            ],
+            'scales' => [
+                'x' => [ 'display' => false ],
+                'y' => [ 'display' => false ],
             ],
         ];
     }

@@ -624,7 +624,7 @@ class DeathRecordResource extends Resource
                         ->disabled()
                         ->live()
                         ->reactive()
-                        // ->formatStateUsing(...) // Removed
+                        ->formatStateUsing(fn($state, $record) => $record ? $record->age_category : $state)
                         ->dehydrated(), // Allow saving
 
                     Forms\Components\TextInput::make('calculated_amount')
@@ -633,7 +633,7 @@ class DeathRecordResource extends Resource
                         ->prefix('RM')
                         ->live()
                         ->reactive()
-                        // ->formatStateUsing(...) // Removed
+                        ->formatStateUsing(fn($state, $record) => $record ? $record->calculated_amount : $state)
                         ->dehydrated(), // Allow saving
 
                     // Added custom_amount field
@@ -653,6 +653,7 @@ class DeathRecordResource extends Resource
                            $set('final_amount', (string) $total);
                        })
                        ->default(0)
+                       ->formatStateUsing(fn($state, $record) => $record ? $record->custom_amount : $state)
                        ->dehydrated(), // Ensure it's saved
 
                     Forms\Components\TextInput::make('final_amount')
@@ -661,7 +662,7 @@ class DeathRecordResource extends Resource
                         ->prefix('RM')
                         ->live()
                         ->reactive()
-                        // ->formatStateUsing(...) // Removed
+                        ->formatStateUsing(fn($state, $record) => $record ? $record->final_amount : $state)
                         ->dehydrated(), // Allow saving
                 ])
                 ->columns(2),

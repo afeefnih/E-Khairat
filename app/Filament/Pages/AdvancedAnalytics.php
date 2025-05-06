@@ -102,67 +102,68 @@ class AdvancedAnalytics extends Page
     }
 
     private function loadMemberGrowthData()
-{
-    $period = $this->period;
-    $data = [];
+    {
+        $period = $this->period;
+        $data = [];
 
-    // Optimize query by using query builder more efficiently
-    $userQuery = User::whereHas('roles', function ($query) {
-        $query->where('name', 'user');
-    });
+        // Optimize query by using query builder more efficiently
+        $userQuery = User::whereHas('roles', function ($query) {
+            $query->where('name', 'user');
+        });
 
-    if ($period == 'year') {
-        // Get monthly member growth over the last year
-        for ($i = 11; $i >= 0; $i--) {
-            $month = Carbon::now()->subMonths($i);
-            $startOfMonth = $month->copy()->startOfMonth();
-            $endOfMonth = $month->copy()->endOfMonth();
-            $label = $month->format('M Y');
+        if ($period == 'year') {
+            // Get monthly member growth over the last year
+            for ($i = 11; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i);
+                $startOfMonth = $month->copy()->startOfMonth();
+                $endOfMonth = $month->copy()->endOfMonth();
+                $label = $month->format('M Y');
 
-            $count = (clone $userQuery)
-                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-                ->count();
+                $count = (clone $userQuery)
+                    ->whereBetween('registration_date', [$startOfMonth, $endOfMonth])
+                    ->count();
 
-            $data[] = [
-                'label' => $label,
-                'value' => $count
-            ];
+                $data[] = [
+                    'label' => $label,
+                    'value' => $count
+                ];
+            }
+        } elseif ($period == 'quarter') {
+            // Weekly data for the last 3 months
+            for ($i = 11; $i >= 0; $i--) {
+                $startDate = Carbon::now()->startOfWeek()->subWeeks($i);
+                $endDate = Carbon::now()->startOfWeek()->subWeeks($i)->endOfWeek();
+                $label = $startDate->format('d M') . ' - ' . $endDate->format('d M');
+
+                $count = (clone $userQuery)
+                    ->whereBetween('registration_date', [$startDate, $endDate])
+                    ->count();
+
+                $data[] = [
+                    'label' => $label,
+                    'value' => $count
+                ];
+            }
+        } else { // month
+            // Daily data for the last 30 days - using a more straightforward approach
+            for ($i = 29; $i >= 0; $i--) {
+                $date = Carbon::now()->subDays($i);
+                $label = $date->format('d M');
+
+                $count = (clone $userQuery)
+                    ->whereDate('registration_date', $date)
+                    ->count();
+
+                $data[] = [
+                    'label' => $label,
+                    'value' => $count
+                ];
+            }
         }
-    } elseif ($period == 'quarter') {
-        // Weekly data for the last 3 months
-        for ($i = 11; $i >= 0; $i--) {
-            $startDate = Carbon::now()->startOfWeek()->subWeeks($i);
-            $endDate = Carbon::now()->startOfWeek()->subWeeks($i)->endOfWeek();
-            $label = $startDate->format('d M') . ' - ' . $endDate->format('d M');
 
-            $count = (clone $userQuery)
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count();
-
-            $data[] = [
-                'label' => $label,
-                'value' => $count
-            ];
-        }
-    } else { // month
-        // Daily data for the last 30 days - using a more straightforward approach
-        for ($i = 29; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            $label = $date->format('d M');
-
-            $count = (clone $userQuery)
-                ->whereDate('created_at', $date)
-                ->count();
-
-            $data[] = [
-                'label' => $label,
-                'value' => $count
-            ];
-        }
+        $this->memberGrowthData = $data;
     }
 
-    $this->memberGrowthData = $data;
-}
     private function loadPaymentTrendsData()
     {
         $period = $this->period;

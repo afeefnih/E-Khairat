@@ -88,6 +88,21 @@ class DeathRecordsTimelineWidget extends ChartWidget
         return 'bar';
     }
 
+    protected function getOptions(): array
+    {
+        return [
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                    'ticks' => [
+                        'stepSize' => 1,
+                        'precision' => 0,
+                    ],
+                ],
+            ],
+        ];
+    }
+
     private function getDeathRecordsData(): array
     {
         // Convert start and end dates to Carbon instances

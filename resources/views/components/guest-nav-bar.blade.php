@@ -28,9 +28,7 @@
                 <li>
                     <a wire:navigate href="/infaq" class="block py-2 px-3 text-gray-700 rounded hover:bg-indigo-50 md:hover:bg-transparent md:hover:text-indigo-600 md:p-0 md:dark:hover:text-indigo-400 dark:text-white dark:hover:bg-indigo-900/30 dark:hover:text-white md:dark:hover:bg-transparent transition-colors duration-200">Infaq</a>
                 </li>
-                <li>
-                    <a href="#" class="block py-2 px-3 text-gray-700 rounded hover:bg-indigo-50 md:hover:bg-transparent md:hover:text-indigo-600 md:p-0 md:dark:hover:text-indigo-400 dark:text-white dark:hover:bg-indigo-900/30 dark:hover:text-white md:dark:hover:bg-transparent transition-colors duration-200">Contact</a>
-                </li>
+
                 <li>
                     <x-theme-button/>
                 </li>

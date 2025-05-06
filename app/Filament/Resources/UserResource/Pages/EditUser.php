@@ -22,7 +22,7 @@ class EditUser extends EditRecord
     {
         return [
             Actions\Action::make('recordDeath')
-                ->label('Record Death')
+                ->label('Rekod Kematian')
                 ->icon('heroicon-o-document-text')
                 ->color('danger')
                 ->visible(fn($record) => $record && !$record->isDeceased())

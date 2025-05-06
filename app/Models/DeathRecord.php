@@ -5,8 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class DeathRecord extends Model
 {
@@ -32,7 +30,7 @@ class DeathRecord extends Model
     protected $casts = [
         'date_of_death' => 'date',
         'time_of_death' => 'datetime',
-        'custom_amount' => 'float',  // Add this to cast to float
+        'custom_amount' => 'float',
     ];
 
     /**
@@ -43,44 +41,47 @@ class DeathRecord extends Model
         return $this->morphTo();
     }
 
-    /**
-     * Get the dependent associated with this death record.
-     */
-    public function dependent(): BelongsTo
+    // Accessors for UI display
+    public function getAgeCategoryAttribute()
     {
-        return $this->belongsTo(Dependent::class, 'dependent_id', 'dependent_id');
+        $age = $this->deceased_age;
+
+        if ($age <= 3) {
+            return 'Janin - 3 tahun';
+        } elseif ($age >= 4 && $age <= 6) {
+            return 'Kanak-kanak (4-6 tahun)';
+        } else {
+            return 'Dewasa';
+        }
     }
 
-    /**
-     * Fix the deceased_type attribute on the fly
-     */
-    protected function deceasedType(): Attribute
+    public function getBaseCostAttribute()
     {
-        return Attribute::make(
-            get: function ($value) {
-                if ($value === 'AppModelsUser') {
-                    return 'App\\Models\\User';
-                }
-                if ($value === 'AppModelsDependent') {
-                    return 'App\\Models\\Dependent';
-                }
-                return $value;
-            },
-            set: function ($value) {
-                if ($value === 'AppModelsUser') {
-                    return 'App\\Models\\User';
-                }
-                if ($value === 'AppModelsDependent') {
-                    return 'App\\Models\\Dependent';
-                }
-                return $value;
-            },
-        );
+        $age = $this->deceased_age;
+        if ($age <= 3) {
+            return 450;
+        } elseif ($age >= 4 && $age <= 6) {
+            return 650;
+        } else {
+            return 1050;
+        }
     }
 
-    /**
-     * Get the deceased name regardless of deceased type.
-     */
+    public function getTotalCostAttribute()
+    {
+        return $this->base_cost + ($this->custom_amount ?? 0);
+    }
+
+    public function getCalculatedAmountAttribute()
+    {
+        return $this->base_cost;
+    }
+
+    public function getFinalAmountAttribute()
+    {
+        return $this->total_cost;
+    }
+
     public function getDeceasedNameAttribute()
     {
         $type = $this->deceased_type;
@@ -93,16 +94,24 @@ class DeathRecord extends Model
             return $this->deceased->full_name ?? 'Unknown';
         }
 
-        if ($this->dependent_id && $this->dependent) {
-            return $this->dependent->full_name ?? 'Unknown';
-        }
-
         return 'Unknown';
     }
 
-    /**
-     * Get the member number (No_Ahli) regardless of deceased type.
-     */
+    public function getDeceasedIcNumberAttribute()
+    {
+        $type = $this->deceased_type;
+
+        if ($type === 'App\\Models\\User' && $this->deceased) {
+            return $this->deceased->ic_number ?? 'Tiada';
+        }
+
+        if ($type === 'App\\Models\\Dependent' && $this->deceased) {
+            return $this->deceased->ic_number ?? 'Tiada';
+        }
+
+        return 'Tiada';
+    }
+
     public function getMemberNoAttribute()
     {
         $type = $this->deceased_type;
@@ -122,9 +131,6 @@ class DeathRecord extends Model
         return 'Tiada';
     }
 
-    /**
-     * Get the deceased's age
-     */
     public function getDeceasedAgeAttribute()
     {
         $type = $this->deceased_type;
@@ -140,62 +146,5 @@ class DeathRecord extends Model
             return $this->deceased->age ?? 0;
         }
         return 0;
-    }
-
-    /**
-     * Get the base death cost based on age category
-     */
-    public function getBaseCostAttribute()
-    {
-        $age = $this->deceased_age;
-        if ($age <= 3) {
-            return 450;
-        } elseif ($age >= 4 && $age <= 6) {
-            return 650;
-        } else {
-            return 1050;
-        }
-    }
-
-    /**
-     * Get the total death cost (base + custom amount)
-     */
-    public function getTotalCostAttribute()
-    {
-        return $this->base_cost + ($this->custom_amount ?? 0);
-    }
-
-    /**
-     * Get the age category label
-     */
-    public function getAgeCategoryAttribute()
-    {
-        $age = $this->deceased_age;
-
-        if ($age <= 3) {
-            return 'Janin - 3 tahun';
-        } elseif ($age >= 4 && $age <= 6) {
-            return 'Kanak-kanak (4-6 tahun)';
-        } else {
-            return 'Dewasa';
-        }
-    }
-
-    /**
-     * Get the IC number of the deceased
-     */
-    public function getDeceasedIcNumberAttribute()
-    {
-        $type = $this->deceased_type;
-
-        if ($type === 'App\\Models\\User' && $this->deceased) {
-            return $this->deceased->ic_number ?? 'Tiada';
-        }
-
-        if ($type === 'App\\Models\\Dependent' && $this->deceased) {
-            return $this->deceased->ic_number ?? 'Tiada';
-        }
-
-        return 'Tiada';
     }
 }

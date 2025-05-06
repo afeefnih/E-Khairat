@@ -75,12 +75,12 @@ class CreateUser extends CreateRecord
                 'payment_category_id' => 1,
                 'amount' => 100,
                 'status_id' => 1,
-                'billcode' => 'ADMIN-' . $user->id,
-                'order_id' => 'ORD-' . time() . '-' . $user->id,
+                'billcode' => 'BILL-' . time() . '-' . \Illuminate\Support\Str::random(6),
+                'order_id' => 'ORD-' . date('Ymd') . '-' . \Illuminate\Support\Str::random(6),
                 'request_title' => 'User Registration',
                 'paid_at' => now(),
             ]);
         }
 
-}
+    }
 }

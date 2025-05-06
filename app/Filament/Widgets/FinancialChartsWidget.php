@@ -54,17 +54,17 @@ class FinancialChartsWidget extends ChartWidget
                     'borderWidth' => 1,
                 ],
                 [
-                    'label' => 'Perbelanjaan',
-                    'data' => $data['total_expenses'],
-                    'backgroundColor' => 'rgba(255, 99, 132, 0.7)',
-                    'borderColor' => 'rgb(255, 99, 132)',
-                    'borderWidth' => 1,
-                ],
-                [
                     'label' => 'Kos Kematian',
                     'data' => $data['death_costs'],
                     'backgroundColor' => 'rgba(255, 206, 86, 0.7)',
                     'borderColor' => 'rgb(255, 206, 86)',
+                    'borderWidth' => 1,
+                ],
+                [
+                    'label' => 'Perbelanjaan',
+                    'data' => $data['expenses'], // Only transaction expenses, not including death costs
+                    'backgroundColor' => 'rgba(255, 99, 132, 0.7)',
+                    'borderColor' => 'rgb(255, 99, 132)',
                     'borderWidth' => 1,
                 ],
             ],

@@ -197,7 +197,7 @@
                             {{ Auth::user()->name ?? 'User' }}
                         </p>
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            {{ Auth::user()->email ?? 'user@example.com' }}
+                            {{ Auth::user()->email ?? '' }}
                         </p>
                     </div>
                 </div>

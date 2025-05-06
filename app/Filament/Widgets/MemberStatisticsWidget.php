@@ -53,20 +53,20 @@ class MemberStatisticsWidget extends BaseWidget
 
         \Log::info("Generating member stats for date range: {$startDate->format('Y-m-d')} to {$endDate->format('Y-m-d')}");
 
-        // Base query for all members (users with role 'user' not 'admin'), INCLUDING deceased members
+        // Base query for all members (users with role 'user'), ONLY alive members
         $memberQuery = User::whereHas('roles', function ($query) {
             $query->where('name', 'user');
-        });
-        // Note: Removed the whereDoesntHave('deathRecord') condition
+        })->whereDoesntHave('deathRecord');
 
-        // Get total members (including deceased)
+        // Now only count alive members
         $totalMembers = $memberQuery->count();
 
-        // Get new members during selected date range - include ALL new members regardless of death status
+        // Get new members during selected date range - only alive new members
         $newMembers = User::whereHas('roles', function ($query) {
             $query->where('name', 'user');
         })
-        ->whereBetween('created_at', [$startDate, $endDate])
+        ->whereDoesntHave('deathRecord')
+        ->whereBetween('registration_date', [$startDate, $endDate])
         ->count();
 
         $kekalMembers = (clone $memberQuery)
@@ -81,8 +81,8 @@ class MemberStatisticsWidget extends BaseWidget
         $kekalPercentage = $totalMembers > 0 ? round(($kekalMembers / $totalMembers) * 100) : 0;
         $sewaPercentage = $totalMembers > 0 ? round(($sewaMembers / $totalMembers) * 100) : 0;
 
-        // Get total dependents (not affected by date range)
-        $totalDependents = Dependent::count();
+        // Get total dependents (only alive dependents)
+        $totalDependents = Dependent::whereDoesntHave('deathRecord')->count();
 
         // Family size distribution
         $singleMembers = (clone $memberQuery)
