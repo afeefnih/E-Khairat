@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Features;
+use Carbon\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
 class UserFactory extends Factory
 {
+    protected $model = User::class;
+
     /**
      * The current password being used by the factory.
      */
@@ -26,16 +29,54 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        static $ahliCounter = 1;
+        static $usedIcNumbers = [];
+
+        // Malay names samples
+        $malayFirstNames = ['Ahmad', 'Mohd', 'Muhammad', 'Nur', 'Siti', 'Aisyah', 'Fatimah', 'Hafiz', 'Aminah', 'Azman', 'Roslan', 'Zainab', 'Rahim', 'Farid', 'Syafiq', 'Nadia', 'Fatin', 'Aiman', 'Hafizah', 'Sulaiman'];
+        $malayLastNames = ['Bin Abdullah', 'Binti Abdullah', 'Bin Ahmad', 'Binti Ahmad', 'Bin Ismail', 'Binti Ismail', 'Bin Ali', 'Binti Ali', 'Bin Hassan', 'Binti Hassan'];
+        $firstName = fake()->randomElement($malayFirstNames);
+        $lastName = fake()->randomElement($malayLastNames);
+        $name = $firstName . ' ' . $lastName;
+
+        // Generate unique IC number with correct century calculation
+        $currentYear = (int)date('y');
+        do {
+            $birthDate = fake()->dateTimeBetween('-80 years', '-18 years');
+            $birthYear = (int)$birthDate->format('y');
+            $century = ($birthYear > $currentYear) ? 1900 : 2000; // If year > current year, it's 19xx, else 20xx
+            $fullYear = $century + $birthYear;
+            $icPrefix = $birthDate->format('ymd');
+            $icSuffix = str_pad(fake()->numberBetween(0, 999999), 6, '0', STR_PAD_LEFT);
+            $icNumber = $icPrefix . $icSuffix;
+        } while (in_array($icNumber, $usedIcNumbers));
+        $usedIcNumbers[] = $icNumber;
+
+        // Calculate age correctly based on century calculation
+        $age = Carbon::now()->year - $fullYear;
+
+        // Address in format: No XX Jalan Sutera Y/Z taman sutera
+        $houseNo = fake()->numberBetween(1, 99);
+        $jalanNo = fake()->numberBetween(1, 10);
+        $subSectionNo = fake()->numberBetween(1, 9);
+        $address = "No $houseNo Jalan Sutera $jalanNo/$subSectionNo taman sutera";
+
+        // Random registration date within last 5 years
+        $registrationDate = fake()->dateTimeBetween('-5 years', 'now');
+
         return [
-            'name' => fake()->name(),
+            'No_Ahli' => str_pad($ahliCounter++, 4, '0', STR_PAD_LEFT),
+            'ic_number' => $icNumber,
+            'name' => $name,
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'remember_token' => Str::random(10),
-            'profile_photo_path' => null,
-            'current_team_id' => null,
+            'remember_token' => null,
+            'phone_number' => '01' . fake()->numberBetween(1, 9) . fake()->numberBetween(1000000, 9999999),
+            'address' => $address,
+            'age' => $age,
+            'home_phone' => '03' . fake()->numberBetween(10000000, 99999999),
+            'residence_status' => fake()->randomElement(['kekal', 'sewa']),
+            'registration_date' => $registrationDate,
         ];
     }
 

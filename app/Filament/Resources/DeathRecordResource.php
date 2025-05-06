@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Filament\Tables\Actions\BulkAction;
 use Illuminate\Database\Eloquent\Collection;
@@ -1067,6 +1068,19 @@ class DeathRecordResource extends Resource
         return [
                 //
             ];
+    }
+
+    /**
+     * Make sure the form selection reflects the URL parameters when creating a new record
+     */
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('edit', ['record' => $record]);
+    }
+
+    public static function canCreate(): bool
+    {
+        return true;
     }
 
     public static function getPages(): array

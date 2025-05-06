@@ -259,7 +259,8 @@ class UserResource extends Resource
 
                 Tables\Columns\TextColumn::make('dependents_count')->label('Tanggungan')->counts('dependents')->badge(),
 
-                Tables\Columns\TextColumn::make('created_at')->label('Tarikh Cipta')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('registration_date')->label('Tarikh Daftar')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+
             ])
             ->filters([Tables\Filters\SelectFilter::make('roles')->label('Peranan')->relationship('roles', 'name')->preload()->multiple()])
             ->actions([

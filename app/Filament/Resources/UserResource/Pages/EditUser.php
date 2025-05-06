@@ -11,6 +11,8 @@ use Filament\Forms;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Log;
 
 class EditUser extends EditRecord
 {
@@ -24,68 +26,12 @@ class EditUser extends EditRecord
                 ->icon('heroicon-o-document-text')
                 ->color('danger')
                 ->visible(fn($record) => $record && !$record->isDeceased())
-                ->form([
-                    Forms\Components\DatePicker::make('date_of_death')
-                        ->required()
-                        ->label('Date of Death')
-                        ->validationMessages([
-                            'required' => 'Tarikh kematian diperlukan.',
-                        ]),
-                    Forms\Components\TimePicker::make('time_of_death')->label('Time of Death')->seconds(false),
-                    Forms\Components\TextInput::make('place_of_death')
-                        ->label('Place of Death')
-                        ->required()
-                        ->validationMessages([
-                            'required' => 'Tempat kematian diperlukan.',
-                        ]),
-                    Forms\Components\Textarea::make('cause_of_death')->label('Cause of Death')->rows(3),
-                    Forms\Components\Textarea::make('death_notes')->label('Notes')->rows(3),
-                    Forms\Components\FileUpload::make('death_attachment_path')
-                        ->label('Death Certificate')
-                        ->directory('death-certificates')
-                        ->visibility('private')
-                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                        ->maxSize(5120), // 5MB
-                ])
-                ->action(function (array $data, $record) {
-                    // Begin a database transaction
-                    DB::beginTransaction();
-
-                    try {
-                        // First check if a death record already exists for this user
-                        $existingRecord = DeathRecord::where(function ($query) use ($record) {
-                            $query->where('deceased_type', 'App\\Models\\User')
-                                  ->where('deceased_id', $record->id);
-                        })->first();
-
-                        if ($existingRecord) {
-                            throw new \Exception('A death record already exists for this member.');
-                        }
-
-                        // Create the death record using polymorphic relationship
-                        $deathRecord = new DeathRecord();
-                        $deathRecord->deceased_type = 'App\\Models\\User';
-                        $deathRecord->deceased_id = $record->id; // Use the user's ID
-                        $deathRecord->date_of_death = $data['date_of_death'];
-                        $deathRecord->time_of_death = $data['time_of_death'] ?? null;
-                        $deathRecord->place_of_death = $data['place_of_death'];
-                        $deathRecord->cause_of_death = $data['cause_of_death'] ?? null;
-                        $deathRecord->death_notes = $data['death_notes'] ?? null;
-                        $deathRecord->death_attachment_path = $data['death_attachment_path'] ?? null;
-                        $deathRecord->save();
-
-                        DB::commit();
-
-                        Notification::make()->success()->title('Death Record Created')->body('The death record has been created successfully.')->send();
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-
-                        Notification::make()
-                            ->danger()
-                            ->title('Error')
-                            ->body('Failed to create death record: ' . $e->getMessage())
-                            ->send();
-                    }
+                ->url(function ($record) {
+                    $url = DeathRecordResource::getUrl('create', [
+                        'deceased_type' => 'App\\Models\\User',
+                        'deceased_id' => $record->id,
+                    ]);
+                    return $url;
                 }),
 
             Actions\Action::make('viewDeathRecord')

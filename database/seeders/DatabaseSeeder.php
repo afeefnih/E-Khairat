@@ -2,10 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Payment;
-use App\Models\PaymentCategory;
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,20 +10,24 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-{
-    // User::factory(10)->create();
+    {
+        // Temporarily disable foreign key checks for truncation
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-    PaymentCategory::create([
-        'category_name' => 'Bayaran Pendaftran',
-        'category_description' => 'Pendaftaran menjadi ahli biro khairat kematian Masjid Taman Sutera',
+        // Clear dependent tables first to avoid foreign key issues
+        \DB::table('dependents')->truncate();
+        \DB::table('role_user')->truncate();
 
-        'amount' => 100,
-    ]);
+        // Now run the seeders in proper order
+        $this->call([
+            RoleSeeder::class,
+            UserSeeder::class,
+            PaymentCategorySeeder::class,
+            PaymentSeeder::class,
+            AdminSeeder::class,
+        ]);
 
-    $this->call([
-        RoleSeeder::class,
-        AdminSeeder::class,
-    ]);
-
-}
+        // Enable foreign key checks again
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    }
 }
