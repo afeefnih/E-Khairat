@@ -52,13 +52,28 @@
 
                     <div>
                         <x-label for="password" value="{{ __('Kata Laluan') }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300" />
-                        <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="mt-1 relative rounded-md shadow-sm" x-data="{ show: false }">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                             </div>
-                            <x-input id="password" class="block w-full pl-10 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-300 rounded-lg" type="password" name="password" placeholder="Masukkan kata laluan anda" required />
+                            <x-input
+                                id="password"
+                                x-bind:type="show ? 'text' : 'password'"
+                                class="block w-full pl-10 pr-10 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-300 rounded-lg"
+                                name="password"
+                                placeholder="Masukkan kata laluan anda"
+                                required
+                            />
+                            <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 focus:outline-none" tabindex="-1">
+                                <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <svg x-show="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.402-3.221 1.125-4.575m1.664-2.336A9.956 9.956 0 0112 3c5.523 0 10 4.477 10 10 0 1.657-.402 3.221-1.125 4.575m-1.664 2.336A9.956 9.956 0 0112 21c-5.523 0-10-4.477-10-10 0-1.657.402-3.221 1.125-4.575" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
 

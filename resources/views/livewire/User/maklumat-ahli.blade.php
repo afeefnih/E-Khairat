@@ -26,8 +26,7 @@
                 <!-- Status Bar -->
                 <div class="mb-6 flex items-center justify-between">
                     <div class="flex items-center">
-                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Status: Aktif</span>
+
                     </div>
                     <!-- Edit Toggle Button -->
                     <button

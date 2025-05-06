@@ -14,7 +14,7 @@ class DependentList extends Component
 {
     // Form properties
     public $dependent_full_name;
-    public $dependent_relationship;
+    public $dependent_relationship = '';
     public $dependent_age;
     public $dependent_ic_number;
 
