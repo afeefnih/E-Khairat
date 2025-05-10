@@ -676,6 +676,14 @@ class DeathRecordResource extends Resource
                        ->formatStateUsing(fn($state, $record) => $record ? $record->custom_amount : $state)
                        ->dehydrated(), // Ensure it's saved
 
+                    Forms\Components\Textarea::make('custom_amount_notes')
+                        ->label('Catatan Jumlah Tambahan')
+                        ->rows(3)
+                        ->maxLength(1000)
+                        ->formatStateUsing(fn($state, $record) => $record ? $record->custom_amount_notes : $state)
+                        ->dehydrated() // Ensure it's saved
+                        ->visible(fn(callable $get) => !empty($get('custom_amount'))), // Only show if custom_amount has a value
+
                     Forms\Components\TextInput::make('final_amount')
                         ->label('Jumlah Akhir')
                         ->disabled()
