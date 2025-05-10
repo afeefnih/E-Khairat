@@ -619,6 +619,26 @@ class DeathRecordResource extends Resource
             // Add this after your death information fields but before the certificate section
             Forms\Components\Section::make('Kos Khairat Kematian')
                 ->schema([
+                    Forms\Components\Placeholder::make('harga_khairat')
+                        ->label('Senarai Kos Khairat Kematian')
+                        ->content(function () {
+                            return new \Illuminate\Support\HtmlString('
+                                <dl class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Janin - 3 tahun</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">RM450</dd>
+                                    </div>
+                                    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Kanak-kanak (4-6 tahun)</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">RM650</dd>
+                                    </div>
+                                    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Dewasa</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:mt-0 sm:col-span-2">RM1050</dd>
+                                    </div>
+                                </dl>
+                            ');
+                        }),
                     Forms\Components\TextInput::make('age_category')
                         ->label('Kategori Umur')
                         ->disabled()
