@@ -120,7 +120,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                 <!-- Stat 1 -->
                 <div>
-                    <h3 class="text-3xl md:text-4xl font-bold text-white mb-2">500+</h3>
+                    <h3 class="text-3xl md:text-4xl font-bold text-white mb-2">{{ $totalMembers }}</h3>
                     <p class="text-indigo-200">Ahli Berdaftar</p>
                 </div>
 

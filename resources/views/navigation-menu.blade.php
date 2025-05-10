@@ -44,7 +44,7 @@
         </div>
 
         <!-- Right Side Items -->
-        <div class="flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
+        <div class="hidden md:flex md:order-2 space-x-3 md:space-x-3 rtl:space-x-reverse">
             <!-- Dark Mode Toggle -->
             <button @click="darkMode = !darkMode"
                     class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-600 rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-indigo-600 transition-colors duration-200">
@@ -122,13 +122,7 @@
                 </div>
             </div>
 
-            <!-- Mobile menu button -->
-            <button @click="open = !open" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-600 rounded-lg md:hidden hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-indigo-600 ml-3" aria-controls="navbar-sticky" :aria-expanded="open ? 'true' : 'false'">
-                <span class="sr-only">Open main menu</span>
-                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
-                </svg>
-            </button>
+
         </div>
     </div>
 

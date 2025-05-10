@@ -2,12 +2,19 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
 use Livewire\Component;
 
 class HomePage extends Component
 {
     public function render()
     {
-        return view('livewire.home-page')->layout('layouts.guest');
+        $totalMembers = User::whereHas('roles', function ($query) {
+            $query->where('name', 'user');
+        })->whereDoesntHave('deathRecord')->count();
+
+        return view('livewire.home-page', [
+            'totalMembers' => $totalMembers,
+        ])->layout('layouts.guest');
     }
 }
