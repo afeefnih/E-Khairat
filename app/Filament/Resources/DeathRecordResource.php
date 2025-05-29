@@ -30,7 +30,7 @@ class DeathRecordResource extends Resource
 
     protected static ?string $navigationLabel = 'Rekod Kematian';
 
-    protected static ?string $navigationGroup = 'Pengurusan Rekod';
+    protected static ?string $navigationGroup = 'Pengurusan Kematian';
 
     protected static ?string $label = 'Rekod Kematian';
     protected static ?string $pluralLabel = 'Rekod Kematian';

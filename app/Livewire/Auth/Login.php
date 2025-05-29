@@ -55,9 +55,9 @@ class Login extends Component
     }
     protected function redirectToDashboard(User $user)
     {
-        // Redirect admin users to the Filament admin dashboard
+        // Redirect admin users to their intended Filament admin page or the dashboard
         if ($user->isAdmin()) {
-            return redirect()->route('filament.admin.pages.dashboard');
+            return redirect()->intended(route('filament.admin.pages.dashboard'));
         }
 
         // Redirect regular users to the user dashboard

@@ -25,7 +25,7 @@ class TransactionResource extends Resource
     protected static ?string $modelLabel = 'Transaksi';
 
     protected static ?string $pluralLabel = 'Senarai Transaksi';
-    protected static ?string $navigationGroup = 'Kewangan'; // Changed from 'Payments' to 'Kewangan'
+    protected static ?string $navigationGroup = 'Pengurusan Kewangan'; // Changed from 'Payments' to 'Kewangan'
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -83,10 +83,15 @@ class TransactionResource extends Resource
                     'required' => 'Tarikh transaksi diperlukan.',
                 ]),
 
-            Forms\Components\TextInput::make('payment_method')
+            Forms\Components\Select::make('payment_method')
                 ->label('Kaedah Pembayaran')
-                ->nullable()
-                ->maxLength(255),
+                ->options([
+                    'cash' => 'Tunai',
+                    'transfer' => 'Pindahan Bank',
+                    'other' => 'Lain-lain',
+                ])
+                ->native(false)
+                ->nullable(),
 
             Forms\Components\FileUpload::make('receipt_path')
                 ->label('Resit')

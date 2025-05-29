@@ -22,7 +22,7 @@ class PaymentCategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationLabel = ' Kutipan Sumbangan ';
-    protected static ?string $navigationGroup = 'Pembayaran';
+    protected static ?string $navigationGroup = 'Pengurusan Pembayaran';
     protected static ?int  $navigationSort = 2;
 
     protected static ?string $pluralLabel = 'Senarai Kutipan Sumbangan';
