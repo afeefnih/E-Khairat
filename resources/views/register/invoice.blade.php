@@ -7,10 +7,10 @@
                     <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-16 h-16 object-contain">
                 </div>
                 <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-                    Pendaftaran Ahli Khairat
+                    Invois & Pembayaran
                 </h1>
                 <p class="mt-3 text-lg text-gray-600 dark:text-gray-400">
-                    Sila lengkapkan maklumat anda untuk mendaftar
+                    Semak invois anda dan lakukan pembayaran untuk melengkapkan pendaftaran
                 </p>
 
 
