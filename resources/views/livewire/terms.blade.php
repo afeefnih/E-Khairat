@@ -201,8 +201,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 13l4 4L19 7"></path>
                                         </svg>
-                                        Each member is required to pay a <strong class="text-green-700">contribution of
-                                            RM100.00 ONCE ONLY</strong> when registering as a BKKMTS member.
+                                        <span>Each member is required to pay a <strong class="text-green-700">contribution of RM100.00 ONCE ONLY</strong> when registering as a BKKMTS member.</span>
                                     </li>
                                     <li class="flex items-start">
                                         <svg class="h-5 w-5 text-green-500 mr-2 mt-0.5" fill="none"
@@ -211,9 +210,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 13l4 4L19 7"></path>
                                         </svg>
-                                        This contribution is <strong>not fixed</strong> and may be <strong>collected
-                                            again</strong> if the funds collected by BKKMTS experience a reduction or
-                                        depreciation.
+                                        <span>This contribution is <strong>not fixed</strong> and may be <strong>collected again</strong> if the funds collected by BKKMTS experience a reduction or depreciation.</span>
                                     </li>
                                     <li class="flex items-start">
                                         <svg class="h-5 w-5 text-green-500 mr-2 mt-0.5" fill="none"
@@ -222,9 +219,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 13l4 4L19 7"></path>
                                         </svg>
-                                        Members who wish to make additional contributions are <strong>highly encouraged
-                                            and appreciated</strong>. These additional contributions will help
-                                        strengthen BKKMTS funds for mutual benefit.
+                                        <span>Members who wish to make additional contributions are <strong>highly encouraged and appreciated</strong>. These additional contributions will help strengthen BKKMTS funds for mutual benefit.</span>
                                     </li>
                                 @endif
                             </ul>
@@ -279,8 +274,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
-                                        All information provided during registration must be <strong>accurate and
-                                            true</strong>.
+                                        All information provided during registration must be <strong>accurate and true</strong>.
                                     </li>
                                     <li class="flex items-start">
                                         <svg class="h-5 w-5 text-blue-500 mr-2 mt-0.5" fill="none"
