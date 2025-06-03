@@ -18,37 +18,39 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Terms;
 
 
-Route::get('/', HomePage::class)->name('home');  // Correct way to use Livewire components in routes
+// Guest routes - redirect authenticated users to dashboard
+Route::middleware(['guest'])->group(function () {
+    Route::get('/', HomePage::class)->name('home');  // Correct way to use Livewire components in routes
 
+    Route::get('/terms', function () {
+        return view('termsPage');
+    })->name('terms');
 
-Route::get('/terms', function () {
-    return view('termsPage');
-})->name('terms');
+    Route::get('/infaq', InfaqPage::class)->name('infaq');
+    Route::post('/infaq/store', [InfaqController::class, 'store'])->name('infaq.store');
+    Route::get('/infaq/callback', [InfaqController::class, 'handlePaymentCallback'])->name('infaq.callback');
 
+    Route::get('/register', UserRegistration::class)->name('register');
+    // Dependent Registration Step
+    Route::get('/register/dependent',function(){
+        return view('register.dependent');
+    })->name('register.dependent');
+    // Invoice and Payment Step
+    Route::get('/register/invoice', function() {
+        return view('register.invoice');
+    })->name('register.invoice');
 
-Route::get('/infaq', InfaqPage::class)->name('infaq');
-Route::post('/infaq/store', [InfaqController::class, 'store'])->name('infaq.store');
-Route::get('/infaq/callback', [InfaqController::class, 'handlePaymentCallback'])->name('infaq.callback');
+    // Login routes
+    Route::get('/login', [Login::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Login::class, 'login']);
+});
 
-Route::get('/register', UserRegistration::class)->name('register');
-// Dependent Registration Step
-Route::get('/register/dependent',function(){
-    return view('register.dependent');
-})->name('register.dependent');
-// Invoice and Payment Step
-Route::get('/register/invoice', function() {
-    return view('register.invoice');
-})->name('register.invoice');
+// Payment registration route - accessible to both guests and authenticated users
+Route::post('/payments/process/registration', [App\Http\Controllers\PaymentController::class, 'paymentRegistration'])
+    ->name('payments.registration');
 
-//Route::post('/register/payment', [PaymentController::class, 'paymentRegistration'])->name('payment.registration');
-//Route::get('/register/payment/callback', [RegisteredUser::class, 'handlePaymentCallback'])->name('payment.callback');
-
-// Login routes
-Route::get('/login', [Login::class, 'showLoginForm'])->name('login');
-Route::post('/login', [Login::class, 'login']);
-
-// Logout route
-Route::post('/logout', [Login::class, 'logout'])->name('logout');
+// Logout route - only for authenticated users
+Route::post('/logout', [Login::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware([
     'auth:sanctum',
@@ -67,11 +69,6 @@ Route::get('/maklumat-ahli', function () {
 // Add the new route for "Maklumat Tanggungan" page
 
 });
-
-Route::post('/payments/process/registration', [App\Http\Controllers\PaymentController::class, 'paymentRegistration'])
-    ->name('payments.registration');
-
-
 
 // Routes for Payment Processing
 Route::get('/payments/process/{category}', [App\Http\Controllers\PaymentController::class, 'processPayment'])
