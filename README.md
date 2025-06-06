@@ -1,6 +1,8 @@
 # E-Khairat - Biro Khairat Kematian Masjid Taman Sutera
 
-![E-Khairat Logo](public/images/logo.png)
+<div align="center">
+  <img src="public/images/logo.png" alt="E-Khairat Logo" width="150" height="150">
+</div>
 
 ## 📖 About the Project
 
