@@ -89,6 +89,7 @@
                             <!-- Phone Number (No Telefon) -->
                             <div class="relative">
                                 <input type="text" wire:model="phone_number" id="phone_number"
+                                       maxlength="12" inputmode="numeric"
                                        class="block px-3.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-500 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
                                        placeholder=" " />
                                 <label for="phone_number"
@@ -100,6 +101,7 @@
                             <!-- Home Phone (No Telefon Rumah) -->
                             <div class="relative">
                                 <input type="text" wire:model="home_phone" id="home_phone"
+                                       maxlength="12" inputmode="numeric"
                                        class="block px-3.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-indigo-500 focus:outline-none focus:ring-0 focus:border-indigo-600 peer"
                                        placeholder=" " />
                                 <label for="home_phone"

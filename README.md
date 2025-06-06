@@ -1,66 +1,307 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# E-Khairat - Biro Khairat Kematian Masjid Taman Sutera
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+<div align="center">
+  <img src="public/images/logo.png" alt="E-Khairat Logo" width="150" height="150">
+</div>
 
-## About Laravel
+## 📖 About the Project
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+E-Khairat is a comprehensive digital platform designed to manage the death benefit (khairat kematian) services for Masjid Taman Sutera community in Kajang. This web application streamlines the registration process, payment management, and administrative tasks for the mosque's death benefit bureau (Biro Khairat Kematian).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🎯 Mission
+To provide fast, efficient, and respectful death management services to the Taman Sutera community and surrounding areas, following Islamic teachings and principles.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🌟 Key Features
 
-## Learning Laravel
+- **Member Registration**: Complete online registration system for new members
+- **Dependent Management**: Add and manage family members under coverage
+- **Online Payments**: Secure payment processing via ToyyibPay integration
+- **Admin Dashboard**: Comprehensive admin panel built with Filament
+- **Member Portal**: Personal dashboard for members to manage their accounts
+- **Infaq/Donation System**: Digital donation platform for community support
+- **Receipt Generation**: Automated PDF receipt generation
+- **Notification System**: Email notifications for important updates
+- **Multi-language Support**: Malay and English language options
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ Tech Stack
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Backend
+- **Framework**: Laravel 11.x
+- **Authentication**: Laravel Jetstream with Livewire
+- **Database**: SQLite (development)
+- **Admin Panel**: Filament 3.3
+- **PDF Generation**: DomPDF
+- **Payment Gateway**: ToyyibPay
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Frontend
+- **UI Framework**: Livewire 3.x
+- **CSS Framework**: Tailwind CSS 3.4
+- **Components**: Flowbite
+- **Icons**: Heroicons
+- **Build Tool**: Vite 6.x
 
-## Laravel Sponsors
+### Development Tools
+- **Testing**: PestPHP
+- **Code Style**: Laravel Pint
+- **Debugging**: Laravel Debugbar
+- **Local Development**: Laravel Herd
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📋 Requirements
 
-### Premium Partners
+- PHP 8.2 or higher
+- Composer
+- Node.js & NPM
+- SQLite or MySQL database
+- ToyyibPay merchant account (for payment processing)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## 🚀 Installation
 
-## Contributing
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/e-khairat.git
+cd e-khairat
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 2. Install PHP Dependencies
+```bash
+composer install
+```
 
-## Code of Conduct
+### 3. Install Node Dependencies
+```bash
+npm install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Environment Setup
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Security Vulnerabilities
+### 5. Configure Environment Variables
+Edit the `.env` file with your configuration:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```env
+APP_NAME="E-Khairat"
+APP_ENV=local
+APP_KEY=base64:your-generated-key
+APP_DEBUG=true
+APP_URL=http://localhost:8000
 
-## License
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/database/database.sqlite
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# ToyyibPay Configuration
+TOYYIBPAY_CATEGORY_CODE_YURAN_KHAIRAT=your_category_code
+TOYYIBPAY_CATEGORY_CODE_INFAQ_KHAIRAT=your_infaq_category_code
+TOYYIBPAY_SECRET_KEY=your_secret_key
+
+# Mail Configuration
+MAIL_MAILER=smtp
+MAIL_HOST=your-smtp-host
+MAIL_PORT=587
+MAIL_USERNAME=your-email
+MAIL_PASSWORD=your-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@khairatsutera.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### 6. Database Setup
+```bash
+# Create database file (for SQLite)
+touch database/database.sqlite
+
+# Run migrations
+php artisan migrate
+
+# Seed the database
+php artisan db:seed
+```
+
+### 7. Build Assets
+```bash
+npm run build
+# or for development
+npm run dev
+```
+
+### 8. Start the Application
+```bash
+php artisan serve
+```
+
+Visit `http://localhost:8000` to access the application.
+
+## 🔧 Configuration
+
+### ToyyibPay Setup
+1. Register for a ToyyibPay merchant account
+2. Obtain your category codes and secret key
+3. Update the `.env` file with your ToyyibPay credentials
+4. Configure the callback URLs in your ToyyibPay dashboard
+
+### Admin Account
+Create an admin user:
+```bash
+php artisan tinker
+```
+```php
+$user = \App\Models\User::create([
+    'No_Ahli' => '0001',
+    'ic_number' => '123456789012',
+    'name' => 'Admin User',
+    'email' => 'admin@khairatsutera.com',
+    'password' => bcrypt('password'),
+    'phone_number' => '0123456789',
+    'address' => 'Admin Address',
+    'age' => 30,
+]);
+
+$adminRole = \App\Models\Role::create(['name' => 'admin']);
+$user->roles()->attach($adminRole->id);
+```
+
+## 📱 Usage
+
+### For Members
+1. **Registration**: Visit the homepage and click "Daftar Sekarang"
+2. **Fill Details**: Complete personal information and dependent details
+3. **Payment**: Pay the registration fee via ToyyibPay
+4. **Access Dashboard**: Login to manage your account and dependents
+
+### For Admins
+1. **Access Admin Panel**: Visit `/admin` and login
+2. **Manage Members**: View, edit, and manage member accounts
+3. **Payment Records**: Track all payments and transactions
+4. **Generate Reports**: Export member lists and payment reports
+5. **Manage Categories**: Configure payment categories and amounts
+
+## 🏗️ Project Structure
+
+```
+app/
+├── Actions/Fortify/          # Jetstream authentication actions
+├── Filament/                 # Admin panel resources
+│   ├── Pages/               # Custom admin pages
+│   ├── Resources/           # Model resources
+│   └── Widgets/             # Dashboard widgets
+├── Http/
+│   ├── Controllers/         # Application controllers
+│   └── Livewire/           # Livewire components
+├── Models/                  # Eloquent models
+└── Notifications/          # Email notifications
+
+resources/
+├── views/
+│   ├── livewire/           # Livewire blade templates
+│   ├── pdf/                # PDF templates
+│   └── components/         # Blade components
+├── css/                    # Stylesheets
+└── js/                     # JavaScript files
+
+database/
+├── migrations/             # Database migrations
+└── seeders/               # Database seeders
+```
+
+## 🧪 Testing
+
+Run the test suite:
+```bash
+php artisan test
+# or
+./vendor/bin/pest
+```
+
+## 📊 Key Models
+
+- **User**: Member accounts and authentication
+- **Dependent**: Family members under coverage
+- **Payment**: Payment records and transactions
+- **PaymentCategory**: Different types of payments
+- **Role**: User role management
+- **Infaq**: Donation records
+
+## 🔐 Security Features
+
+- CSRF protection on all forms
+- Password hashing with bcrypt
+- Session-based authentication
+- Input validation and sanitization
+- Secure payment processing via ToyyibPay
+
+## 🌐 API Integration
+
+### ToyyibPay Integration
+- **Registration Payments**: Automated bill creation for member registration
+- **Infaq Donations**: Flexible donation amounts
+- **Callback Handling**: Secure payment verification
+- **Receipt Generation**: Automatic PDF receipts
+
+## 📈 Performance Optimization
+
+- **Asset Compilation**: Vite for optimized CSS/JS bundling
+- **Database Indexing**: Proper indexing on frequently queried fields
+- **Lazy Loading**: Efficient relationship loading
+- **Caching**: Session and configuration caching
+
+## 🔄 Deployment
+
+### Production Deployment
+1. Set `APP_ENV=production` in `.env`
+2. Set `APP_DEBUG=false`
+3. Configure production database
+4. Set up proper mail configuration
+5. Run optimization commands:
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+composer install --optimize-autoloader --no-dev
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📞 Support
+
+For technical support or inquiries:
+- **Email**: info@khairatsutera.com
+- **Phone**: 03-8735 4225 (24/7 Emergency)
+- **Address**: Masjid Taman Sutera, Kajang
+
+## 🙏 Acknowledgments
+
+- **Masjid Taman Sutera** - For their trust and support
+- **Laravel Community** - For the amazing framework
+- **ToyyibPay** - For payment gateway services
+- **Filament** - For the excellent admin panel
+
+---
+
+## 📋 Changelog
+
+### Version 1.0.0
+- Initial release
+- Member registration system
+- Payment integration with ToyyibPay
+- Admin dashboard with Filament
+- PDF receipt generation
+- Email notifications
+- Infaq donation system
+
+---
+
+**Biro Khairat Kematian Masjid Taman Sutera © 2025. All rights reserved.**
+
+*"Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain"*
