@@ -273,12 +273,6 @@ composer install --optimize-autoloader --no-dev
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Support
-
-For technical support or inquiries:
-- **Email**: info@khairatsutera.com
-- **Phone**: 03-8735 4225 (24/7 Emergency)
-- **Address**: Masjid Taman Sutera, Kajang
 
 ## 🙏 Acknowledgments
 
